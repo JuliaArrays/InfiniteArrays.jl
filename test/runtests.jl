@@ -1,5 +1,5 @@
 using InfiniteArrays, Compat.Test
-    import InfiniteArrays: OrientedInfinity, OneToInfinity, InfiniteUnitRange, InfiniteStepRange
+    import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
 
 
 @testset "∞" begin
@@ -41,6 +41,8 @@ using InfiniteArrays, Compat.Test
     @test exp(im*π/4)*∞ == Inf+im*Inf
     @test exp(im*π/4)+∞ == ∞
 end
+
+
 
 
 
@@ -165,123 +167,139 @@ end
         @test_broken !("a" in 1:3)
         @test_broken !("a" in 1.0:3.0)
     end
-end
-
-@testset "indexing range with empty range (#4309)" begin
-    @test (3:∞)[5:4] == 7:6
-    @test (0:2:∞)[7:6] == 12:2:10
-end
-# indexing with negative ranges (#8351)
-for a=[3:∞, 0:2:∞], b=[0:1, 2:-1:0]
-    @test_throws BoundsError a[b]
-end
 
 
-@testset "sums of ranges" begin
-    @test sum(1:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ∞
-    @test sum(0:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ∞
-    @test sum(0:2:∞) ≡ mean(0:2:∞) ≡ median(0:2:∞) ≡ +∞
-    @test sum(0:-2:-∞) ≡ mean(0:-2:-∞) ≡ median(0:-2:-∞) ≡ -∞
-end
-
-@testset "broadcasted operations with scalars" begin
-    @test broadcast(-, 1:∞, 2) == -1:∞
-    @test broadcast(-, 1:∞, 0.25) == 1-0.25:∞
-    @test broadcast(+, 1:∞, 2) == 3:∞
-    @test broadcast(+, 1:∞, 0.25) == 1+0.25:∞
-    @test broadcast(+, 1:2:∞, 1) == 2:2:∞
-    @test broadcast(+, 1:2:∞, 0.3) == 1+0.3:2:∞
-    @test broadcast(-, 1:2:∞, 1) == 0:2:∞
-    @test broadcast(-, 1:2:∞, 0.3) == 1-0.3:2:∞
-    @test broadcast(-, 2, 1:∞) == 1:-1:-∞
-end
+    @testset "indexing range with empty range (#4309)" begin
+        @test (3:∞)[5:4] == 7:6
+        @test (0:2:∞)[7:6] == 12:2:10
+    end
+    # indexing with negative ranges (#8351)
+    for a=[3:∞, 0:2:∞], b=[0:1, 2:-1:0]
+        @test_throws BoundsError a[b]
+    end
 
 
+    @testset "sums of ranges" begin
+        @test sum(1:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ∞
+        @test sum(0:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ∞
+        @test sum(0:2:∞) ≡ mean(0:2:∞) ≡ median(0:2:∞) ≡ +∞
+        @test sum(0:-2:-∞) ≡ mean(0:-2:-∞) ≡ median(0:-2:-∞) ≡ -∞
+    end
 
-# near-equal ranges
-@test 0.0:0.1:∞ != 0.0f0:0.1f0:∞
-
-
-@testset "comparing InfiniteUnitRanges and OneToInfinity" begin
-    @test 1:2:∞ == 1:2:∞ != 1:3:∞ != 2:3:∞ == 2:3:∞ != 2:∞
-    @test 1:1:∞ == 1:∞ == 1:∞ == OneToInfinity() == OneToInfinity()
-end
-
-
-@testset "issue #6973" begin
-    r1 = 1.0:0.1:∞
-    r2 = 1.0f0:0.2f0:∞
-    r3 = 1:2:∞
-    @test r1 + r1 == 2*r1
-    @test_broken r1 + r2 == 2.0:0.3:∞
-    @test (2r1)-3r1 == -1:(2step(r1)-3step(r1)):-∞
-    @test_broken (r1 + r2) - r2 == r1
-    @test r1 + r3 == 2.0:2.1:∞
-    @test r3 + r3 == 2 * r3
-end
-
-# Preservation of high precision upon addition
-let r = (-0.1:0.1:∞) + broadcast(+, -0.3:0.1:∞, 1e-12)
-    @test_broken r[3] == 1e-12
-end
-
-# issue #8584
-@test (0:1//2:∞)[1:2:3] == 0:1//1:1
+    @testset "broadcasted operations with scalars" begin
+        @test broadcast(-, 1:∞, 2) == -1:∞
+        @test broadcast(-, 1:∞, 0.25) == 1-0.25:∞
+        @test broadcast(+, 1:∞, 2) == 3:∞
+        @test broadcast(+, 1:∞, 0.25) == 1+0.25:∞
+        @test broadcast(+, 1:2:∞, 1) == 2:2:∞
+        @test broadcast(+, 1:2:∞, 0.3) == 1+0.3:2:∞
+        @test broadcast(-, 1:2:∞, 1) == 0:2:∞
+        @test broadcast(-, 1:2:∞, 0.3) == 1-0.3:2:∞
+        @test broadcast(-, 2, 1:∞) == 1:-1:-∞
+    end
 
 
-@testset "issue #9962" begin
-    @test eltype(0:1//3:∞) <: Rational
-    @test (0:1//3:∞)[1] == 0
-    @test (0:1//3:∞)[2] == 1//3
-end
-@testset "converting ranges (issue #10965)" begin
-    @test promote(0:∞, UInt8(2):∞) === (0:∞, 2:∞)
-    @test convert(InfiniteUnitRange{Int}, 0:∞) === 0:∞
-    @test convert(InfiniteUnitRange{Int128}, 0:∞) === Int128(0):∞
 
-    @test promote(0:1:∞, UInt8(2):UInt8(1):∞) === (0:1:∞, 2:1:∞)
-    @test convert(InfiniteStepRange{Int,Int}, 0:1:∞) === 0:1:∞
-    @test convert(InfiniteStepRange{Int128,Int128}, 0:1:∞) === Int128(0):Int128(1):∞
+    # near-equal ranges
+    @test 0.0:0.1:∞ != 0.0f0:0.1f0:∞
 
-    @test promote(0:1:∞, 2:∞) === (0:1:∞, 2:1:∞)
-    @test convert(InfiniteStepRange{Int128,Int128}, 0:∞) === Int128(0):Int128(1):∞
-    @test convert(InfiniteStepRange, 0:∞) === 0:1:∞
-    @test convert(InfiniteStepRange{Int128,Int128}, 0.:∞) === Int128(0):Int128(1):∞
 
-    @test_broken promote(0f0:inv(3f0):∞, 0.:2.:∞) === (0:1/3:∞, 0.:2.:∞)
+    @testset "comparing InfiniteUnitRanges and OneToInf" begin
+        @test 1:2:∞ == 1:2:∞ != 1:3:∞ != 2:3:∞ == 2:3:∞ != 2:∞
+        @test 1:1:∞ == 1:∞ == 1:∞ == OneToInf() == OneToInf()
+    end
 
-    @test promote(0:1/3:∞, 0:∞) === (0:1/3:∞, 0.:1.:∞)
-end
 
-@testset "inf-range[inf-range]"
-    @test (1:∞)[1:∞] == 1:∞
-    @test (1:∞)[OneToInfinity()] == 1:∞
-    @test (1:∞)[2:∞] == 2:∞
-    @test_throws BoundsError (1:∞)[-1:∞]
-    @test (1:-1:-∞)[1:∞] == 1:-1:-∞
-end
+    @testset "issue #6973" begin
+        r1 = 1.0:0.1:∞
+        r2 = 1.0f0:0.2f0:∞
+        r3 = 1:2:∞
+        @test r1 + r1 == 2*r1
+        @test_broken r1 + r2 == 2.0:0.3:∞
+        @test (2r1)-3r1 == -1:(2step(r1)-3step(r1)):-∞
+        @test_broken (r1 + r2) - r2 == r1
+        @test r1 + r3 == 2.0:2.1:∞
+        @test r3 + r3 == 2 * r3
+    end
 
-@testset "OneToInfinity" begin
-    let r = OneToInfinity()
-        @test !isempty(r)
-        @test length(r) == ∞
-        @test size(r) == (∞,)
-        @test step(r) == 1
-        @test first(r) == 1
-        @test last(r) == ∞
-        @test minimum(r) == 1
-        @test maximum(r) == ∞
-        @test r[2] == 2
-        @test r[2:3] === 2:3
-        @test_throws BoundsError r[0]
-        @test broadcast(+, r, 1) === 2:∞
-        @test 2*r === 2:2:∞
-        @test r + r === 2:2:∞
+    # Preservation of high precision upon addition
+    let r = (-0.1:0.1:∞) + broadcast(+, -0.3:0.1:∞, 1e-12)
+        @test_broken r[3] == 1e-12
+    end
 
-        @test r - r === InfiniteArrays.repeated(0)
+    # issue #8584
+    @test (0:1//2:∞)[1:2:3] == 0:1//1:1
 
-        @test intersect(r, Base.OneTo(2)) == Base.OneTo(2)
-        @test intersect(r, 0:5) == 1:5
-        @test intersect(r, 2) === intersect(2, r) === 2:2
+
+    @testset "issue #9962" begin
+        @test eltype(0:1//3:∞) <: Rational
+        @test (0:1//3:∞)[1] == 0
+        @test (0:1//3:∞)[2] == 1//3
+    end
+    @testset "converting ranges (issue #10965)" begin
+        @test promote(0:∞, UInt8(2):∞) === (0:∞, 2:∞)
+        @test convert(InfUnitRange{Int}, 0:∞) === 0:∞
+        @test convert(InfUnitRange{Int128}, 0:∞) === Int128(0):∞
+
+        @test promote(0:1:∞, UInt8(2):UInt8(1):∞) === (0:1:∞, 2:1:∞)
+        @test convert(InfStepRange{Int,Int}, 0:1:∞) === 0:1:∞
+        @test convert(InfStepRange{Int128,Int128}, 0:1:∞) === Int128(0):Int128(1):∞
+
+        @test promote(0:1:∞, 2:∞) === (0:1:∞, 2:1:∞)
+        @test convert(InfStepRange{Int128,Int128}, 0:∞) === Int128(0):Int128(1):∞
+        @test convert(InfStepRange, 0:∞) === 0:1:∞
+        @test convert(InfStepRange{Int128,Int128}, 0.:∞) === Int128(0):Int128(1):∞
+
+        @test_broken promote(0f0:inv(3f0):∞, 0.:2.:∞) === (0:1/3:∞, 0.:2.:∞)
+
+        @test promote(0:1/3:∞, 0:∞) === (0:1/3:∞, 0.:1.:∞)
+    end
+
+    @testset "inf-range[inf-range]" begin
+        @test (1:∞)[1:∞] == 1:∞
+        @test (1:∞)[OneToInf()] == 1:∞
+        @test (1:∞)[2:∞] == 2:∞
+        @test_throws BoundsError (1:∞)[-1:∞]
+        @test (1:-1:-∞)[1:∞] == 1:-1:-∞
+    end
+
+    @testset "OneToInf" begin
+        let r = OneToInf()
+            @test !isempty(r)
+            @test length(r) == ∞
+            @test size(r) == (∞,)
+            @test step(r) == 1
+            @test first(r) == 1
+            @test last(r) == ∞
+            @test minimum(r) == 1
+            @test maximum(r) == ∞
+            @test r[2] == 2
+            @test r[2:3] === 2:3
+            @test_throws BoundsError r[0]
+            @test broadcast(+, r, 1) === 2:∞
+            @test 2*r === 2:2:∞
+            @test r + r === 2:2:∞
+
+            @test r - r === InfiniteArrays.repeated(0)
+
+            @test intersect(r, Base.OneTo(2)) == Base.OneTo(2)
+            @test intersect(r, 0:5) == 1:5
+            @test intersect(r, 2) === intersect(2, r) === 2:2
+        end
+    end
+
+    @testset "show" begin
+        @test summary(1:∞) == "InfiniteArrays.InfUnitRange{Int64} with indices OneToInf()"
+        @test Base.inds2string(indices(1:∞)) == "OneToInf()"
     end
 end
+
+
+V = (1:∞)
+[diagm(V)[k,j] for k=1:10, j=1:10]
+InfiniteArrays.InfDiagonal{Int,typeof(V)}(V)
+
+
+InfiniteArrays.InfVector
+
+Vector
