@@ -36,23 +36,27 @@ end
 "The length of the data vector that is stored in the sequence."
 data_length(s::ExtensionSequence) = length(data(s))
 
-"The data_left index of the embedded data in the sequence."
-data_leftindex(s::ExtensionSequence) = offset(s)
-"The data_right index of the embedded data in the sequence."
-data_rightindex(s::ExtensionSequence) = offset(s) + data_length(s) - 1
+"The leftmost index of the embedded data in the sequence."
+leftindex(s::ExtensionSequence) = offset(s)
+"The rightmost index of the embedded data in the sequence."
+rightindex(s::ExtensionSequence) = offset(s) + data_length(s) - 1
 "The support of the embedded data in the sequence."
-data_support(s::ExtensionSequence) = data_leftindex(s):data_rightindex(s)
+data_support(s::ExtensionSequence) = leftindex(s):rightindex(s)
 
 "The convex hull of the supports of the embedded data in two sequences."
 function data_support(s1::ExtensionSequence, s2::ExtensionSequence)
-    l = min(data_leftindex(s1), data_leftindex(s2))
-    r = max(data_rightindex(s1), data_rightindex(s2))
+    l = min(leftindex(s1), leftindex(s2))
+    r = max(rightindex(s1), rightindex(s2))
     l:r
 end
 
 "Shift the sequence `k` positions to the right."
 shift(s::ExtensionSequence, k::Int) = similar(s, data(s), offset(s)+k)
 
+# The extension sequence acts as a mutating view, elements of the underlying
+# data can be altered.
+setindex!(s::ExtensionSequence, val, k::Int) = setindex!(data(s), val, mapindex(s, k))
+# We assume that data(s) returns the embedded array itself, and not a copy.
 
 # We can do arithmetics generically by performing operations on the underlying
 # data. Concrete sequences should implement `align` which aligns the data so
@@ -124,13 +128,13 @@ imapindex(s::CompactSequence, l) = l + offset(s) - 1
 
 # We override getindex to return zero outside our embedded vector.
 getindex(s::CompactSequence, k::Int) =
-    k < data_leftindex(s) || k > data_rightindex(s) ? zero(eltype(s)) : getindex(data(s), mapindex(s, k))
+    k < leftindex(s) || k > rightindex(s) ? zero(eltype(s)) : getindex(data(s), mapindex(s, k))
 
 # Reverse the sequence in time
-reverse(s::CompactSequence) = CompactSequence(flipdim(data(s), 1), -data_rightindex(s))
+reverse(s::CompactSequence) = CompactSequence(flipdim(data(s), 1), -rightindex(s))
 
 # Take element-wise conjugates
-conj(s::CompactSequence) = CompactSequence(conj(data(s)), data_leftindex(s))
+conj(s::CompactSequence) = CompactSequence(conj(data(s)), leftindex(s))
 
 Base.widen(s::CompactSequence) = CompactSequence(widen(data(s)), offset(s))
 
@@ -162,11 +166,7 @@ end
 
 Extend a given vector `v` using periodicity to a doubly infinite sequence.
 
-The `offset` is optional and by default equals the first index of `v`. The sequence
-is defined by
-``
-h[i] =
-``
+The `offset` is optional and by default equals the first index of `v`.
 """
 PeriodicExtension(v::AbstractVector) = PeriodicExtension(v, first(eachindex(v)))
 
@@ -196,6 +196,92 @@ function align(s1::PeriodicExtension, s2::PeriodicExtension)
     end
 end
 
+
 ################
 ## Symmetric extensions
 ################
+
+
+"""
+A `SymmetricExtension` extends a vector `v` symmetrically to a doubly infinite
+sequence.
+
+The symmetry around each of the endpoints can be whole-point (the endpoint is
+not repeated) or half-point (the endpoint is repeated). The symmetry can also be
+even (symmetric) or odd (anti-symmetric).
+
+Parameters:
+- PL : either :wp (whole point) or :hp (half point) near left endpoint
+- PR : eith :wp or :hp for right endpoint
+- SL : either :odd or :even symmetry at left endpoint
+- SR : either :odd or :even at right endpoint
+"""
+struct SymmetricExtension{T,PL,PR,SL,SR} <: ExtensionSequence{T}
+    v       ::  Vector{T}
+    offset  ::  Int
+
+    SymmetricExtension{T,PL,PR,SL,SR}(v::Vector{T}) where {T,PL,PR,SL,SR} =
+        new(v, first(eachindex(v)))
+end
+
+data(s::SymmetricExtension) = s.v
+offset(s::SymmetricExtension) = s.offset
+
+# Provide four of the sixteen combinations for convenience. The other combinations
+# can be constructed by explicitly calling the full constructor.
+symmetric_extension_wholepoint_even(v::AbstractVector{T}) where T =
+    SymmetricExtension{T,:wp,:wp,:even,:even}(v)
+
+symmetric_extension_halfpoint_even(v::AbstractVector{T}) where T =
+    SymmetricExtension{T,:hp,:hp,:even,:even}(v)
+
+symmetric_extension_wholepoint_odd(v::AbstractVector{T}) where T =
+    SymmetricExtension{T,:wp,:wp,:odd,:odd}(v)
+
+symmetric_extension_halfpoint_odd(v::AbstractVector{T}) where T =
+    SymmetricExtension{T,:hp,:hp,:odd,:odd}(v)
+
+# Flip index k around center c using whole point symmetry:
+#    c + (c - k) = 2*c-k
+symmetric_flip_right(c, k, ::Val{:wp}) = 2*c-k
+symmetric_flip_left(c, k, ::Val{:wp}) = 2*c-k
+
+# Flip index k around center c using half point symmetry:
+#    c+1/2 + (c+1/2 - k) = 2*c-k+1
+symmetric_flip_right(c, k, ::Val{:hp}) = 2*c-k+1
+#    c-1/2 + (c-1/2 - k) = 2*c-k-1
+symmetric_flip_left(c, k, ::Val{:hp}) = 2*c-k-1
+
+# Compute the index by mapping any index outside the range of the embedded vector
+# to an index that is closer to the interval (using symmetry) and repeat.
+# The recursion ends when the index lands inside the interval, which is hopefully
+# quickly.
+function mapindex(s::SymmetricExtension{T,PL,PR,SL,SR}, k) where {T,PL,PR,SL,SR}
+    if k > rightindex(s)
+        # We are to the right of the interval: use symmetry wrt right endpoint
+        mapindex(s, symmetric_flip_right(rightindex(s), k, Val{PR}()))
+    elseif k < leftindex(s)
+        # We are to the left of the interval
+        mapindex(s, symmetric_flip_left(leftindex(s), k, Val{PL}()))
+    else
+        k - offset(s) + 1
+    end
+end
+
+sign(::Val{:odd}) = -1
+sign(::Val{:even}) = 1
+
+# For getindex we have to use the same logic as mapindex, but now we also have
+# to take the parity (odd/even) of the symmetries into account in order to
+# multiply by +/- 1.
+function getindex(s::SymmetricExtension{T,PL,PR,SL,SR}, k) where {T,PL,PR,SL,SR}
+    if k > rightindex(s)
+        # We are to the right of the interval: use symmetry wrt right endpoint
+        sign(Val{SR}()) * getindex(s, symmetric_flip_right(rightindex(s), k, Val{PR}()))
+    elseif k < leftindex(s)
+        # We are to the left of the interval
+        sign(Val{SL}()) * getindex(s, symmetric_flip_left(leftindex(s), k, Val{PL}()))
+    else
+        getindex(data(s), k-offset(s)+1)
+    end
+end
