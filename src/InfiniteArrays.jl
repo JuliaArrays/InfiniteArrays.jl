@@ -8,7 +8,7 @@ import Base: *, +, -, /, \, ==, colon, isinf, isfinite, sign, angle, show, isles
             <, ≤, >, ≥, promote_rule, convert,
             size, step, isempty, length, first, last, start, next, done,
             getindex, setindex!, OneTo, intersect, @_inline_meta,
-            sort, sort!, issorted, sortperm, sum, mean, median, in, broadcast,
+            sort, sort!, issorted, sortperm, reverse, sum, mean, median, in, broadcast,
             eltype, parent, ishermitian, issymmetric, real, imag, istriu, istril,
             conj, transpose, det, logdet,
             exp, log, sqrt,
@@ -45,5 +45,6 @@ end
 include("Infinity.jl")
 include("infrange.jl")
 include("infdiagonal.jl")
+include("double.jl")
 
 end # module

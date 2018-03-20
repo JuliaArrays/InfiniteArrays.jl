@@ -1,6 +1,9 @@
 using InfiniteArrays, Compat.Test
     import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
 
+include("test_double.jl")
+
+test_doubly_infinite_arrays()
 
 @testset "∞" begin
     @test ∞ ≠ 1
@@ -303,3 +306,5 @@ InfiniteArrays.InfDiagonal{Int,typeof(V)}(V)
 InfiniteArrays.InfVector
 
 Vector
+
+test_doubly_infinite_arrays()
