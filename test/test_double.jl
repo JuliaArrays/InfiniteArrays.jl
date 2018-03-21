@@ -12,6 +12,14 @@ function test_doubly_infinite_arrays()
     end
 end
 
+function test_generic_extension_sequence_interface(z1)
+    z2 = shift(z1, 2)
+    @test eltype(z2) == eltype(z1)
+    @test InfiniteArrays.data_length(z2) == InfiniteArrays.data_length(z1)
+    @test z2[3] == z2[1]
+    @test z2[4] == z2[2]
+end
+
 function test_zero_padding()
     v1 = [1,2,3]
     # First, use a default offset and test basic functionality
@@ -86,4 +94,29 @@ function test_periodic_extension()
 end
 
 function test_symmetric_extension()
+    v1 = [1,2,3,4,5]
+
+    n1 = 1
+    n2 = length(v1)
+    z1 = symmetric_extension_wholepoint_even(v1)
+    @test sum(abs.([z1[i]-v1[i] for i in eachindex(v1)])) == 0
+    @test z1[n2+1] == z1[n2-1]
+    @test z1[n2+25] == z1[n2-25]
+
+    z2 = symmetric_extension_wholepoint_odd(v1)
+    @test sum(abs.([z2[i]-v1[i] for i in eachindex(v1)])) == 0
+    @test z2[n2+1] == -z2[n2-1]
+    @test z2[n2+25] == -z2[n2-25]
+
+    z3 = symmetric_extension_halfpoint_even(v1)
+    @test sum(abs.([z3[i]-v1[i] for i in eachindex(v1)])) == 0
+    @test z3[n2+1] == z3[n2]
+    @test z3[n2+2] == z3[n2-1]
+    @test z3[n2+25] == z3[n2-24]
+
+    z4 = symmetric_extension_halfpoint_odd(v1)
+    @test sum(abs.([z4[i]-v1[i] for i in eachindex(v1)])) == 0
+    @test z4[n2+1] == -z4[n2]
+    @test z4[n2+2] == -z4[n2-1]
+    @test z4[n2+25] == -z4[n2-24]
 end

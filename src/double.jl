@@ -10,6 +10,11 @@ export support
 export PeriodicExtension
 export period
 
+# interface for symmetric extensions
+export SymmetricExtension
+export symmetric_extension_halfpoint_odd, symmetric_extension_halfpoint_even,
+    symmetric_extension_wholepoint_odd, symmetric_extension_wholepoint_even
+
 
 """
 A `DoublyInfiniteVector` is a sequence of infinite length that can be indexed
@@ -114,7 +119,8 @@ zero_padding(v::AbstractVector, optional...) = CompactSequence(v, optional...)
 data(s::CompactSequence) = s.v
 offset(s::CompactSequence) = s.offset
 
-similar(s::CompactSequence, data::AbstractVector, optional...) = CompactSequence(data, optional...)
+similar(s::CompactSequence, v::AbstractVector, optional...) =
+    CompactSequence(v, optional...)
 
 "A range of indices that includes all non-zero elements of the sequence."
 support(s::CompactSequence) = data_support(s)
@@ -175,8 +181,8 @@ offset(s::PeriodicExtension) = s.offset
 
 period(s::PeriodicExtension) = data_length(s)
 
-similar(s::PeriodicExtension, data::AbstractVector, optional...) =
-    PeriodicExtension(data, optional...)
+similar(s::PeriodicExtension, v::AbstractVector, optional...) =
+    PeriodicExtension(v, optional...)
 
 # For internal use:
 # - map the index k of a sequence into an index l of the data
@@ -226,6 +232,9 @@ end
 
 data(s::SymmetricExtension) = s.v
 offset(s::SymmetricExtension) = s.offset
+
+similar(s::SymmetricExtension{T,PL,PR,SL,SR}, v::AbstractVector{S}, optional...) where {S,T,PL,PR,SL,SR} =
+    SymmetricExtension{S,PL,PR,SL,SR}(v, optional...)
 
 # Provide four of the sixteen combinations for convenience. The other combinations
 # can be constructed by explicitly calling the full constructor.
