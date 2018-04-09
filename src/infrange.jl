@@ -9,6 +9,9 @@ colon(a::T, b::AbstractInfinity) where {T<:Real} = colon(a, T(1), b)
 
 colon(start::T, step::T, stop::Infinity) where {T<:Real} = InfStepRange(start,step,stop)
 
+# this is needed for showarray
+colon(::Infinity, ::Infinity) = 1:0
+
 ## 1-dimensional ranges ##
 
 abstract type AbstractInfRange{T} <: InfVector{T} end
@@ -21,6 +24,8 @@ convert(::Type{T}, r::AbstractInfRange) where {T<:AbstractInfRange} =
 
 abstract type InfOrdinalRange{T,S,IS} <: AbstractInfRange{T} end
 abstract type AbstractInfUnitRange{T} <: InfOrdinalRange{T,Int,Infinity} end
+
+checkindex(::Type{Bool}, inds::AbstractInfUnitRange, i::Real) = (first(inds) <= i)
 
 const InfIndices = Tuple{Vararg{AbstractInfUnitRange,N}} where N
 inds2string(inds::InfIndices) = join(map(string,inds), '×')
@@ -55,7 +60,7 @@ be 1 and ∞.
 struct OneToInf{T<:Integer} <: AbstractInfUnitRange{T} end
 
 OneToInf() = OneToInf{Int}()
-oneto(::Infinity) = OneToInf()
+OneTo(::Infinity) = OneToInf()
 
 ## interface implementations
 
@@ -67,7 +72,7 @@ step(r::InfStepRange) = r.step
 step(r::AbstractInfUnitRange) = 1
 
 length(r::AbstractInfRange) = ∞
-
+unsafe_length(r::AbstractInfRange) = ∞
 
 first(r::InfOrdinalRange{T}) where {T} = convert(T, r.start)
 first(r::OneToInf{T}) where {T} = oneunit(T)
@@ -337,6 +342,9 @@ InfStepRange(r::AbstractInfUnitRange{T}) where {T} =
     InfStepRange{eltype(r),T2}(r)
 
 
+
+
+
 ## sorting ##
 
 issorted(r::AbstractInfUnitRange) = true
@@ -377,7 +385,7 @@ in(x::Real, r::AbstractInfRange{T}) where {T<:Integer} =
             (mod(convert(T,x),step(r))-mod(first(r),step(r)) == 0)
 # Addition/subtraction of ranges
 
--(r1::AbstractInfUnitRange, r2::AbstractInfUnitRange) = repeated(first(r1)-first(r2))
+-(r1::AbstractInfUnitRange, r2::AbstractInfUnitRange) = Fill(first(r1)-first(r2), ∞)
 
 for op in (:+, :-)
     @eval begin

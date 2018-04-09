@@ -41,8 +41,10 @@ isless(x::Infinity, y::Real) = false
 +(::Number, y::Infinity) = ∞
 +(::Infinity, ::Number) = ∞
 -(::Infinity, ::Number) = ∞
+-(x::Number, ::Infinity) = x + (-∞)
 
 # ⊻ is xor
+*(::Infinity) = ∞
 *(::Infinity, ::Infinity) = ∞
 
 for OP in (:fld,:cld,:div)
@@ -83,6 +85,7 @@ OrientedInfinity{T}(::Infinity) where T<:Real = OrientedInfinity{T}()
 OrientedInfinity(::Infinity) = OrientedInfinity()
 -(::Infinity) = OrientedInfinity(true)
 +(::Infinity) = OrientedInfinity(false)
+
 
 promote_rule(::Type{Infinity}, ::Type{OrientedInfinity{T}}) where T = OrientedInfinity{T}
 convert(::Type{OrientedInfinity{T}}, ::Infinity) where T = OrientedInfinity{T}()
@@ -147,17 +150,17 @@ for OP in (:fld,:cld,:div)
   @eval $OP(y::OrientedInfinity, a::Number) = y*(1/sign(a))
 end
 
-min(x::OrientedInfinity{B}, y::OrientedInfinity{B}) where B<:Integer = sign(x)==-1?x:y
-max(x::OrientedInfinity{B}, ::OrientedInfinity{B}) where B<:Integer = sign(x)==1?x:y
-min(x::Real, y::OrientedInfinity{B}) where B<:Integer = sign(y)==1?x:y
+min(x::OrientedInfinity{B}, y::OrientedInfinity{B}) where B<:Integer = sign(x) == -1 ? x : y
+max(x::OrientedInfinity{B}, ::OrientedInfinity{B}) where B<:Integer = sign(x) == 1 ? x : y
+min(x::Real, y::OrientedInfinity{B}) where B<:Integer = sign(y) == 1 ? x : y
 min(x::OrientedInfinity{B}, y::Real) where B<:Integer = min(y,x)
-max(x::Real, y::OrientedInfinity{B}) where B<:Integer = sign(y)==1?y:x
+max(x::Real, y::OrientedInfinity{B}) where B<:Integer = sign(y) == 1 ? y : x
 max(x::OrientedInfinity{B}, y::Real) where B<:Integer = max(y,x)
 
 for OP in (:<,:≤)
     @eval begin
-        $OP(x::Real, y::OrientedInfinity{B}) where B<:Integer = sign(y)==1
-        $OP(y::OrientedInfinity{B}, x::Real) where B<:Integer = sign(y)==-1
+        $OP(x::Real, y::OrientedInfinity{B}) where B<:Integer = sign(y) ==  1
+        $OP(y::OrientedInfinity{B}, x::Real) where B<:Integer = sign(y) == -1
     end
 end
 

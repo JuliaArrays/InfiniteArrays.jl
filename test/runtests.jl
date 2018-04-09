@@ -14,6 +14,7 @@ using InfiniteArrays, Compat.Test
 
     @test ∞ + ∞ == ∞
     @test ∞ + 1 == ∞
+    @test *(∞) == ∞
 
     # oriented infinity
     @test OrientedInfinity(∞) ≡ convert(OrientedInfinity, ∞) ≡ OrientedInfinity() ≡
@@ -24,6 +25,7 @@ using InfiniteArrays, Compat.Test
 
     @test ∞ == +∞
     @test ∞ ≠  -∞
+    @test 1-∞ == -∞
 
     @test  isless(-∞, 1)
     @test !isless(-∞, -Inf)
@@ -50,17 +52,17 @@ end
 @testset "ranges" begin
     @test size(10:1:∞) == (∞,)
     @testset "colon" begin
-        @inferred(colon(10, 1, ∞))
-        @inferred(colon(1, .2, ∞))
-        @inferred(colon(1., .2, ∞))
-        @inferred(colon(1, ∞))
+        @inferred(10:1:∞)
+        @inferred(1:.2:∞)
+        @inferred(1.:.2:∞)
+        @inferred(1:∞)
     end
-    @test_throws ArgumentError colon(2, -.2, ∞)
-    @test_throws ArgumentError colon(0.0, -∞)
+    @test_throws ArgumentError 2:-.2:∞
+    @test_throws ArgumentError 0.0:-∞
 
     @testset "indexing" begin
-        L32 = @inferred(colon(Int32(1),∞))
-        L64 = @inferred(colon(Int64(1),∞))
+        L32 = @inferred(Int32(1):∞)
+        L64 = @inferred(Int64(1):∞)
         @test @inferred(L32[1]) === Int32(1) && @inferred(L64[1]) === Int64(1)
         @test L32[2] == 2 && L64[2] == 2
         @test L32[3] == 3 && L64[3] == 3
