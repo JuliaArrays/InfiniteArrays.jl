@@ -27,7 +27,7 @@ abstract type AbstractInfUnitRange{T} <: InfOrdinalRange{T,Int,Infinity} end
 
 checkindex(::Type{Bool}, inds::AbstractInfUnitRange, i::Real) = (first(inds) <= i)
 
-const InfIndices = Tuple{Vararg{AbstractInfUnitRange,N}} where N
+const InfIndices = Tuple{Vararg{Union{AbstractUnitRange,AbstractInfUnitRange},N}} where N
 inds2string(inds::InfIndices) = join(map(string,inds), '×')
 
 
@@ -101,6 +101,11 @@ start(r::OneToInf{T}) where {T} = oneunit(T)
 
 
 ## indexing
+
+Base.offsetin(i, r::AbstractInfUnitRange) = i-first(r)
+Base.nextL(L, r::AbstractInfUnitRange) = L*unsafe_length(r)
+_sub2ind(inds::InfIndices, I::Integer...) = (@_inline_meta; _sub2ind_recurse(inds, 1, 1, I...))
+_sub2ind(inds::Tuple{OneToInf}, i::Integer)    = i
 
 function getindex(v::InfUnitRange{T}, i::Integer) where T
     @boundscheck i > 0 || Base.throw_boundserror(v, i)

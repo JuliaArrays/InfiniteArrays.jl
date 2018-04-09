@@ -17,7 +17,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
                       acos, asin, atan, acsc, asec, acot,
                       acosh, asinh, atanh, acsch, asech, acoth, (:),
             AbstractMatrix, AbstractArray, axes, inds2string, checkindex, unsafe_length, OneTo,
-           to_shape
+           to_shape, _sub2ind, _sub2ind_recurse
 using Compat.LinearAlgebra
 import Compat.LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
                              det, logdet, istriu, istril, tr
@@ -41,9 +41,7 @@ function axes(A::InfArray)
     map(OneTo, size(A))
 end
 
-
 include("Infinity.jl")
-
 include("infrange.jl")
 include("infdiagonal.jl")
 include("inffill.jl")
