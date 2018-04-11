@@ -8,6 +8,7 @@ abstract type AbstractInfinity <: Number end
 
 
 
+
 isinf(::AbstractInfinity) = true
 isfinite(::AbstractInfinity) = false
 
@@ -28,6 +29,8 @@ struct Infinity <: AbstractInfinity end
 const ∞ = Infinity()
 
 show(io::IO, y::Infinity) = print(io, "∞")
+
+promote_rule(::Type{Infinity}, ::Type{II}) where II<:Integer = Union{Infinity,II}
 
 
 sign(y::Infinity) = 1
@@ -123,13 +126,13 @@ isless(x::OrientedInfinity{Bool}, y::Number) = x.angle && y ≠ -∞
 
 -(y::OrientedInfinity{B}) where B<:Integer = sign(y) == 1 ? OrientedInfinity(one(B)) : OrientedInfinity(zero(B))
 
-function +(x::OrientedInfinity{B}, y::OrientedInfinity{B}) where B
-    if x.angle != y.angle
-        error("Angles must be the same to add ∞")
-    end
-    x
+function +(x::OrientedInfinity, y::OrientedInfinity)
+    x == y || throw(ArgumentError("Angles must be the same to add ∞"))
+    promote_type(typeof(x),typeof(y))(x.angle)
 end
 
++(x::OrientedInfinity, y::AbstractInfinity) = x+OrientedInfinity(y)
++(x::AbstractInfinity, y::OrientedInfinity) = OrientedInfinity(x)+y
 +(::Number, y::OrientedInfinity) = y
 +(y::OrientedInfinity, ::Number) = y
 -(y::OrientedInfinity, ::Number) = y

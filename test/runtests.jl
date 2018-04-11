@@ -47,8 +47,6 @@ end
 
 
 
-
-
 @testset "ranges" begin
     @test size(10:1:∞) == (∞,)
     @testset "colon" begin
@@ -163,11 +161,7 @@ end
         @test_skip !(Complex(1, 1) in 1.0:∞)
         @test_skip !(Complex(1.0, 1.0) in 1:∞)
         @test_skip !(Complex(1.0, 1.0) in 1.0:∞)
-        @test_broken !(π in 1:∞) # should work in 0.7
-        @test !(π in 1.0:3.0)
-
-        @test_broken !("a" in 1:3)
-        @test_broken !("a" in 1.0:3.0)
+        @test !(π in 1:∞)
     end
 
 
