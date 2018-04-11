@@ -4,7 +4,7 @@ module InfiniteArrays
    using Base, Compat, FillArrays
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
-            fld, cld, div, min, max, minimum, maximum, mod, 
+            fld, cld, div, min, max, minimum, maximum, mod,
             <, ≤, >, ≥, promote_rule, convert,
             size, step, isempty, length, first, last, start, next, done,
             getindex, setindex!, OneTo, intersect, @_inline_meta,
@@ -16,18 +16,23 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
                       cosh, sinh, tanh, csch, sech, coth,
                       acos, asin, atan, acsc, asec, acot,
                       acosh, asinh, atanh, acsch, asech, acoth, (:),
-            AbstractMatrix, AbstractArray, axes, inds2string, checkindex, unsafe_length, OneTo,
-           to_shape, _sub2ind, _sub2ind_recurse, print_matrix, print_matrix_row, print_matrix_vdots
+            AbstractMatrix, AbstractArray, inds2string, checkindex, unsafe_length, OneTo,
+           to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots
 using Compat.LinearAlgebra
 import Compat.LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
-                             det, logdet, istriu, istril, tr
+                             det, logdet, istriu, istril
 import Compat: adjoint, axes
 
 if VERSION ≥ v"0.7-"
-   import Base: (:)
+   import Base: (:), _sub2ind_recurse
+   import LinearAlgebra: tr
    const colon = (:)
 else
    import Base: colon
+   function range(start; length::Union{Integer,Nothing}=nothing, step=nothing)
+      step == nothing && return Base.range(start, length)
+      Base.range(start, step, length)
+   end
 end
 
 export ∞
