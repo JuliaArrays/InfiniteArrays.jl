@@ -17,6 +17,10 @@ colon(::Infinity, ::Infinity) = 1:0
 abstract type AbstractInfRange{T} <: InfVector{T} end
 
 
+(==)(::AbstractInfRange, ::AbstractRange) = false
+(==)(::AbstractRange, ::AbstractInfRange) = false
+
+
 convert(::Type{T}, r::AbstractInfRange) where {T<:AbstractInfRange} =
     r isa T ? r : T(r)
 
@@ -61,6 +65,8 @@ struct OneToInf{T<:Integer} <: AbstractInfUnitRange{T} end
 
 OneToInf() = OneToInf{Int}()
 OneTo(::Infinity) = OneToInf()
+
+(==)(::OneToInf, ::OneToInf) = true
 
 ## interface implementations
 
@@ -135,7 +141,7 @@ function getindex(r::AbstractInfUnitRange, s::AbstractUnitRange{<:Integer})
     f = first(r)
     @boundscheck first(s) ≥ 1 || Base.throw_boundserror(r, first(s))
     st = oftype(f, f + first(s)-1)
-    range(st, length(s))
+    range(st; length=length(s))
 end
 
 getindex(r::OneToInf{T}, s::OneTo) where T = OneTo(T(s.stop))
@@ -152,7 +158,7 @@ function getindex(r::AbstractInfUnitRange, s::StepRange{<:Integer})
     @_inline_meta
     @boundscheck minimum(s) ≥ 1 || throw(BoundsError(r, minimum(s)))
     st = oftype(first(r), first(r) + s.start-1)
-    range(st, step(s), length(s))
+    range(st; step=step(s), length=length(s))
 end
 
 function getindex(r::InfStepRange, s::AbstractInfRange{<:Integer})
@@ -167,7 +173,7 @@ function getindex(r::InfStepRange, s::AbstractRange{<:Integer})
     @_inline_meta
     @boundscheck isempty(s) || minimum(s) ≥ 1 || throw(BoundsError(r, minimum(s)))
     st = oftype(r.start, r.start + (first(s)-1)*step(r))
-    range(st, step(r)*step(s), length(s))
+    range(st; step=step(r)*step(s), length=length(s))
 end
 
 show(io::IO, r::AbstractInfRange) = print(io, repr(first(r)), ':', repr(step(r)), ':', repr(last(r)))
@@ -196,7 +202,7 @@ intersect(r::AbstractInfUnitRange{<:Integer}, i::Integer) = intersect(i, r)
 
 function intersect(r::AbstractInfUnitRange{<:Integer}, s::StepRange{<:Integer})
     if isempty(s)
-        range(first(r), 0)
+        range(first(r); length=0)
     elseif step(s) == 0
         intersect(first(s), r)
     elseif step(s) < 0
@@ -245,7 +251,7 @@ intersect(r::AbstractInfUnitRange, s::InfStepRange) = intersect(InfStepRange(r),
 
 function intersect(r::InfStepRange, s::StepRange)
     if isempty(s)
-        return range(first(r), step(r), 0)
+        return range(first(r); step=step(r), length=0)
     elseif step(s) < 0
         return intersect(r, reverse(s))
     end
@@ -261,7 +267,7 @@ function intersect(r::InfStepRange, s::StepRange)
 
     if rem(start1 - start2, g) != 0
         # Unaligned, no overlap possible.
-        return range(start1, a, 0)
+        return range(start1; step=a, length=0)
     end
 
     z = div(start1 - start2, g)

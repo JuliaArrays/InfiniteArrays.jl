@@ -1,6 +1,10 @@
+## NotANumber
+
+struct NotANumber end
+
 ## New Inf
 
-abstract type AbstractInfinity end
+abstract type AbstractInfinity <: Number end
 
 
 
@@ -92,8 +96,9 @@ convert(::Type{OrientedInfinity{T}}, ::Infinity) where T = OrientedInfinity{T}()
 convert(::Type{OrientedInfinity}, ::Infinity) = OrientedInfinity()
 
 
-sign(y::OrientedInfinity{B}) where B<:Integer = mod(y.angle,2) == 0 ? 1 : -1
+sign(y::OrientedInfinity{<:Integer}) = mod(y.angle,2) == 0 ? 1 : -1
 angle(x::OrientedInfinity) = π*x.angle
+mod(::OrientedInfinity{<:Integer}, ::Integer) = NotANumber()
 
 function show(io::IO, y::OrientedInfinity{B}) where B<:Integer
     if sign(y) == 1

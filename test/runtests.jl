@@ -1,4 +1,4 @@
-using InfiniteArrays, Compat.Test
+using InfiniteArrays, FillArrays, Compat.Test
     import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
 
 
@@ -282,7 +282,7 @@ end
             @test 2*r === 2:2:∞
             @test r + r === 2:2:∞
 
-            @test r - r === InfiniteArrays.repeated(0)
+            @test r - r === Fill(0, ∞)
 
             @test intersect(r, Base.OneTo(2)) == Base.OneTo(2)
             @test intersect(r, 0:5) == 1:5
