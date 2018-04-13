@@ -76,12 +76,18 @@ max(::Real, ::Infinity) = ∞
 min(::Infinity, x::Real) = x
 max(::Infinity, ::Real) = x
 
+≤(::Infinity, ::Infinity) = true
+<(::Infinity, ::Infinity) = false
+≥(::Infinity, ::Infinity) = true
+>(::Infinity, ::Infinity) = false
+
 for OP in (:<, :≤)
     @eval begin
         $OP(::Real, ::Infinity) = true
         $OP(::Infinity, ::Real) = false
     end
 end
+
 
 for OP in (:>, :≥)
     @eval begin

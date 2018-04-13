@@ -12,6 +12,12 @@ using InfiniteArrays, FillArrays, Compat.Test
     @test !isless(∞, Inf)
     @test !isless(∞, 1)
 
+    @test !isless(∞, ∞)
+    @test !(∞ < ∞)
+    @test ∞ ≤ ∞
+    @test !(∞ > ∞)
+    @test ∞ ≥ ∞
+
     @test ∞ + ∞ == ∞
     @test ∞ + 1 == ∞
     @test *(∞) == ∞
@@ -294,6 +300,8 @@ end
     for A in (Zeros(∞), Fill(1,∞), Ones(∞))
         @test length(A) == ∞
     end
+    @test size(Zeros(∞,5)) === (∞,5)
+    @test size(Zeros(5,∞)) === (5,∞)
 end
 
 @testset "diagonal" begin
