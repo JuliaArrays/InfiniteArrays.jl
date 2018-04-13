@@ -17,7 +17,8 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
                       acos, asin, atan, acsc, asec, acot,
                       acosh, asinh, atanh, acsch, asech, acoth, (:),
             AbstractMatrix, AbstractArray, inds2string, checkindex, unsafe_length, OneTo,
-           to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots
+           to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots,
+         checkindex, Slice, @_propagate_inbounds_meta
 using Compat.LinearAlgebra
 import Compat.LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
                              det, logdet, istriu, istril

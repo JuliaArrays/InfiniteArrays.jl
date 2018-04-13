@@ -289,3 +289,8 @@ end
         @test Base.inds2string(axes(1:∞)) == "OneToInf()"
     end
 end
+
+@testset "diagonal" begin
+    D = Diagonal(1:∞)
+    @test D[1:10,1:10] == Diagonal(1:10)
+end

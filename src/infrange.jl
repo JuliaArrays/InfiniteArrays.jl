@@ -30,8 +30,6 @@ convert(::Type{T}, r::AbstractInfRange) where {T<:AbstractInfRange} =
 abstract type InfOrdinalRange{T,S,IS} <: AbstractInfRange{T} end
 abstract type AbstractInfUnitRange{T} <: InfOrdinalRange{T,Int,Infinity} end
 
-checkindex(::Type{Bool}, inds::AbstractInfUnitRange, i::Real) = (first(inds) <= i)
-
 const InfIndices = Tuple{Vararg{Union{AbstractUnitRange,AbstractInfUnitRange},N}} where N
 inds2string(inds::InfIndices) = join(map(string,inds), '×')
 
@@ -408,4 +406,31 @@ for op in (:+, :-)
         end
         broadcast(::typeof($op), r1::AbstractInfRange, r2::AbstractInfRange) = $op(r1, r2)
     end
+end
+
+
+## from abstractarray.jl
+
+checkindex(::Type{Bool}, inds::AbstractInfUnitRange, i) =
+    throw(ArgumentError("unable to check bounds for indices of type $(typeof(i))"))
+checkindex(::Type{Bool}, inds::AbstractInfUnitRange, i::Real) = (first(inds) <= i)
+checkindex(::Type{Bool}, inds::AbstractInfUnitRange, ::Colon) = true
+checkindex(::Type{Bool}, inds::AbstractInfUnitRange, ::Slice) = true
+function checkindex(::Type{Bool}, inds::AbstractInfUnitRange, r::AbstractRange)
+    @_propagate_inbounds_meta
+    isempty(r) | (checkindex(Bool, inds, first(r)) & checkindex(Bool, inds, last(r)))
+end
+function checkindex(::Type{Bool}, inds::AbstractInfUnitRange, r::AbstractInfRange)
+    @_propagate_inbounds_meta
+    isempty(r) | checkindex(Bool, inds, first(r))
+end
+checkindex(::Type{Bool}, indx::AbstractInfUnitRange, I::AbstractVector{Bool}) = indx == indices1(I)
+checkindex(::Type{Bool}, indx::AbstractInfUnitRange, I::AbstractArray{Bool}) = false
+function checkindex(::Type{Bool}, inds::AbstractInfUnitRange, I::AbstractArray)
+    @_inline_meta
+    b = true
+    for i in I
+        b &= checkindex(Bool, inds, i)
+    end
+    b
 end
