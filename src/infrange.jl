@@ -1,11 +1,12 @@
 # This file is mmodified from Julia. License is MIT: https://julialang.org/license
 
 colon(start::T, stop::Infinity) where {T<:Integer} = InfUnitRange{T}(start)
-colon(start::T, step::T, stop::AbstractInfinity) where {T<:Real} = InfStepRange(start, step, stop)
-colon(start::T, step::Real, stop::AbstractInfinity) where {T<:Real} = colon(promote(start, step)..., stop)
+colon(start::T, step::T, stop::OrientedInfinity) where {T<:Real} = InfStepRange(start, step, stop)
+colon(start::T, step::Real, stop::OrientedInfinity) where {T<:Real} = colon(promote(start, step)..., stop)
+colon(start::Real, step, stop::Infinity)= colon(start, step, OrientedInfinity(stop))
 
 # AbstractFloat specializations
-colon(a::T, b::AbstractInfinity) where {T<:Real} = colon(a, T(1), b)
+colon(a::T, b::Union{Infinity,OrientedInfinity}) where {T<:Real} = colon(a, T(1), b)
 
 colon(start::T, step::T, stop::Infinity) where {T<:Real} = InfStepRange(start,step,stop)
 
@@ -383,7 +384,8 @@ function _in_range(x, r::AbstractInfRange)
         return n >= 1 && r[n] == x
     end
 end
-in(x::AbstractInfinity, r::AbstractInfRange) = false # never reach it...
+in(x::Union{Infinity,OrientedInfinity}, r::AbstractInfRange) = false # never reach it...
+in(x::Infinity, r::AbstractInfRange{<:Integer}) = false # never reach it...
 in(x::Real, r::AbstractInfRange{<:Real}) = _in_range(x, r)
 # This method needs to be defined separately since -(::T, ::T) can be implemented
 # even if -(::T, ::Real) is not

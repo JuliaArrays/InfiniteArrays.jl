@@ -285,17 +285,7 @@ end
     end
 
     @testset "show" begin
-        @test summary(1:∞) == "InfiniteArrays.InfUnitRange{Int64} with indices OneToInf()"
-        @test Base.inds2string(indices(1:∞)) == "OneToInf()"
+        @test summary(1:∞) == "InfUnitRange{Int64} with indices OneToInf()"
+        @test Base.inds2string(axes(1:∞)) == "OneToInf()"
     end
 end
-
-
-V = (1:∞)
-[diagm(V)[k,j] for k=1:10, j=1:10]
-InfiniteArrays.InfDiagonal{Int,typeof(V)}(V)
-
-
-InfiniteArrays.InfVector
-
-Vector

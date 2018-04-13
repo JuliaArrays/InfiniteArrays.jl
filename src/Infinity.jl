@@ -1,19 +1,6 @@
 ## NotANumber
 
-struct NotANumber end
-
-## New Inf
-
-abstract type AbstractInfinity <: Number end
-
-
-
-
-isinf(::AbstractInfinity) = true
-isfinite(::AbstractInfinity) = false
-
-==(x::AbstractInfinity, y::Number) = isinf(y) && angle(y) == angle(x)
-==(y::Number, x::AbstractInfinity) = x == y
+struct NotANumber <: Number end
 
 
 
@@ -22,9 +9,10 @@ isfinite(::AbstractInfinity) = false
 """
    Infinity()
 
-represents infinite cardinality.
+represents infinite cardinality. Note that `Infinity <: Integer` to support
+being treated as an index.
 """
-struct Infinity <: AbstractInfinity end
+struct Infinity <: Integer end
 
 const ∞ = Infinity()
 
@@ -32,16 +20,29 @@ show(io::IO, y::Infinity) = print(io, "∞")
 
 promote_rule(::Type{Infinity}, ::Type{II}) where II<:Integer = Union{Infinity,II}
 
+convert(::Type{Float64}, ::Infinity) = Inf64
+convert(::Type{Float32}, ::Infinity) = Inf32
+convert(::Type{Float16}, ::Infinity) = Inf16
+convert(::Type{AF}, ::Infinity) where AF<:AbstractFloat = convert(AF, Inf)
+
 
 sign(y::Infinity) = 1
 angle(x::Infinity) = 0
 
 ==(x::Infinity, y::Infinity) = true
 
+isinf(::Infinity) = true
+isfinite(::Infinity) = false
+
+==(x::Infinity, y::Number) = isinf(y) && angle(y) == angle(x)
+==(y::Number, x::Infinity) = x == y
+
 
 
 isless(x::Infinity, y::Infinity) = false
 isless(x::Real, y::Infinity) = isfinite(x) || sign(y) == -1
+isless(x::AbstractFloat, y::Infinity) = isless(x, convert(typeof(x), y))
+isless(x::Infinity, y::AbstractFloat) = false
 isless(x::Infinity, y::Real) = false
 
 +(::Infinity, ::Infinity) = ∞
@@ -49,6 +50,15 @@ isless(x::Infinity, y::Real) = false
 +(::Infinity, ::Number) = ∞
 -(::Infinity, ::Number) = ∞
 -(x::Number, ::Infinity) = x + (-∞)
+
++(::Integer, y::Infinity) = ∞
++(::Infinity, ::Integer) = ∞
+-(::Infinity, ::Integer) = ∞
+-(x::Integer, ::Infinity) = x + (-∞)
++(::Complex, y::Infinity) = ∞
++(::Infinity, ::Complex) = ∞
+-(::Infinity, ::Complex) = ∞
+-(x::Complex, ::Infinity) = x + (-∞)
 
 # ⊻ is xor
 *(::Infinity) = ∞
@@ -82,7 +92,7 @@ end
 
 
 # angle is π*a where a is (false==0) and (true==1)
-struct OrientedInfinity{T<:Real} <: AbstractInfinity
+struct OrientedInfinity{T<:Real} <: Number
     angle::T
 end
 
@@ -92,6 +102,10 @@ OrientedInfinity{T}(::Infinity) where T<:Real = OrientedInfinity{T}()
 OrientedInfinity(::Infinity) = OrientedInfinity()
 -(::Infinity) = OrientedInfinity(true)
 +(::Infinity) = OrientedInfinity(false)
+
+
+isinf(::OrientedInfinity) = true
+isfinite(::OrientedInfinity) = false
 
 
 promote_rule(::Type{Infinity}, ::Type{OrientedInfinity{T}}) where T = OrientedInfinity{T}
@@ -131,8 +145,8 @@ function +(x::OrientedInfinity, y::OrientedInfinity)
     promote_type(typeof(x),typeof(y))(x.angle)
 end
 
-+(x::OrientedInfinity, y::AbstractInfinity) = x+OrientedInfinity(y)
-+(x::AbstractInfinity, y::OrientedInfinity) = OrientedInfinity(x)+y
++(x::OrientedInfinity, y::Infinity) = x+OrientedInfinity(y)
++(x::Infinity, y::OrientedInfinity) = OrientedInfinity(x)+y
 +(::Number, y::OrientedInfinity) = y
 +(y::OrientedInfinity, ::Number) = y
 -(y::OrientedInfinity, ::Number) = y
@@ -153,6 +167,10 @@ end
 *(a::Number,y::Infinity) = a*OrientedInfinity(y)
 *(y::Infinity, a::Number) = OrientedInfinity(y)*a
 
+*(a::Integer,y::Infinity) = a*OrientedInfinity(y)
+*(a::Complex,y::Infinity) = a*OrientedInfinity(y)
+*(y::Infinity, a::Complex) = OrientedInfinity(y)*a
+*(y::Infinity, a::Integer) = OrientedInfinity(y)*a
 
 for OP in (:fld,:cld,:div)
   @eval $OP(y::OrientedInfinity, a::Number) = y*(1/sign(a))
