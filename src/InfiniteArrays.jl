@@ -18,34 +18,19 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
                       acosh, asinh, atanh, acsch, asech, acoth, (:),
             AbstractMatrix, AbstractArray, inds2string, checkindex, unsafe_length, OneTo,
            to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots,
-         checkindex, Slice, @_propagate_inbounds_meta
+         checkindex, Slice, @_propagate_inbounds_meta, _in_range, _range, _rangestyle, Ordered,
+         ArithmeticWraps, floatrange
 using Compat.LinearAlgebra
 import Compat.LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
                              det, logdet, istriu, istril
 import Compat: adjoint, axes
 
-if VERSION ≥ v"0.7-"
-   import Base: (:), _sub2ind_recurse
-   import LinearAlgebra: tr
-   const colon = (:)
-else
-   import Base: colon
-   function range(start; length::Union{Integer,Nothing}=nothing, step=nothing)
-      step == nothing && return Base.range(start, length)
-      Base.range(start, step, length)
-   end
-end
+
+import Base: (:), _sub2ind_recurse
+import LinearAlgebra: tr
+const colon = (:)
 
 export ∞
-
-abstract type InfArray{T,N} <: AbstractArray{T,N} end
-const InfVector{T} = InfArray{T,1}
-const InfMatrix{T} = InfArray{T,2}
-
-function axes(A::InfArray)
-    @_inline_meta
-    map(OneTo, size(A))
-end
 
 
 include("Infinity.jl")

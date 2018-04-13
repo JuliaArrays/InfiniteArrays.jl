@@ -50,10 +50,10 @@ end
 @testset "ranges" begin
     @test size(10:1:∞) == (∞,)
     @testset "colon" begin
-        @inferred(10:1:∞)
-        @inferred(1:.2:∞)
-        @inferred(1.:.2:∞)
-        @inferred(1:∞)
+        @test @inferred(10:1:∞) === @inferred(range(10; step=1, length=∞))
+        @inferred(1:0.2:∞)  === @inferred(range(1; step=0.2, length=∞))
+        @inferred(1.0:0.2:∞)  === @inferred(range(1.0; step=0.2, length=∞))
+        @inferred(1:∞) === @inferred(range(1; length=∞))
     end
     @test_throws ArgumentError 2:-.2:∞
     @test_throws ArgumentError 0.0:-∞
@@ -276,7 +276,7 @@ end
             @test 2*r === 2:2:∞
             @test r + r === 2:2:∞
 
-            @test r - r === Fill(0, ∞)
+            @test r - r === Zeros{Int}(∞)
 
             @test intersect(r, Base.OneTo(2)) == Base.OneTo(2)
             @test intersect(r, 0:5) == 1:5
@@ -287,6 +287,12 @@ end
     @testset "show" begin
         @test summary(1:∞) == "InfUnitRange{Int64} with indices OneToInf()"
         @test Base.inds2string(axes(1:∞)) == "OneToInf()"
+    end
+end
+
+@testset "fill" begin
+    for A in (Zeros(∞), Fill(1,∞), Ones(∞))
+        @test length(A) == ∞
     end
 end
 
