@@ -243,6 +243,12 @@ end
         @test convert(InfUnitRange{Int}, 0:∞) === 0:∞
         @test convert(InfUnitRange{Int128}, 0:∞) === Int128(0):∞
 
+        @test InfUnitRange{BigInt}(1:∞) ≡ AbstractVector{BigInt}(1:∞) ≡
+                AbstractArray{BigInt}(1:∞) ≡ BigInt(1):∞
+
+        @test OneToInf{BigInt}(OneToInf()) ≡ AbstractVector{BigInt}(OneToInf()) ≡
+                AbstractArray{BigInt}(OneToInf()) ≡ OneToInf{BigInt}()
+
         @test promote(0:1:∞, UInt8(2):UInt8(1):∞) === (0:1:∞, 2:1:∞)
         @test convert(InfStepRange{Int,Int}, 0:1:∞) === 0:1:∞
         @test convert(InfStepRange{Int128,Int128}, 0:1:∞) === Int128(0):Int128(1):∞
@@ -307,4 +313,30 @@ end
 @testset "diagonal" begin
     D = Diagonal(1:∞)
     @test D[1:10,1:10] == Diagonal(1:10)
+end
+
+
+@testset "Vcat" begin
+    A = Vcat(1:10, 1:20)
+    @test @inferred(length(A)) == 30
+    @test @inferred(A[5]) == A[15] == 5
+    @test_throws BoundsError A[31]
+    @test reverse(A) == Vcat(reverse(1:20), reverse(1:10))
+
+    A = Vcat(1:10, 1:∞)
+    @test @inferred(length(A)) == ∞
+    @test @inferred(A[5]) == A[15] == 5
+
+    A = Vcat(Ones(1,∞), Zeros(2,∞))
+    @test @inferred(size(A)) == (3,∞)
+    @test @inferred(A[1,5]) == 1
+    @test @inferred(A[3,5]) == 0
+    @test_throws BoundsError A[4,1]
+
+    A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
+    @test @inferred(size(A)) == (∞,∞)
+    @test @inferred(A[1,5]) == 1
+    @test @inferred(A[5,5]) == 0
+    @test @inferred(A[6,5]) == 5
+    @test_throws BoundsError A[-1,1]
 end

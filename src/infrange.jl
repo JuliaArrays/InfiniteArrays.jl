@@ -54,12 +54,16 @@ InfStepRange{T,S}(start, step) where {T,S} = InfStepRange{T,S}(convert(T,start),
 
 abstract type AbstractInfUnitRange{T<:Real} <: AbstractUnitRange{T} end
 
+unitrange_last(start, stop::Infinity) = ∞
+
 struct InfUnitRange{T<:Real} <: AbstractInfUnitRange{T}
     start::T
 end
 
 InfUnitRange(a::InfUnitRange) = a
-InfUnitRange{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
+InfUnitRange{T}(a::AbstractInfUnitRange) where T<:Real = InfUnitRange{T}(first(a))
+AbstractArray{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
+AbstractVector{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
 
 """
     OneToInf(n)
@@ -72,6 +76,12 @@ struct OneToInf{T<:Integer} <: AbstractInfUnitRange{T} end
 
 OneToInf() = OneToInf{Int}()
 OneTo(::Infinity) = OneToInf()
+
+AbstractArray{T}(a::OneToInf) where T<:Integer = OneToInf{T}()
+AbstractVector{T}(a::OneToInf) where T<:Integer = OneToInf{T}()
+AbstractArray{T}(a::OneToInf) where T<:Real = InfUnitRange{T}(a)
+AbstractVector{T}(a::OneToInf) where T<:Real = InfUnitRange{T}(a)
+
 
 (==)(::OneToInf, ::OneToInf) = true
 

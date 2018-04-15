@@ -3,46 +3,46 @@
 
 function _Vcat end
 
-struct Vcat{T,I} <: AbstractVector{T}
-    it::I
-    cumulsizes::Vector{Int}
-    global _Vcat(it::I) where I<:Tuple{Vararg{AbstractVector{T}}} where T
-        new{T,I}(it,cumsum(length.(it[1:end-1])))
+struct Vcat{T,N,I} <: AbstractArray{T,N}
+    arrays::I
+
+    global function _Vcat(A::I) where I<:Tuple{Vararg{AbstractVector{T}}} where T
+        isempty(A) && throw(ArgumentError("Cannot concatenate empty vectors"))
+        new{T,1,I}(A)
+    end
+    global function _Vcat(A::I) where I<:Tuple{Vararg{AbstractMatrix{T}}} where T
+        isempty(A) && throw(ArgumentError("Cannot concatenate empty vectors"))
+        m = size(A[1],2)
+        for k=2:length(A)
+            size(A[k],2) == m || throw(ArgumentError("number of columns of each array must match (got $(map(x->size(x,2), A)))"))
+        end
+        new{T,2,I}(A)
     end
 end
+_Vcat(::Type{T}, A) where T = _Vcat(AbstractArray{T}.(A))
+_Vcat(A) = _Vcat(mapreduce(eltype, promote_type, A), A)
+Vcat(args...) = _Vcat(args)
+size(f::Vcat{<:Any,1}) = tuple(+(length.(f.arrays)...))
+size(f::Vcat{<:Any,2}) = (+(size.(f.arrays,1)...), size(f.arrays[1],2))
+Base.IndexStyle(::Type{Vcat{T,1}}) where T = Base.IndexLinear()
+Base.IndexStyle(::Type{Vcat{T,2}}) where T = Base.IndexCartesian()
 
-Vcat{T}(args...) = _Vcat(args)
-length(f::Vcat) = mapreduce(+, length, f.it)
-
-function start(f::Vcat)
-    local inner, s2
-    s = start(f.it)
-    d = done(f.it, s)
-    # this is a simple way to make this function type stable
-    d && throw(ArgumentError("argument to Vcat must contain at least one iterator"))
-    while !d
-        inner, s = next(f.it, s)
-        s2 = start(inner)
-        !done(inner, s2) && break
-        d = done(f.it, s)
+function getindex(f::Vcat{<:Any,1}, k::Integer)
+    for A in f.arrays
+        n = length(A)
+        k ≤ n && return A[k]
+        k -= n
     end
-    return s, inner, s2
+    throw(BoundsError("attempt to access $length(f) Vcat array."))
 end
 
-@propagate_inbounds function next(f::Vcat, state)
-    s, inner, s2 = state
-    val, s2 = next(inner, s2)
-    while done(inner, s2) && !done(f.it, s)
-        inner, s = next(f.it, s)
-        s2 = start(inner)
+function getindex(f::Vcat{<:Any,2}, k::Integer, j::Integer)
+    for A in f.arrays
+        n = size(A,1)
+        k ≤ n && return A[k,j]
+        k -= n
     end
-    return val, (s, inner, s2)
+    throw(BoundsError("attempt to access $length(f) Vcat array."))
 end
 
-@inline function done(f::Vcat, state)
-    s, inner, s2 = state
-    return done(f.it, s) && done(inner, s2)
-end
-
-
-reverse(f::Vcat) = Vcat(reverse(itr) for itr in reverse(f.it))
+reverse(f::Vcat{<:Any,1}) = Vcat((reverse(itr) for itr in reverse(f.arrays))...)

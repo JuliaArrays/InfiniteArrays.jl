@@ -16,10 +16,11 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
                       cosh, sinh, tanh, csch, sech, coth,
                       acos, asin, atan, acsc, asec, acot,
                       acosh, asinh, atanh, acsch, asech, acoth, (:),
-            AbstractMatrix, AbstractArray, inds2string, checkindex, unsafe_length, OneTo,
+            AbstractMatrix, AbstractArray, checkindex, unsafe_length, OneTo,
            to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots,
          checkindex, Slice, @_propagate_inbounds_meta, _in_range, _range, _rangestyle, Ordered,
-         ArithmeticWraps, floatrange
+         ArithmeticWraps, floatrange, reverse, unitrange_last,
+         AbstractArray, AbstractVector
 using Compat.LinearAlgebra
 import Compat.LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
                              det, logdet, istriu, istril
@@ -30,13 +31,14 @@ import Base: (:), _sub2ind_recurse
 import LinearAlgebra: tr
 const colon = (:)
 
-export ∞
+export ∞, Vcat, Zeros, Ones, Fill
 
 
 include("Infinity.jl")
 include("infrange.jl")
 include("infdiagonal.jl")
 include("inffill.jl")
+include("infconcat.jl")
 include("infarrayshow.jl")
 
 end # module
