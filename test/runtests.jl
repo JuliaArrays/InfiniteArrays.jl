@@ -243,11 +243,11 @@ end
         @test convert(InfUnitRange{Int}, 0:∞) === 0:∞
         @test convert(InfUnitRange{Int128}, 0:∞) === Int128(0):∞
 
-        @test InfUnitRange{BigInt}(1:∞) ≡ AbstractVector{BigInt}(1:∞) ≡
-                AbstractArray{BigInt}(1:∞) ≡ BigInt(1):∞
+        @test InfUnitRange{Int16}(1:∞) ≡ AbstractVector{Int16}(1:∞) ≡
+                AbstractArray{Int16}(1:∞) ≡ Int16(1):∞
 
-        @test OneToInf{BigInt}(OneToInf()) ≡ AbstractVector{BigInt}(OneToInf()) ≡
-                AbstractArray{BigInt}(OneToInf()) ≡ OneToInf{BigInt}()
+        @test OneToInf{Int16}(OneToInf()) ≡ AbstractVector{Int16}(OneToInf()) ≡
+                AbstractArray{Int16}(OneToInf()) ≡ OneToInf{Int16}()
 
         @test promote(0:1:∞, UInt8(2):UInt8(1):∞) === (0:1:∞, 2:1:∞)
         @test convert(InfStepRange{Int,Int}, 0:1:∞) === 0:1:∞
@@ -316,7 +316,7 @@ end
 end
 
 
-@testset "Vcat" begin
+@testset "concat" begin
     A = Vcat(1:10, 1:20)
     @test @inferred(length(A)) == 30
     @test @inferred(A[5]) == A[15] == 5
@@ -334,9 +334,40 @@ end
     @test_throws BoundsError A[4,1]
 
     A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
-    @test @inferred(size(A)) == (∞,∞)
-    @test @inferred(A[1,5]) == 1
-    @test @inferred(A[5,5]) == 0
-    @test @inferred(A[6,5]) == 5
+    @test @inferred(size(A)) ≡ (∞,∞)
+    @test @inferred(A[1,5]) ≡ 1
+    @test @inferred(A[5,5]) ≡ 0
+    @test @inferred(A[6,5]) ≡ 5
+    @test_throws BoundsError A[-1,1]
+
+    A = Vcat(Ones{Float64}(1,∞), Diagonal(1:∞))
+    @test @inferred(size(A)) ≡ (∞,∞)
+    @test @inferred(A[1,5]) ≡ 1.0
+    @test @inferred(A[5,5]) ≡ 0.0
+    @test @inferred(A[6,5]) ≡ 5.0
+    @test_throws BoundsError A[-1,1]
+
+    A = Vcat(1:10, 1:20)
+    @test @inferred(length(A)) == 30
+    @test @inferred(A[5]) == A[15] == 5
+    @test_throws BoundsError A[31]
+    @test reverse(A) == Vcat(reverse(1:20), reverse(1:10))
+
+    A = Hcat(1:10, 2:11)
+    @test @inferred(size(A)) == (10,2)
+    @test @inferred(A[5]) == @inferred(A[5,1]) == 5
+    @test @inferred(A[11]) == @inferred(A[1,2]) == 2
+
+    A = Hcat(Ones(∞), Zeros(∞,2))
+    @test @inferred(size(A)) == (∞,3)
+    @test @inferred(A[5,1]) == 1
+    @test @inferred(A[5,3]) == 0
+    @test_throws BoundsError A[1,4]
+
+    A = Hcat(Ones{Int}(∞), Diagonal(1:∞))
+    @test @inferred(size(A)) ≡ (∞,∞)
+    @test @inferred(A[5,1]) ≡ 1
+    @test @inferred(A[5,5]) ≡ 0
+    @test @inferred(A[5,6]) ≡ 5
     @test_throws BoundsError A[-1,1]
 end

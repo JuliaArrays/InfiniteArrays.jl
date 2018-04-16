@@ -24,8 +24,8 @@ _Vcat(A) = _Vcat(mapreduce(eltype, promote_type, A), A)
 Vcat(args...) = _Vcat(args)
 size(f::Vcat{<:Any,1}) = tuple(+(length.(f.arrays)...))
 size(f::Vcat{<:Any,2}) = (+(size.(f.arrays,1)...), size(f.arrays[1],2))
-Base.IndexStyle(::Type{Vcat{T,1}}) where T = Base.IndexLinear()
-Base.IndexStyle(::Type{Vcat{T,2}}) where T = Base.IndexCartesian()
+Base.IndexStyle(::Type{<:Vcat{T,1}}) where T = Base.IndexLinear()
+Base.IndexStyle(::Type{<:Vcat{T,2}}) where T = Base.IndexCartesian()
 
 function getindex(f::Vcat{<:Any,1}, k::Integer)
     for A in f.arrays
@@ -46,3 +46,33 @@ function getindex(f::Vcat{<:Any,2}, k::Integer, j::Integer)
 end
 
 reverse(f::Vcat{<:Any,1}) = Vcat((reverse(itr) for itr in reverse(f.arrays))...)
+
+
+function _Hcat end
+
+struct Hcat{T,I} <: AbstractMatrix{T}
+    arrays::I
+
+    global function _Hcat(A::I) where I<:Tuple{Vararg{AbstractVecOrMat{T}}} where T
+        isempty(A) && throw(ArgumentError("Cannot concatenate empty vectors"))
+        m = size(A[1],1)
+        for k=2:length(A)
+            size(A[k],1) == m || throw(ArgumentError("number of columns of each array must match (got $(map(x->size(x,2), A)))"))
+        end
+        new{T,I}(A)
+    end
+end
+_Hcat(::Type{T}, A) where T = _Hcat(AbstractArray{T}.(A))
+_Hcat(A) = _Hcat(mapreduce(eltype, promote_type, A), A)
+Hcat(args...) = _Hcat(args)
+size(f::Hcat) = (size(f.arrays[1],1), +(size.(f.arrays,2)...))
+Base.IndexStyle(::Type{<:Hcat}) where T = Base.IndexCartesian()
+
+function getindex(f::Hcat, k::Integer, j::Integer)
+    for A in f.arrays
+        n = size(A,2)
+        j ≤ n && return A[k,j]
+        j -= n
+    end
+    throw(BoundsError("attempt to access $(size(f)) Hcat array."))
+end

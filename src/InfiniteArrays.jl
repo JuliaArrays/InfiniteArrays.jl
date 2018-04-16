@@ -31,7 +31,7 @@ import Base: (:), _sub2ind_recurse
 import LinearAlgebra: tr
 const colon = (:)
 
-export ∞, Vcat, Zeros, Ones, Fill
+export ∞, Hcat, Vcat, Zeros, Ones, Fill
 
 
 include("Infinity.jl")

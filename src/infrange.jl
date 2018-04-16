@@ -54,6 +54,7 @@ InfStepRange{T,S}(start, step) where {T,S} = InfStepRange{T,S}(convert(T,start),
 
 abstract type AbstractInfUnitRange{T<:Real} <: AbstractUnitRange{T} end
 
+done(r::AbstractInfUnitRange{T}, i) where {T} = false
 unitrange_last(start, stop::Infinity) = ∞
 
 struct InfUnitRange{T<:Real} <: AbstractInfUnitRange{T}
@@ -65,6 +66,8 @@ InfUnitRange{T}(a::AbstractInfUnitRange) where T<:Real = InfUnitRange{T}(first(a
 AbstractArray{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
 AbstractVector{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
 
+
+
 """
     OneToInf(n)
 
@@ -75,7 +78,6 @@ be 1 and ∞.
 struct OneToInf{T<:Integer} <: AbstractInfUnitRange{T} end
 
 OneToInf() = OneToInf{Int}()
-OneTo(::Infinity) = OneToInf()
 
 AbstractArray{T}(a::OneToInf) where T<:Integer = OneToInf{T}()
 AbstractVector{T}(a::OneToInf) where T<:Integer = OneToInf{T}()
@@ -114,6 +116,7 @@ next(r::InfStepRange{T}, i) where {T} = (convert(T,i), i+r.step)
 start(r::InfUnitRange{T}) where {T} = oftype(r.start + oneunit(T), r.start)
 start(r::OneToInf{T}) where {T} = oneunit(T)
 
+done(r::InfStepRange{T}, i) where {T} = false
 
 ## indexing
 
@@ -335,3 +338,9 @@ in(x::Real, r::InfRanges{T}) where {T<:Integer} =
 # Addition/subtraction of ranges
 -(r1::OneToInf{T}, r2::OneToInf{V}) where {T,V} = Zeros{promote_type(T,V)}(∞)
 -(r1::AbstractInfUnitRange, r2::AbstractInfUnitRange) = Fill(first(r1)-first(r2), ∞)
+
+
+# The following are hacks needed for some Base support
+OneTo(::Infinity) = OneToInf()
+UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
+UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
