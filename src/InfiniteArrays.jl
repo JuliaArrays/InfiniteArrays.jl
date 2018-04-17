@@ -20,7 +20,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
            to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots,
          checkindex, Slice, @_propagate_inbounds_meta, _in_range, _range, _rangestyle, Ordered,
          ArithmeticWraps, floatrange, reverse, unitrange_last,
-         AbstractArray, AbstractVector, axes, (:), _sub2ind_recurse, broadcast
+         AbstractArray, AbstractVector, axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof
 using LinearAlgebra
 import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
                              det, logdet, istriu, istril, adjoint, tr
@@ -31,7 +31,7 @@ import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, combine_eltypes, comb
                         @nexprs, @ncall
 
 
-export ∞, Hcat, Vcat, Zeros, Ones, Fill, BroadcastArray
+export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray
 
 
 include("Infinity.jl")

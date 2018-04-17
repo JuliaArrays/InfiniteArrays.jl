@@ -358,6 +358,10 @@ end
     @test_throws BoundsError A[31]
     @test reverse(A) == Vcat(reverse(1:20), reverse(1:10))
 
+    A = Vcat(1, Zeros(∞))
+    @test @inferred(A[1]) ≡ 1.0
+    @test @inferred(A[2]) ≡ 0.0
+
     A = Hcat(1:10, 2:11)
     @test @inferred(size(A)) == (10,2)
     @test @inferred(A[5]) == @inferred(A[5,1]) == 5
@@ -375,6 +379,9 @@ end
     @test @inferred(A[5,5]) ≡ 0
     @test @inferred(A[5,6]) ≡ 5
     @test_throws BoundsError A[-1,1]
+
+    A = Hcat(1, zeros(1,5))
+    @test A == hcat(1, zeros(1,5))
 end
 
 @testset "Fill indexing" begin
@@ -411,4 +418,14 @@ end
     @test B isa BroadcastArray{Int}
     @test B[1,5] ≡ -1
     @test B[6,6] == 6-1
+end
+
+
+@testset "Taylor ODE" begin
+    e₁ = Vcat(1, Zeros(∞));
+    D = Hcat(Zeros(∞), Diagonal(1:∞));
+    L = Vcat(e₁', Eye(∞) + D)
+    @test L[1:3,1:3] == [1.0 0.0 0.0;
+                         1.0 1.0 0.0;
+                         0.0 1.0 2.0]
 end
