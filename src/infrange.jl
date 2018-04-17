@@ -1,23 +1,23 @@
 # This file is mmodified from Julia. License is MIT: https://julialang.org/license
 
-colon(start::T, stop::Infinity) where {T<:Integer} = InfUnitRange{T}(start)
-function colon(start::T, step::T, stop::OrientedInfinity) where {T<:Real}
+(:)(start::T, stop::Infinity) where {T<:Integer} = InfUnitRange{T}(start)
+function (:)(start::T, step::T, stop::OrientedInfinity) where {T<:Real}
     sign(step) == sign(stop) || throw(ArgumentError("InfStepRange must have infinite length"))
     InfStepRange(start, step)
 end
-colon(start::T, step::Real, stop::OrientedInfinity) where {T<:Real} = colon(promote(start, step)..., stop)
-colon(start::Real, step, stop::Infinity)= colon(start, step, OrientedInfinity(stop))
+(:)(start::T, step::Real, stop::OrientedInfinity) where {T<:Real} = (:)(promote(start, step)..., stop)
+(:)(start::Real, step, stop::Infinity)= (:)(start, step, OrientedInfinity(stop))
 
 # AbstractFloat specializations
-colon(a::T, b::Union{Infinity,OrientedInfinity}) where {T<:Real} = colon(a, T(1), b)
+(:)(a::T, b::Union{Infinity,OrientedInfinity}) where {T<:Real} = (:)(a, T(1), b)
 
-function colon(start::T, step::T, stop::Infinity) where {T<:Real}
+function (:)(start::T, step::T, stop::Infinity) where {T<:Real}
     sign(step) == sign(stop) || throw(ArgumentError("InfStepRange must have infinite length"))
     InfStepRange(start,step)
 end
 
 # this is needed for showarray
-colon(::Infinity, ::Infinity) = 1:0
+(:)(::Infinity, ::Infinity) = 1:0
 
 
 # Range of a given length: range(a, [step=s,] length=l), no stop

@@ -18,9 +18,10 @@ using InfiniteArrays, FillArrays, Compat.Test
     @test !(∞ > ∞)
     @test ∞ ≥ ∞
 
-    @test ∞ + ∞ == ∞
-    @test ∞ + 1 == ∞
-    @test *(∞) == ∞
+    @test ∞ + ∞ ≡ ∞
+    @test ∞ + 1 ≡ ∞
+    @test *(∞) ≡ ∞
+    @test ∞*∞ ≡ ∞
 
     # oriented infinity
     @test OrientedInfinity(∞) ≡ convert(OrientedInfinity, ∞) ≡ OrientedInfinity() ≡
@@ -32,6 +33,8 @@ using InfiniteArrays, FillArrays, Compat.Test
     @test ∞ == +∞
     @test ∞ ≠  -∞
     @test 1-∞ == -∞
+
+    @test (-∞)*(-∞) ≡ ∞*(+∞) ≡ (+∞)*∞
 
     @test  isless(-∞, 1)
     @test !isless(-∞, -Inf)
@@ -45,6 +48,8 @@ using InfiniteArrays, FillArrays, Compat.Test
     @test OrientedInfinity(false) + OrientedInfinity(false) == OrientedInfinity(false)
     @test OrientedInfinity(true)+1 == OrientedInfinity(true)
     @test OrientedInfinity(false)+1 == OrientedInfinity(false)
+
+
 
     @test exp(im*π/4)*∞ == Inf+im*Inf
     @test exp(im*π/4)+∞ == ∞
@@ -370,4 +375,40 @@ end
     @test @inferred(A[5,5]) ≡ 0
     @test @inferred(A[5,6]) ≡ 5
     @test_throws BoundsError A[-1,1]
+end
+
+@testset "Fill indexing" begin
+    B = Ones(∞,∞)
+    @test IndexStyle(B) == IndexCartesian()
+    V = view(B,:,1)
+    @test_broken size(V) == (∞,1)
+    V = view(B,1,:)
+    @test_broken size(V) == (∞,)
+    V = view(B,1:1,:)
+    @test_broken size(V) == (1,∞)
+end
+
+@testset "BroadcastArray" begin
+    A = randn(6,6)
+    B = BroadcastArray(exp, A)
+    @test Matrix(B) == exp.(A)
+
+    B = BroadcastArray(+, A, 2)
+    @test B == A .+ 2
+end
+
+@testset "∞ BroadcastArray" begin
+    A = 1:∞
+    B = BroadcastArray(exp, A)
+    @test length(B) == ∞
+    @test B[6] == exp(6)
+    @test exp.(A) ≡ B
+    B = Diagonal(1:∞) .+ 1
+    @test B isa BroadcastArray{Int}
+    @test B[1,5] ≡ 1
+    @test B[6,6] == 6+1
+    B = Diagonal(1:∞) - Ones{Int}(∞,∞) # lowers to broadcast
+    @test B isa BroadcastArray{Int}
+    @test B[1,5] ≡ -1
+    @test B[6,6] == 6-1
 end

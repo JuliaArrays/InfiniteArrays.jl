@@ -20,25 +20,26 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
            to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots,
          checkindex, Slice, @_propagate_inbounds_meta, _in_range, _range, _rangestyle, Ordered,
          ArithmeticWraps, floatrange, reverse, unitrange_last,
-         AbstractArray, AbstractVector
-using Compat.LinearAlgebra
-import Compat.LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
-                             det, logdet, istriu, istril
-import Compat: adjoint, axes
+         AbstractArray, AbstractVector, axes, (:), _sub2ind_recurse, broadcast
+using LinearAlgebra
+import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
+                             det, logdet, istriu, istril, adjoint, tr
 
 
-import Base: (:), _sub2ind_recurse
-import LinearAlgebra: tr
-const colon = (:)
+using Base.Broadcast
+import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, combine_eltypes, combine_indices, Indices, _broadcast_getindex,
+                        @nexprs, @ncall
 
-export ∞, Hcat, Vcat, Zeros, Ones, Fill
+
+export ∞, Hcat, Vcat, Zeros, Ones, Fill, BroadcastArray
 
 
 include("Infinity.jl")
 include("infrange.jl")
 include("infdiagonal.jl")
 include("inffill.jl")
-include("infconcat.jl")
+include("lazyconcat.jl")
+include("lazybroadcasting.jl")
 include("infarrayshow.jl")
 
 end # module

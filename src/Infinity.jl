@@ -162,7 +162,8 @@ end
 # ⊻ is xor
 *(a::OrientedInfinity{Bool}, b::OrientedInfinity{Bool}) = OrientedInfinity(a.angle ⊻ b.angle)
 *(a::OrientedInfinity, b::OrientedInfinity) = OrientedInfinity(a.angle + b.angle)
-
+*(a::Infinity, b::OrientedInfinity) = OrientedInfinity(a)*b
+*(a::OrientedInfinity, b::Infinity) = a*OrientedInfinity(b)
 
 *(a::Real, y::OrientedInfinity) = a > 0 ? y : (-y)
 *(y::OrientedInfinity, a::Real) = a*y
