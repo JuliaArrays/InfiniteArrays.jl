@@ -31,7 +31,7 @@ import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, combine_eltypes, comb
                         @nexprs, @ncall
 
 
-export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray
+export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 
 
 include("Infinity.jl")
