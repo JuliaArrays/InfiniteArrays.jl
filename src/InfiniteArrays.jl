@@ -18,7 +18,8 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
                       acosh, asinh, atanh, acsch, asech, acoth, (:),
             AbstractMatrix, AbstractArray, checkindex, unsafe_length, OneTo,
            to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots,
-         checkindex, Slice, @_propagate_inbounds_meta, _in_range, _range, _rangestyle, Ordered,
+         checkindex, Slice, @propagate_inbounds, @_propagate_inbounds_meta,
+         _in_range, _range, _rangestyle, Ordered,
          ArithmeticWraps, floatrange, reverse, unitrange_last,
          AbstractArray, AbstractVector, axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof
 using LinearAlgebra
@@ -40,6 +41,7 @@ include("infdiagonal.jl")
 include("inffill.jl")
 include("lazyconcat.jl")
 include("lazybroadcasting.jl")
+include("cache.jl")
 include("infarrayshow.jl")
 
 end # module

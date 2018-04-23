@@ -429,3 +429,12 @@ end
                          1.0 1.0 0.0;
                          0.0 1.0 2.0]
 end
+
+
+@testset "Cache" begin
+    A = 1:10
+    C = cache(A)
+    @test size(C) == (10,)
+    @test axes(C) == (Base.OneTo(10),)
+    @test Vector(C) == Vector(A)
+end
