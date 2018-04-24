@@ -436,5 +436,23 @@ end
     C = cache(A)
     @test size(C) == (10,)
     @test axes(C) == (Base.OneTo(10),)
-    @test Vector(C) == Vector(A)
+    @test all(Vector(C) .=== Vector(A))
+
+    A = reshape(1:10^2, 10,10)
+    C = cache(A)
+    @test size(C) == (10,10)
+    @test axes(C) == (Base.OneTo(10),Base.OneTo(10))
+    @test all(Array(C) .=== Array(A))
+
+    A = reshape(1:10^3, 10,10,10)
+    C = cache(A)
+    @test size(C) == (10,10,10)
+    @test axes(C) == (Base.OneTo(10),Base.OneTo(10),Base.OneTo(10))
+    @test all(Array(C) .=== Array(A))
+
+    A = reshape(1:10^3, 10,10,10)
+    C = cache(A)
+    InfiniteArrays.resizedata!(C,5,5,5)
+    InfiniteArrays.resizedata!(C,8,8,8)
+    @test all(C.data .=== Array(A)[1:8,1:8,1:8])
 end

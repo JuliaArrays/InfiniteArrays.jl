@@ -1,4 +1,8 @@
 # InfiniteArrays.jl
+
+[![Build Status](https://travis-ci.org/JuliaApproximation/InfiniteArrays.jl.svg?branch=master)](https://travis-ci.org/JuliaApproximation/InfiniteArrays.jl)
+
+
 A Julia package for representing infinite-dimensional arrays
 
 

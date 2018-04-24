@@ -64,7 +64,7 @@ function resizedata!(B::CachedArray{T,N,Array{T,N}},nm::Vararg{Integer,N}) where
     end
 
     for k in 1:N-1
-        inds = tuple(axes(B.data)[1:k-1]...,νμ[k]+1:nm[k],Base.OneTo.(B.datasize[k+1:end]...))
+        inds = tuple(axes(B.data)[1:k-1]...,νμ[k]+1:nm[k],Base.OneTo.(B.datasize[k+1:end])...)
         B.data[inds...] .= view(B.array,inds...)
     end
     let k = N
