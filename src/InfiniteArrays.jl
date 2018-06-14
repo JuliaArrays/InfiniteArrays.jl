@@ -28,7 +28,7 @@ import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymm
 
 
 using Base.Broadcast
-import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, combine_eltypes, combine_indices, Indices, _broadcast_getindex,
+import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted,
                         @nexprs, @ncall
 
 
