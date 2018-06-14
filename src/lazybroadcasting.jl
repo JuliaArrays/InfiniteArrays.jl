@@ -25,14 +25,15 @@ struct BroadcastArray{T, N, BRD<:Broadcasted} <: AbstractArray{T, N}
     broadcasted::BRD
 end
 
-axes(A::BroadcastArray) = A.broadcasted.axes
-size(A::BroadcastArray) = length.(A.axes)
+BroadcastArray{T,N}(bc::BRD) where {T,N,BRD<:Broadcasted} = BroadcastArray{T,N,BRD}(bc)
+BroadcastArray{T}(bc::Broadcasted{<:Any,<:Tuple{Vararg{Any,N}}}) where {T,N} = BroadcastArray{T,N}(bc)
+BroadcastArray(bc::Broadcasted) = BroadcastArray{combine_eltypes(bc.f, bc.args)}(bc)
+BroadcastArray(b::Broadcasted{<:Any,Nothing}) = BroadcastArray(instantiate(b))
+
+axes(A::BroadcastArray) = axes(A.broadcasted)
+size(A::BroadcastArray) = map(length, axes(A))
 
 
-@propagate_inbounds getindex(A::BroadcastArray{<:Any,N,<:Any,<:Tuple{Vararg{Any,M}}}, kj::CartesianIndex{N}) where {N,M} =
-    A.broadcasted[kj]
-
-getindex(A::BroadcastArray{<:Any,N}, kj::Vararg{Integer,N}) where N = getindex(A, CartesianIndex(kj...))
-
+@propagate_inbounds getindex(A::BroadcastArray, kj...) = A.broadcasted[kj...]
 
 copy(bc::Broadcasted{<:LazyArrayStyle}) = BroadcastArray(bc)
