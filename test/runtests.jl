@@ -194,15 +194,15 @@ end
     end
 
     @testset "broadcasted operations with scalars" begin
-        @test broadcast(-, 1:∞, 2) == -1:∞
-        @test broadcast(-, 1:∞, 0.25) == 1-0.25:∞
-        @test broadcast(+, 1:∞, 2) == 3:∞
-        @test broadcast(+, 1:∞, 0.25) == 1+0.25:∞
-        @test broadcast(+, 1:2:∞, 1) == 2:2:∞
-        @test broadcast(+, 1:2:∞, 0.3) == 1+0.3:2:∞
-        @test broadcast(-, 1:2:∞, 1) == 0:2:∞
-        @test broadcast(-, 1:2:∞, 0.3) == 1-0.3:2:∞
-        @test broadcast(-, 2, 1:∞) == 1:-1:-∞
+        @test broadcast(-, 1:∞, 2) ≡ -1:∞
+        @test broadcast(-, 1:∞, 0.25) ≡ 1-0.25:∞
+        @test broadcast(+, 1:∞, 2) ≡ 3:∞
+        @test broadcast(+, 1:∞, 0.25) ≡ 1+0.25:∞
+        @test broadcast(+, 1:2:∞, 1) ≡ 2:2:∞
+        @test broadcast(+, 1:2:∞, 0.3) ≡ 1+0.3:2:∞
+        @test broadcast(-, 1:2:∞, 1) ≡ 0:2:∞
+        @test broadcast(-, 1:2:∞, 0.3) ≡ 1-0.3:2:∞
+        @test broadcast(-, 2, 1:∞) ≡ 1:-1:-∞
     end
 
 

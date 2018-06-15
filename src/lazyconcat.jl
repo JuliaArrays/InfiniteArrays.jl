@@ -6,11 +6,11 @@ function _Vcat end
 struct Vcat{T,N,I} <: AbstractArray{T,N}
     arrays::I
 
-    global function _Vcat(::Type{T},A::I) where {I<:Tuple,T}
+    global function _Vcat(::Type{T}, A::I) where {I<:Tuple,T}
         isempty(A) && throw(ArgumentError("Cannot concatenate empty vectors"))
         new{T,1,I}(A)
     end
-    global function _Vcat(::Type{T},A::I) where I<:Tuple{Vararg{<:AbstractMatrix}} where T
+    global function _Vcat(::Type{T}, A::I) where I<:Tuple{Vararg{<:AbstractMatrix}} where T
         isempty(A) && throw(ArgumentError("Cannot concatenate empty vectors"))
         m = size(A[1],2)
         for k=2:length(A)
@@ -23,7 +23,7 @@ end
 _Vcat(A) = _Vcat(promote_eltypeof(A...), A)
 Vcat(args...) = _Vcat(args)
 size(f::Vcat{<:Any,1}) = tuple(+(length.(f.arrays)...))
-size(f::Vcat{<:Any,2}) = (+(size.(f.arrays,1)...), size(f.arrays[1],2))
+size(f::Vcat{<:Any,2}) = (+(map(a -> size(a,1), f.arrays)...), size(f.arrays[1],2))
 Base.IndexStyle(::Type{<:Vcat{T,1}}) where T = Base.IndexLinear()
 Base.IndexStyle(::Type{<:Vcat{T,2}}) where T = Base.IndexCartesian()
 
@@ -65,7 +65,7 @@ end
 
 _Hcat(A) = _Hcat(promote_eltypeof(A...), A)
 Hcat(args...) = _Hcat(args)
-size(f::Hcat) = (size(f.arrays[1],1), +(size.(f.arrays,2)...))
+size(f::Hcat) = (size(f.arrays[1],1), +(map(a -> size(a,2), f.arrays)...))
 Base.IndexStyle(::Type{<:Hcat}) where T = Base.IndexCartesian()
 
 function getindex(f::Hcat{T}, k::Integer, j::Integer) where T

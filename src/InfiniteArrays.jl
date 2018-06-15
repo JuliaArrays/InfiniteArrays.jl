@@ -5,7 +5,7 @@ module InfiniteArrays
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
-            <, ≤, >, ≥, promote_rule, convert,
+            <, ≤, >, ≥, promote_rule, convert, copy,
             size, step, isempty, length, first, last, start, next, done,
             getindex, setindex!, OneTo, intersect, @_inline_meta,
             sort, sort!, issorted, sortperm, sum, mean, median, in, broadcast,
@@ -28,8 +28,8 @@ import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymm
 
 
 using Base.Broadcast
-import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted,
-                        @nexprs, @ncall, combine_eltypes
+import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
+                        @nexprs, @ncall, combine_eltypes, DefaultArrayStyle, instantiate
 
 
 export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
