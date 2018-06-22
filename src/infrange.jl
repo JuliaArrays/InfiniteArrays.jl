@@ -1,49 +1,72 @@
 # This file is mmodified from Julia. License is MIT: https://julialang.org/license
 
-colon(start::T, stop::Infinity) where {T<:Integer} = InfUnitRange{T}(start)
-colon(start::T, step::T, stop::AbstractInfinity) where {T<:Real} = InfStepRange(start, step, stop)
-colon(start::T, step::Real, stop::AbstractInfinity) where {T<:Real} = colon(promote(start, step)..., stop)
+(:)(start::T, stop::Infinity) where {T<:Integer} = InfUnitRange{T}(start)
+function (:)(start::T, step::T, stop::OrientedInfinity) where {T<:Real}
+    sign(step) == sign(stop) || throw(ArgumentError("InfStepRange must have infinite length"))
+    InfStepRange(start, step)
+end
+(:)(start::T, step::Real, stop::OrientedInfinity) where {T<:Real} = (:)(promote(start, step)..., stop)
+(:)(start::Real, step, stop::Infinity)= (:)(start, step, OrientedInfinity(stop))
 
 # AbstractFloat specializations
-colon(a::T, b::AbstractInfinity) where {T<:Real} = colon(a, T(1), b)
+(:)(a::T, b::Union{Infinity,OrientedInfinity}) where {T<:Real} = (:)(a, T(1), b)
 
-colon(start::T, step::T, stop::Infinity) where {T<:Real} = InfStepRange(start,step,stop)
+function (:)(start::T, step::T, stop::Infinity) where {T<:Real}
+    sign(step) == sign(stop) || throw(ArgumentError("InfStepRange must have infinite length"))
+    InfStepRange(start,step)
+end
+
+# this is needed for showarray
+(:)(::Infinity, ::Infinity) = 1:0
+
+
+# Range of a given length: range(a, [step=s,] length=l), no stop
+_range(a::Real,          ::Nothing,         ::Nothing, len::Infinity) = InfUnitRange{typeof(a)}(a)
+_range(a::AbstractFloat, ::Nothing,         ::Nothing, len::Infinity) = _range(a, oftype(a, 1),   nothing, len)
+_rangestyle(::Ordered, ::ArithmeticWraps, a::T, step::S, len::Infinity) where {T,S} =
+    InfStepRange{T,S}(a, step)
+_range(a::T, st::T, ::Nothing, ::Infinity) where T<:Union{Float16,Float32,Float64} =
+    InfStepRange{T,T}(a, st)
+
+# Construct range for rational start=start_n/den, step=step_n/den
+floatrange(::Type{T}, start_n::Integer, step_n::Integer, ::Infinity, den::Integer) where T =
+    InfStepRange(T(start_n)/den,T(step_n)/den)
+
+floatrange(a::AbstractFloat, st::AbstractFloat, ::Infinity, divisor::AbstractFloat) =
+    InfStepRange(a/divisor,st/divisor)
+
+
 
 ## 1-dimensional ranges ##
 
-abstract type AbstractInfRange{T} <: InfVector{T} end
 
 
-convert(::Type{T}, r::AbstractInfRange) where {T<:AbstractInfRange} =
-    r isa T ? r : T(r)
-
-## ordinal ranges
-
-abstract type InfOrdinalRange{T,S,IS} <: AbstractInfRange{T} end
-abstract type AbstractInfUnitRange{T} <: InfOrdinalRange{T,Int,Infinity} end
-
-const InfIndices = Tuple{Vararg{AbstractInfUnitRange,N}} where N
-inds2string(inds::InfIndices) = join(map(string,inds), '×')
-
-
-struct InfStepRange{T,S} <: InfOrdinalRange{T,S,OrientedInfinity{Bool}}
+struct InfStepRange{T,S} <: OrdinalRange{T,S}
     start::T
     step::S
-    stop::OrientedInfinity{Bool}
-    function InfStepRange{T,S}(start::T, step::S,stop::OrientedInfinity{Bool}) where {T,S}
-        sign(step) == sign(stop) || throw(ArgumentError("InfStepRange must have infinite length"))
-        new{T,S}(start, step, stop)
+    function InfStepRange{T,S}(start::T, step::S) where {T,S}
+        new{T,S}(start, step)
     end
 end
 
-InfStepRange(start::T, step::S, stop::OrientedInfinity{Bool}) where {T,S} =InfStepRange{T,S}(start,step,stop)
-InfStepRange{T,S}(start, step, stop) where {T,S} = InfStepRange{T,S}(convert(T,start),convert(S,step),OrientedInfinity{Bool}(stop))
-InfStepRange(start, step, stop) = InfStepRange(start,step,OrientedInfinity{Bool}(stop))
+InfStepRange(start::T, step::S) where {T,S} = InfStepRange{T,S}(start,step)
+InfStepRange{T,S}(start, step) where {T,S} = InfStepRange{T,S}(convert(T,start),convert(S,step))
 
+abstract type AbstractInfUnitRange{T<:Real} <: AbstractUnitRange{T} end
+
+done(r::AbstractInfUnitRange{T}, i) where {T} = false
+unitrange_last(start, stop::Infinity) = ∞
 
 struct InfUnitRange{T<:Real} <: AbstractInfUnitRange{T}
     start::T
 end
+
+InfUnitRange(a::InfUnitRange) = a
+InfUnitRange{T}(a::AbstractInfUnitRange) where T<:Real = InfUnitRange{T}(first(a))
+AbstractArray{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
+AbstractVector{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
+
+
 
 """
     OneToInf(n)
@@ -55,47 +78,49 @@ be 1 and ∞.
 struct OneToInf{T<:Integer} <: AbstractInfUnitRange{T} end
 
 OneToInf() = OneToInf{Int}()
-oneto(::Infinity) = OneToInf()
+
+AbstractArray{T}(a::OneToInf) where T<:Integer = OneToInf{T}()
+AbstractVector{T}(a::OneToInf) where T<:Integer = OneToInf{T}()
+AbstractArray{T}(a::OneToInf) where T<:Real = InfUnitRange{T}(a)
+AbstractVector{T}(a::OneToInf) where T<:Real = InfUnitRange{T}(a)
+
+
+(==)(::OneToInf, ::OneToInf) = true
 
 ## interface implementations
 
-size(r::AbstractInfRange) = (∞,)
+const InfRanges{T} = Union{InfStepRange{T},AbstractInfUnitRange{T}}
 
-isempty(r::AbstractInfRange) = false
+size(r::InfRanges) = (∞,)
+
+isempty(r::InfRanges) = false
 
 step(r::InfStepRange) = r.step
-step(r::AbstractInfUnitRange) = 1
 
-length(r::AbstractInfRange) = ∞
+length(r::InfRanges) = ∞
+unsafe_length(r::InfRanges) = ∞
 
-
-first(r::InfOrdinalRange{T}) where {T} = convert(T, r.start)
 first(r::OneToInf{T}) where {T} = oneunit(T)
 
 last(r::AbstractInfUnitRange) = ∞
-last(r::InfStepRange) = r.stop
+last(r::InfStepRange) = sign(step(r))*∞
 
-minimum(r::AbstractInfUnitRange) = first(r)
-maximum(r::AbstractInfUnitRange) = last(r)
-
-
-# Ranges are immutable
-copy(r::AbstractInfRange) = r
+minimum(r::InfUnitRange) = first(r)
+maximum(r::InfUnitRange) = last(r)
 
 
 ## iteration
-done(r::AbstractInfRange, i) = false
-
 start(r::InfStepRange) = oftype(r.start + r.step, r.start)
 next(r::InfStepRange{T}, i) where {T} = (convert(T,i), i+r.step)
 
 start(r::InfUnitRange{T}) where {T} = oftype(r.start + oneunit(T), r.start)
-next(r::AbstractInfUnitRange{T}, i) where {T} = (convert(T, i), i + oneunit(T))
-
 start(r::OneToInf{T}) where {T} = oneunit(T)
 
+done(r::InfStepRange{T}, i) where {T} = false
 
 ## indexing
+
+_sub2ind(inds::Tuple{OneToInf}, i::Integer)    = i
 
 function getindex(v::InfUnitRange{T}, i::Integer) where T
     @boundscheck i > 0 || Base.throw_boundserror(v, i)
@@ -106,13 +131,10 @@ function getindex(v::OneToInf{T}, i::Integer) where T
     convert(T, i)
 end
 
-function getindex(v::AbstractInfRange{T}, i::Integer) where T
+function getindex(v::InfStepRange{T}, i::Integer) where T
     @boundscheck i > 0 || Base.throw_boundserror(v, i)
     convert(T, first(v) + (i - 1)*step(v))
 end
-
-
-getindex(r::AbstractInfRange, ::Colon) = copy(r)
 
 function getindex(r::AbstractInfUnitRange, s::AbstractInfUnitRange{<:Integer})
     f = first(r)
@@ -125,7 +147,7 @@ function getindex(r::AbstractInfUnitRange, s::AbstractUnitRange{<:Integer})
     f = first(r)
     @boundscheck first(s) ≥ 1 || Base.throw_boundserror(r, first(s))
     st = oftype(f, f + first(s)-1)
-    range(st, length(s))
+    range(st; length=length(s))
 end
 
 getindex(r::OneToInf{T}, s::OneTo) where T = OneTo(T(s.stop))
@@ -142,10 +164,10 @@ function getindex(r::AbstractInfUnitRange, s::StepRange{<:Integer})
     @_inline_meta
     @boundscheck minimum(s) ≥ 1 || throw(BoundsError(r, minimum(s)))
     st = oftype(first(r), first(r) + s.start-1)
-    range(st, step(s), length(s))
+    range(st; step=step(s), length=length(s))
 end
 
-function getindex(r::InfStepRange, s::AbstractInfRange{<:Integer})
+function getindex(r::InfStepRange, s::InfRanges{<:Integer})
     @_inline_meta
     @boundscheck (step(s) > 0 && first(s) ≥ 1) || throw(BoundsError(r, minimum(s)))
     st = oftype(r.start, r.start + (first(s)-1)*step(r))
@@ -157,15 +179,11 @@ function getindex(r::InfStepRange, s::AbstractRange{<:Integer})
     @_inline_meta
     @boundscheck isempty(s) || minimum(s) ≥ 1 || throw(BoundsError(r, minimum(s)))
     st = oftype(r.start, r.start + (first(s)-1)*step(r))
-    range(st, step(r)*step(s), length(s))
+    range(st; step=step(r)*step(s), length=length(s))
 end
 
-show(io::IO, r::AbstractInfRange) = print(io, repr(first(r)), ':', repr(step(r)), ':', repr(last(r)))
-show(io::IO, r::AbstractInfUnitRange) = print(io, repr(first(r)), ':', repr(last(r)))
+show(io::IO, r::InfUnitRange) = print(io, repr(first(r)), ':', repr(last(r)))
 show(io::IO, r::OneToInf) = print(io, "OneToInf()")
-
-==(r::T, s::T) where {T<:AbstractInfRange} = (first(r) == first(s)) & (step(r) == step(s))
-==(r::InfOrdinalRange, s::InfOrdinalRange) = (first(r) == first(s)) & (step(r) == step(s))
 
 intersect(r::OneToInf{T}, s::OneToInf{V}) where {T,V} = OneToInf{promote_type(T,V)}()
 intersect(r::OneToInf{T}, s::OneTo{T}) where T = s
@@ -186,7 +204,7 @@ intersect(r::AbstractInfUnitRange{<:Integer}, i::Integer) = intersect(i, r)
 
 function intersect(r::AbstractInfUnitRange{<:Integer}, s::StepRange{<:Integer})
     if isempty(s)
-        range(first(r), 0)
+        range(first(r); length=0)
     elseif step(s) == 0
         intersect(first(s), r)
     elseif step(s) < 0
@@ -235,7 +253,7 @@ intersect(r::AbstractInfUnitRange, s::InfStepRange) = intersect(InfStepRange(r),
 
 function intersect(r::InfStepRange, s::StepRange)
     if isempty(s)
-        return range(first(r), step(r), 0)
+        return range(first(r); step=step(r), length=0)
     elseif step(s) < 0
         return intersect(r, reverse(s))
     end
@@ -251,7 +269,7 @@ function intersect(r::InfStepRange, s::StepRange)
 
     if rem(start1 - start2, g) != 0
         # Unaligned, no overlap possible.
-        return range(start1, a, 0)
+        return range(start1; step=a, length=0)
     end
 
     z = div(start1 - start2, g)
@@ -268,41 +286,6 @@ intersect(s::StepRange, r::InfStepRange) = intersect(r, s)
 intersect(s::AbstractRange, r::InfStepRange) = intersect(StepRange(s), r)
 intersect(s::InfStepRange, r::AbstractRange) = intersect(s, StepRange(r))
 
-function intersect(r1::Union{AbstractRange,AbstractInfRange}, r2::Union{AbstractRange,AbstractInfRange},
-                   r3::Union{AbstractRange,AbstractInfRange}, r::Union{AbstractRange,AbstractInfRange}...)
-    i = intersect(intersect(r1, r2), r3)
-    for t in r
-        i = intersect(i, t)
-    end
-    i
-end
-
-## linear operations on ranges ##
-for op in (:*, :\)
-    @eval $op(x::Number, r::AbstractInfRange) = $op(x,first(r)):$op(x,step(r)):$op(x,last(r))
-end
-for op in (:*, :/)
-    @eval $op(r::AbstractInfRange, x::Number) = $op(first(r),x):$op(step(r),x):$op(last(r),x)
-end
-
-## scalar-range broadcast operations ##
-
-broadcast(::typeof(-), r::InfOrdinalRange) = -first(r):-step(r):-last(r)
-
-broadcast(::typeof(+), x::Real, r::AbstractInfUnitRange) = x+first(r):∞
-broadcast(::typeof(+), x::Number, r::AbstractInfRange) = (x+first(r)):step(r):last(r)
-broadcast(::typeof(+), r::AbstractInfRange, x::Number) = broadcast(+, x, r)  # assumes addition is commutative
-
-broadcast(::typeof(-), x::Number, r::AbstractInfRange) = (x-first(r)):-step(r):(-last(r))
-broadcast(::typeof(-), r::AbstractInfRange, x::Number) = broadcast(+, -x, r)  # assumes addition is commutative
-
-# separate in case of noncommutative multiplication
-for op in (:*, :\)
-    @eval broadcast(::typeof($op), x::Number, r::AbstractInfRange) = $op(x,r)
-end
-for op in (:*, :/)
-    @eval broadcast(::typeof($op), r::AbstractInfRange, x::Number) = $op(r,x)
-end
 
 promote_rule(a::Type{InfUnitRange{T1}}, b::Type{InfUnitRange{T2}}) where {T1,T2} =
     InfUnitRange{promote_type(T1,T2)}
@@ -314,77 +297,50 @@ promote_rule(a::Type{OneToInf{T1}}, b::Type{OneToInf{T2}}) where {T1,T2} =
 OneToInf{T}(r::OneToInf{T}) where {T<:Integer} = r
 OneToInf{T}(r::OneToInf) where {T<:Integer} = OneToInf{T}()
 
-promote_rule(a::Type{InfUnitRange{T1}}, ::Type{UR}) where {T1,UR<:AbstractInfUnitRange} =
-    promote_rule(a, InfUnitRange{eltype(UR)})
-InfUnitRange{T}(r::AbstractInfUnitRange) where {T<:Real} = InfUnitRange{T}(first(r))
-InfUnitRange(r::AbstractInfUnitRange) = InfUnitRange(first(r))
-
-AbstractInfUnitRange{T}(r::AbstractInfUnitRange{T}) where {T} = r
-AbstractInfUnitRange{T}(r::InfUnitRange) where {T} = InfUnitRange{T}(r)
-AbstractInfUnitRange{T}(r::OneToInf) where {T} = OneToInf{T}(r)
 
 promote_rule(::Type{InfStepRange{T1a,T1b}}, ::Type{InfStepRange{T2a,T2b}}) where {T1a,T1b,T2a,T2b} =
     InfStepRange{promote_type(T1a,T2a), promote_type(T1b,T2b)}
-InfStepRange{T1,T2}(r::InfStepRange{T1,T2}) where {T1,T2} = r
-
 promote_rule(a::Type{InfStepRange{T1a,T1b}}, ::Type{UR}) where {T1a,T1b,UR<:AbstractInfUnitRange} =
     promote_rule(a, InfStepRange{eltype(UR), eltype(UR)})
-InfStepRange{T1,T2}(r::AbstractInfRange) where {T1,T2} =
-    InfStepRange{T1,T2}(convert(T1, first(r)), convert(T2, step(r)), last(r))
-InfStepRange(r::AbstractInfUnitRange{T}) where {T} =
-    InfStepRange{T,T}(first(r), step(r), last(r))
-(::Type{InfStepRange{T1,T2} where T1})(r::AbstractInfRange) where {T2} =
+
+InfStepRange{T1,T2}(r::InfStepRange{T1,T2}) where {T1,T2} = r
+
+InfStepRange{T1,T2}(r::AbstractRange) where {T1,T2} =
+    InfStepRange{T1,T2}(convert(T1, first(r)), convert(T2, step(r)))
+InfStepRange(r::InfUnitRange{T}) where {T} =
+    InfStepRange{T,T}(first(r), step(r))
+(::Type{InfStepRange{T1,T2} where T1})(r::AbstractRange) where {T2} =
     InfStepRange{eltype(r),T2}(r)
+
+
+
 
 
 ## sorting ##
 
-issorted(r::AbstractInfUnitRange) = true
-issorted(r::AbstractInfRange) = true
+sum(r::InfRanges{<:Real}) = last(r)
+mean(r::InfRanges{<:Real}) = last(r)
+median(r::InfRanges{<:Real}) = last(r)
 
-sort(r::AbstractInfUnitRange) = r
-sort!(r::AbstractInfUnitRange) = r
-
-sort(r::AbstractInfRange) = issorted(r) ? r : throw(ArgumentError("Cannot sort infinite range"))
-
-sortperm(r::AbstractInfUnitRange) = 1:∞
-sortperm(r::AbstractInfRange) = 1:1:∞
-
-sum(r::AbstractInfRange{<:Real}) = last(r)
-
-mean(r::AbstractInfRange{<:Real}) = last(r)
-
-median(r::AbstractInfRange{<:Real}) = last(r)
-
-function _in_range(x, r::AbstractInfRange)
-    if step(r) == 0
-        return !isempty(r) && first(r) == x
-    else
-        n = round(Integer, (x - first(r)) / step(r)) + 1
-        return n >= 1 && r[n] == x
-    end
-end
-in(x::AbstractInfinity, r::AbstractInfRange) = false # never reach it...
-in(x::Real, r::AbstractInfRange{<:Real}) = _in_range(x, r)
+in(x::Union{Infinity,OrientedInfinity}, r::InfRanges) = false # never reach it...
+in(x::Infinity, r::InfRanges{<:Integer}) = false # never reach it...
+in(x::Real, r::InfRanges{<:Real}) = _in_range(x, r)
 # This method needs to be defined separately since -(::T, ::T) can be implemented
 # even if -(::T, ::Real) is not
-in(x::T, r::AbstractInfRange{T}) where {T} = _in_range(x, r)
+in(x::T, r::InfRanges{T}) where {T} = _in_range(x, r)
 
 in(x::Integer, r::AbstractInfUnitRange{<:Integer}) = (first(r) <= x)
 
-in(x::Real, r::AbstractInfRange{T}) where {T<:Integer} =
+in(x::Real, r::InfRanges{T}) where {T<:Integer} =
     isinteger(x) && !isempty(r) && ifelse(step(r) > 0, x ≥ first(r), x ≤ first(r)) &&
             (mod(convert(T,x),step(r))-mod(first(r),step(r)) == 0)
+
 # Addition/subtraction of ranges
+-(r1::OneToInf{T}, r2::OneToInf{V}) where {T,V} = Zeros{promote_type(T,V)}(∞)
+-(r1::AbstractInfUnitRange, r2::AbstractInfUnitRange) = Fill(first(r1)-first(r2), ∞)
 
--(r1::AbstractInfUnitRange, r2::AbstractInfUnitRange) = repeated(first(r1)-first(r2))
 
-for op in (:+, :-)
-    @eval begin
-        function $op(r1::InfOrdinalRange, r2::InfOrdinalRange)
-            new_step = $op(step(r1), step(r2))
-            $op(first(r1), first(r2)):new_step:sign(new_step)*∞
-        end
-        broadcast(::typeof($op), r1::AbstractInfRange, r2::AbstractInfRange) = $op(r1, r2)
-    end
-end
+# The following are hacks needed for some Base support
+OneTo(::Infinity) = OneToInf()
+UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
+UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)

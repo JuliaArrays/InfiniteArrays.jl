@@ -1,9 +1,7 @@
-using InfiniteArrays, Compat.Test
+using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, Compat.Test
     import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
 
 include("test_double.jl")
-
-test_doubly_infinite_arrays()
 
 @testset "∞" begin
     @test ∞ ≠ 1
@@ -15,8 +13,16 @@ test_doubly_infinite_arrays()
     @test !isless(∞, Inf)
     @test !isless(∞, 1)
 
-    @test ∞ + ∞ == ∞
-    @test ∞ + 1 == ∞
+    @test !isless(∞, ∞)
+    @test !(∞ < ∞)
+    @test ∞ ≤ ∞
+    @test !(∞ > ∞)
+    @test ∞ ≥ ∞
+
+    @test ∞ + ∞ ≡ ∞
+    @test ∞ + 1 ≡ ∞
+    @test *(∞) ≡ ∞
+    @test ∞*∞ ≡ ∞
 
     # oriented infinity
     @test OrientedInfinity(∞) ≡ convert(OrientedInfinity, ∞) ≡ OrientedInfinity() ≡
@@ -27,6 +33,9 @@ test_doubly_infinite_arrays()
 
     @test ∞ == +∞
     @test ∞ ≠  -∞
+    @test 1-∞ == -∞
+
+    @test (-∞)*(-∞) ≡ ∞*(+∞) ≡ (+∞)*∞
 
     @test  isless(-∞, 1)
     @test !isless(-∞, -Inf)
@@ -41,6 +50,8 @@ test_doubly_infinite_arrays()
     @test OrientedInfinity(true)+1 == OrientedInfinity(true)
     @test OrientedInfinity(false)+1 == OrientedInfinity(false)
 
+
+
     @test exp(im*π/4)*∞ == Inf+im*Inf
     @test exp(im*π/4)+∞ == ∞
 end
@@ -48,22 +59,20 @@ end
 
 
 
-
-
 @testset "ranges" begin
     @test size(10:1:∞) == (∞,)
     @testset "colon" begin
-        @inferred(colon(10, 1, ∞))
-        @inferred(colon(1, .2, ∞))
-        @inferred(colon(1., .2, ∞))
-        @inferred(colon(1, ∞))
+        @test @inferred(10:1:∞) === @inferred(range(10; step=1, length=∞))
+        @inferred(1:0.2:∞)  === @inferred(range(1; step=0.2, length=∞))
+        @inferred(1.0:0.2:∞)  === @inferred(range(1.0; step=0.2, length=∞))
+        @inferred(1:∞) === @inferred(range(1; length=∞))
     end
-    @test_throws ArgumentError colon(2, -.2, ∞)
-    @test_throws ArgumentError colon(0.0, -∞)
+    @test_throws ArgumentError 2:-.2:∞
+    @test_throws ArgumentError 0.0:-∞
 
     @testset "indexing" begin
-        L32 = @inferred(colon(Int32(1),∞))
-        L64 = @inferred(colon(Int64(1),∞))
+        L32 = @inferred(Int32(1):∞)
+        L64 = @inferred(Int64(1):∞)
         @test @inferred(L32[1]) === Int32(1) && @inferred(L64[1]) === Int64(1)
         @test L32[2] == 2 && L64[2] == 2
         @test L32[3] == 3 && L64[3] == 3
@@ -164,11 +173,7 @@ end
         @test_skip !(Complex(1, 1) in 1.0:∞)
         @test_skip !(Complex(1.0, 1.0) in 1:∞)
         @test_skip !(Complex(1.0, 1.0) in 1.0:∞)
-        @test_broken !(π in 1:∞) # should work in 0.7
-        @test !(π in 1.0:3.0)
-
-        @test_broken !("a" in 1:3)
-        @test_broken !("a" in 1.0:3.0)
+        @test !(π in 1:∞)
     end
 
 
@@ -190,15 +195,15 @@ end
     end
 
     @testset "broadcasted operations with scalars" begin
-        @test broadcast(-, 1:∞, 2) == -1:∞
-        @test broadcast(-, 1:∞, 0.25) == 1-0.25:∞
-        @test broadcast(+, 1:∞, 2) == 3:∞
-        @test broadcast(+, 1:∞, 0.25) == 1+0.25:∞
-        @test broadcast(+, 1:2:∞, 1) == 2:2:∞
-        @test broadcast(+, 1:2:∞, 0.3) == 1+0.3:2:∞
-        @test broadcast(-, 1:2:∞, 1) == 0:2:∞
-        @test broadcast(-, 1:2:∞, 0.3) == 1-0.3:2:∞
-        @test broadcast(-, 2, 1:∞) == 1:-1:-∞
+        @test broadcast(-, 1:∞, 2) ≡ -1:∞
+        @test broadcast(-, 1:∞, 0.25) ≡ 1-0.25:∞
+        @test broadcast(+, 1:∞, 2) ≡ 3:∞
+        @test broadcast(+, 1:∞, 0.25) ≡ 1+0.25:∞
+        @test broadcast(+, 1:2:∞, 1) ≡ 2:2:∞
+        @test broadcast(+, 1:2:∞, 0.3) ≡ 1+0.3:2:∞
+        @test broadcast(-, 1:2:∞, 1) ≡ 0:2:∞
+        @test broadcast(-, 1:2:∞, 0.3) ≡ 1-0.3:2:∞
+        @test broadcast(-, 2, 1:∞) ≡ 1:-1:-∞
     end
 
 
@@ -244,6 +249,12 @@ end
         @test convert(InfUnitRange{Int}, 0:∞) === 0:∞
         @test convert(InfUnitRange{Int128}, 0:∞) === Int128(0):∞
 
+        @test InfUnitRange{Int16}(1:∞) ≡ AbstractVector{Int16}(1:∞) ≡
+                AbstractArray{Int16}(1:∞) ≡ Int16(1):∞
+
+        @test OneToInf{Int16}(OneToInf()) ≡ AbstractVector{Int16}(OneToInf()) ≡
+                AbstractArray{Int16}(OneToInf()) ≡ OneToInf{Int16}()
+
         @test promote(0:1:∞, UInt8(2):UInt8(1):∞) === (0:1:∞, 2:1:∞)
         @test convert(InfStepRange{Int,Int}, 0:1:∞) === 0:1:∞
         @test convert(InfStepRange{Int128,Int128}, 0:1:∞) === Int128(0):Int128(1):∞
@@ -283,7 +294,7 @@ end
             @test 2*r === 2:2:∞
             @test r + r === 2:2:∞
 
-            @test r - r === InfiniteArrays.repeated(0)
+            @test r - r === Zeros{Int}(∞)
 
             @test intersect(r, Base.OneTo(2)) == Base.OneTo(2)
             @test intersect(r, 0:5) == 1:5
@@ -292,19 +303,159 @@ end
     end
 
     @testset "show" begin
-        @test summary(1:∞) == "InfiniteArrays.InfUnitRange{Int64} with indices OneToInf()"
-        @test Base.inds2string(indices(1:∞)) == "OneToInf()"
+        @test summary(1:∞) == "InfUnitRange{Int64} with indices OneToInf()"
+        @test Base.inds2string(axes(1:∞)) == "OneToInf()"
     end
 end
 
+@testset "fill" begin
+    for A in (Zeros(∞), Fill(1,∞), Ones(∞))
+        @test length(A) == ∞
+    end
+    @test size(Zeros(∞,5)) === (∞,5)
+    @test size(Zeros(5,∞)) === (5,∞)
+end
 
-V = (1:∞)
-[diagm(V)[k,j] for k=1:10, j=1:10]
-InfiniteArrays.InfDiagonal{Int,typeof(V)}(V)
+@testset "diagonal" begin
+    D = Diagonal(1:∞)
+    @test D[1:10,1:10] == Diagonal(1:10)
+end
 
 
-InfiniteArrays.InfVector
+@testset "concat" begin
+    A = Vcat(1:10, 1:20)
+    @test @inferred(length(A)) == 30
+    @test @inferred(A[5]) == A[15] == 5
+    @test_throws BoundsError A[31]
+    @test reverse(A) == Vcat(reverse(1:20), reverse(1:10))
 
-Vector
+    A = Vcat(1:10, 1:∞)
+    @test @inferred(length(A)) == ∞
+    @test @inferred(A[5]) == A[15] == 5
+
+    A = Vcat(Ones(1,∞), Zeros(2,∞))
+    @test @inferred(size(A)) == (3,∞)
+    @test @inferred(A[1,5]) == 1
+    @test @inferred(A[3,5]) == 0
+    @test_throws BoundsError A[4,1]
+
+    A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
+    @test @inferred(size(A)) ≡ (∞,∞)
+    @test @inferred(A[1,5]) ≡ 1
+    @test @inferred(A[5,5]) ≡ 0
+    @test @inferred(A[6,5]) ≡ 5
+    @test_throws BoundsError A[-1,1]
+
+    A = Vcat(Ones{Float64}(1,∞), Diagonal(1:∞))
+    @test @inferred(size(A)) ≡ (∞,∞)
+    @test @inferred(A[1,5]) ≡ 1.0
+    @test @inferred(A[5,5]) ≡ 0.0
+    @test @inferred(A[6,5]) ≡ 5.0
+    @test_throws BoundsError A[-1,1]
+
+    A = Vcat(1:10, 1:20)
+    @test @inferred(length(A)) == 30
+    @test @inferred(A[5]) == A[15] == 5
+    @test_throws BoundsError A[31]
+    @test reverse(A) == Vcat(reverse(1:20), reverse(1:10))
+
+    A = Vcat(1, Zeros(∞))
+    @test @inferred(A[1]) ≡ 1.0
+    @test @inferred(A[2]) ≡ 0.0
+
+    A = Hcat(1:10, 2:11)
+    @test @inferred(size(A)) == (10,2)
+    @test @inferred(A[5]) == @inferred(A[5,1]) == 5
+    @test @inferred(A[11]) == @inferred(A[1,2]) == 2
+
+    A = Hcat(Ones(∞), Zeros(∞,2))
+    @test @inferred(size(A)) == (∞,3)
+    @test @inferred(A[5,1]) == 1
+    @test @inferred(A[5,3]) == 0
+    @test_throws BoundsError A[1,4]
+
+    A = Hcat(Ones{Int}(∞), Diagonal(1:∞))
+    @test @inferred(size(A)) ≡ (∞,∞)
+    @test @inferred(A[5,1]) ≡ 1
+    @test @inferred(A[5,5]) ≡ 0
+    @test @inferred(A[5,6]) ≡ 5
+    @test_throws BoundsError A[-1,1]
+
+    A = Hcat(1, zeros(1,5))
+    @test A == hcat(1, zeros(1,5))
+end
+
+@testset "Fill indexing" begin
+    B = Ones(∞,∞)
+    @test IndexStyle(B) == IndexCartesian()
+    V = view(B,:,1)
+    @test_broken size(V) == (∞,1)
+    V = view(B,1,:)
+    @test_broken size(V) == (∞,)
+    V = view(B,1:1,:)
+    @test_broken size(V) == (1,∞)
+end
+
+@testset "BroadcastArray" begin
+    A = randn(6,6)
+    B = BroadcastArray(exp, A)
+    @test Matrix(B) == exp.(A)
+
+    B = BroadcastArray(+, A, 2)
+    @test B == A .+ 2
+end
+
+@testset "∞ BroadcastArray" begin
+    A = 1:∞
+    B = BroadcastArray(exp, A)
+    @test length(B) == ∞
+    @test B[6] == exp(6)
+    @test exp.(A) ≡ B
+    B = Diagonal(1:∞) .+ 1
+    @test B isa BroadcastArray{Int}
+    @test B[1,5] ≡ 1
+    @test B[6,6] == 6+1
+    B = Diagonal(1:∞) - Ones{Int}(∞,∞) # lowers to broadcast
+    @test B isa BroadcastArray{Int}
+    @test B[1,5] ≡ -1
+    @test B[6,6] == 6-1
+end
+
+
+@testset "Taylor ODE" begin
+    e₁ = Vcat(1, Zeros(∞));
+    D = Hcat(Zeros(∞), Diagonal(1:∞));
+    L = Vcat(e₁', Eye(∞) + D)
+    @test L[1:3,1:3] == [1.0 0.0 0.0;
+                         1.0 1.0 0.0;
+                         0.0 1.0 2.0]
+end
+
+
+@testset "Cache" begin
+    A = 1:10
+    C = cache(A)
+    @test size(C) == (10,)
+    @test axes(C) == (Base.OneTo(10),)
+    @test all(Vector(C) .=== Vector(A))
+
+    A = reshape(1:10^2, 10,10)
+    C = cache(A)
+    @test size(C) == (10,10)
+    @test axes(C) == (Base.OneTo(10),Base.OneTo(10))
+    @test all(Array(C) .=== Array(A))
+
+    A = reshape(1:10^3, 10,10,10)
+    C = cache(A)
+    @test size(C) == (10,10,10)
+    @test axes(C) == (Base.OneTo(10),Base.OneTo(10),Base.OneTo(10))
+    @test all(Array(C) .=== Array(A))
+
+    A = reshape(1:10^3, 10,10,10)
+    C = cache(A)
+    InfiniteArrays.resizedata!(C,5,5,5)
+    InfiniteArrays.resizedata!(C,8,8,8)
+    @test all(C.data .=== Array(A)[1:8,1:8,1:8])
+end
 
 test_doubly_infinite_arrays()
