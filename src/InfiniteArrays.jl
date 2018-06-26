@@ -1,7 +1,7 @@
 __precompile__()
 
 module InfiniteArrays
-   using Base, Compat, FillArrays
+   using Base, Compat, FillArrays, LazyLinearAlgebra
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
@@ -31,6 +31,7 @@ using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
                         @nexprs, @ncall, combine_eltypes, DefaultArrayStyle, instantiate
 
+import LazyLinearAlgebra: LazyArrayStyle
 
 export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 
@@ -39,9 +40,6 @@ include("Infinity.jl")
 include("infrange.jl")
 include("infdiagonal.jl")
 include("inffill.jl")
-include("lazyconcat.jl")
-include("lazybroadcasting.jl")
-include("cache.jl")
 include("infarrayshow.jl")
 
 end # module

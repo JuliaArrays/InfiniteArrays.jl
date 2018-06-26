@@ -344,3 +344,18 @@ in(x::Real, r::InfRanges{T}) where {T<:Integer} =
 OneTo(::Infinity) = OneToInf()
 UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
 UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
+
+
+
+### Lazy broadcasting
+
+BroadcastStyle(::Type{<:AbstractInfUnitRange}) = LazyArrayStyle{1}()
+
+
+
+const InfIndexRanges{T<:Integer} = Union{InfStepRange{T},AbstractInfUnitRange{T},Slice{OneToInf{T}}}
+
+BroadcastStyle(::Type{<:SubArray{<:Any,1,<:Any,Tuple{<:InfIndexRanges}}})= LazyArrayStyle{1}()
+BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:InfIndexRanges,<:InfIndexRanges}}})= LazyArrayStyle{1}()
+BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:InfIndexRanges,<:Any}}})= LazyArrayStyle{1}()
+BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:Any,<:InfIndexRanges}}})= LazyArrayStyle{1}()
