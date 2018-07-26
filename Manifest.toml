@@ -25,11 +25,11 @@ version = "0.1.0"
 [[InteractiveUtils]]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 
-[[LazyLinearAlgebra]]
+[[LazyArrays]]
 deps = ["LinearAlgebra"]
 git-tree-sha1 = "1869dbdd738e343d334429d6d606e2cc63027dde"
 repo-rev = ""
-repo-url = "https://github.com/dlfivefifty/LazyLinearAlgebra.jl"
+repo-url = "https://github.com/dlfivefifty/LazyArrays.jl"
 uuid = "de60f5b2-6997-11e8-1d19-0fde115d20c7"
 version = "0.1.0"
 

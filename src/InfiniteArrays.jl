@@ -1,7 +1,7 @@
 __precompile__()
 
 module InfiniteArrays
-   using Base, Compat, FillArrays, LazyLinearAlgebra
+   using Base, Compat, FillArrays, LazyArrays
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
@@ -31,7 +31,7 @@ using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
                         @nexprs, @ncall, combine_eltypes, DefaultArrayStyle, instantiate
 
-import LazyLinearAlgebra: LazyArrayStyle
+import LazyArrays: LazyArrayStyle
 
 export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 
