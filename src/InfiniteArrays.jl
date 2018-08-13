@@ -1,14 +1,14 @@
 __precompile__()
 
 module InfiniteArrays
-   using Base, Compat, FillArrays, LazyArrays
+   using Base, Statistics, LinearAlgebra, FillArrays, LazyArrays
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
             <, ≤, >, ≥, promote_rule, convert, copy,
             size, step, isempty, length, first, last, start, next, done,
             getindex, setindex!, OneTo, intersect, @_inline_meta,
-            sort, sort!, issorted, sortperm, sum, mean, median, in, broadcast,
+            sort, sort!, issorted, sortperm, sum, in, broadcast,
             eltype, parent, real, imag,
             conj, transpose,
             exp, log, sqrt,
@@ -22,14 +22,15 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
          _in_range, _range, _rangestyle, Ordered,
          ArithmeticWraps, floatrange, reverse, unitrange_last,
          AbstractArray, AbstractVector, axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof
-using LinearAlgebra
-import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
-                             det, logdet, istriu, istril, adjoint, tr
-
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
                         @nexprs, @ncall, combine_eltypes, DefaultArrayStyle, instantiate
+
+import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
+                             det, logdet, istriu, istril, adjoint, tr
+
+import Statistics: mean, median
 
 import LazyArrays: LazyArrayStyle
 

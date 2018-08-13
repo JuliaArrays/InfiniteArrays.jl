@@ -1,4 +1,4 @@
-using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, Compat.Test
+using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, Statistics, Test
     import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
 
 

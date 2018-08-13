@@ -1,6 +1,7 @@
 # InfiniteArrays.jl
 
-[![Build Status](https://travis-ci.org/JuliaApproximation/InfiniteArrays.jl.svg?branch=master)](https://travis-ci.org/JuliaApproximation/InfiniteArrays.jl)
+[![Travis](https://travis-ci.org/JuliaApproximation/InfiniteArrays.jl.svg?branch=master)](https://travis-ci.org/JuliaApproximation/InfiniteArrays.jl)
+[![codecov](https://codecov.io/gh/JuliaApproximation/InfiniteArrays.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaApproximation/InfiniteArrays.jl)
 
 
 A Julia package for representing infinite-dimensional arrays
