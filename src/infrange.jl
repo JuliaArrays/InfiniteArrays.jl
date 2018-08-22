@@ -183,7 +183,8 @@ function getindex(r::InfStepRange, s::AbstractRange{<:Integer})
 end
 
 show(io::IO, r::InfUnitRange) = print(io, repr(first(r)), ':', repr(last(r)))
-show(io::IO, r::OneToInf) = print(io, "OneToInf()")
+show(io::IO, r::OneToInf{Int}) = print(io, "OneToInf()")
+show(io::IO, r::OneToInf{T}) where T = print(io, "OneToInf{T}()")
 
 intersect(r::OneToInf{T}, s::OneToInf{V}) where {T,V} = OneToInf{promote_type(T,V)}()
 intersect(r::OneToInf{T}, s::OneTo{T}) where T = s
@@ -342,6 +343,7 @@ in(x::Real, r::InfRanges{T}) where {T<:Integer} =
 
 # The following are hacks needed for some Base support
 OneTo(::Infinity) = OneToInf()
+OneTo{T}(::Infinity) where T<:Integer = OneToInf{T}()
 UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
 UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
 

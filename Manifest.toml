@@ -32,7 +32,7 @@ uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 [[LazyArrays]]
 deps = ["LinearAlgebra", "Test"]
 path = "/Users/sheehanolver/Projects/LazyArrays.jl"
-uuid = "de60f5b2-6997-11e8-1d19-0fde115d20c7"
+uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
 version = "0.1.0"
 
 [[LibGit2]]

@@ -216,6 +216,10 @@ end
         @test 1:1:∞ == 1:∞ == 1:∞ == OneToInf() == OneToInf()
     end
 
+    @testset "Base.OneTo (misleading) overrides" begin
+        @test Base.OneTo{BigInt}(∞) isa OneToInf{BigInt}
+        @test Base.OneTo(∞) isa OneToInf{Int}
+    end
 
     @testset "issue #6973" begin
         r1 = 1.0:0.1:∞
@@ -399,4 +403,17 @@ end
     @test L[1:3,1:3] == [1.0 0.0 0.0;
                          1.0 1.0 0.0;
                          0.0 1.0 2.0]
+end
+
+@testset "Cumsum" begin
+    @test cumsum(Ones(∞)) ≡ 1.0:1.0:∞
+    @test cumsum(Fill(2,∞)) ≡ 2:2:∞
+    @test cumsum(Ones{Int}(∞)) ≡ Base.OneTo(∞)
+    @test cumsum(Ones{BigInt}(∞)) ≡ Base.OneTo{BigInt}(∞)
+
+    x = Vcat([3,4], Ones{Int}(5), 3, Fill(2,∞))
+    y = @inferred(cumsum(x))
+    @test y isa Vcat
+    @test y[1:12] == cumsum(x[1:12])
+    @test last(y.arrays) == sum(x[1:9]):2:∞
 end
