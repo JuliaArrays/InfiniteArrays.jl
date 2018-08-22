@@ -74,7 +74,7 @@ max(::Infinity, ::Infinity) = ∞
 min(x::Real, ::Infinity) = x
 max(::Real, ::Infinity) = ∞
 min(::Infinity, x::Real) = x
-max(::Infinity, ::Real) = x
+max(::Infinity, ::Real) = ∞
 
 ≤(::Infinity, ::Infinity) = true
 <(::Infinity, ::Infinity) = false

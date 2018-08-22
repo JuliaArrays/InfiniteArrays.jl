@@ -41,6 +41,8 @@ using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, Statistics, Test
     @test !isless(-Inf, -∞)
     @test !isless(1, -∞)
 
+    @test max(1,∞) == max(∞,1) == ∞
+    @test min(1,∞) == min(∞,1) == 1
     @test maximum([1,∞]) == ∞
     @test minimum([1,∞]) == 1
 
@@ -415,5 +417,6 @@ end
     y = @inferred(cumsum(x))
     @test y isa Vcat
     @test y[1:12] == cumsum(x[1:12])
+    @test cumsum(x).arrays[2] ≡ 8:12
     @test last(y.arrays) == sum(x[1:9]):2:∞
 end
