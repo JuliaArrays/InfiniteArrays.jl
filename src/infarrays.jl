@@ -1,3 +1,24 @@
+
+
+
+# This gets called when infinit number of columns
+print_matrix_row(io::IO,
+        X::AbstractVecOrMat, A::Vector,
+        i::Integer, cols::AbstractVector{<:Infinity}, sep::AbstractString) = nothing
+
+
+print_matrix_vdots(io::IO, vdots::AbstractString,
+        A::Vector, sep::AbstractString, M::Integer, ::NotANumber) = nothing
+
+
+# Avoid infinite loops on maximum
+Base.mapreduce_impl(f, op, A::AbstractArray, ifirst::Integer, ::Infinity) =
+    throw(ArgumentError("Cannot call mapreduce on an infinite length $(typeof(A))"))
+
+#####
+# FillArrays
+#####
+
 for typ in (:Fill, :Zeros, :Ones)
     @eval begin
         Base.IndexStyle(::Type{<:$typ{<:Any,2,Tuple{Infinity,Infinity}}}) = Base.IndexCartesian()
@@ -18,3 +39,10 @@ end
 BroadcastStyle(::Type{Eye{T,NTuple{2,Infinity}}}) where {T} = LazyArrayStyle{2}()
 BroadcastStyle(::Type{Eye{T,Tuple{Int,Infinity}}}) where {T} = LazyArrayStyle{2}()
 BroadcastStyle(::Type{Eye{T,Tuple{Infinity,Int}}}) where {T} = LazyArrayStyle{2}()
+
+#####
+# Diagonal
+#####
+
+
+BroadcastStyle(::Type{<:Diagonal{<:Any,<:AbstractInfUnitRange}}) = LazyArrayStyle{2}()

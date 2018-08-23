@@ -435,4 +435,6 @@ end
     x = Vcat(1:2, [1,1,1,1,1], 3, Fill(4,∞))
     @test maximum(x) == 4
     @test minimum(x) == 1
+
+    @test_throws ArgumentError maximum(exp.(1:∞))
 end

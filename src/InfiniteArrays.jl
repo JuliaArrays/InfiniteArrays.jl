@@ -6,7 +6,7 @@ module InfiniteArrays
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
             <, ≤, >, ≥, promote_rule, convert, copy,
-            size, step, isempty, length, first, last, 
+            size, step, isempty, length, first, last,
             getindex, setindex!, OneTo, intersect, @_inline_meta,
             sort, sort!, issorted, sortperm, sum, in, broadcast,
             eltype, parent, real, imag,
@@ -39,8 +39,7 @@ export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 
 include("Infinity.jl")
 include("infrange.jl")
-include("infdiagonal.jl")
-include("inffill.jl")
-include("infarrayshow.jl")
+include("infarrays.jl")
+
 
 end # module
