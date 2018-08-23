@@ -396,7 +396,6 @@ end
     @test B[6,6] == 6-1
 end
 
-
 @testset "Taylor ODE" begin
     e₁ = Vcat(1, Zeros(∞));
     D = Hcat(Zeros(∞), Diagonal(1:∞));
@@ -424,4 +423,16 @@ end
     @test Ones(∞)[3:∞] ≡ Ones(∞)
     @test Ones{Int}(∞)[4:6] ≡ Ones{Int}(3)
     @test (1:∞)[3:∞] ≡ 3:∞
+end
+
+@testset "Broadcast Fill Lowers" begin
+    @test broadcast(+, Zeros{Int}(∞) , Fill(1,∞)) isa Fill
+    @test broadcast(+, Zeros{Int}(∞) , Zeros(∞)) isa Zeros
+end
+
+
+@testset "maximum/minimum Vcat" begin
+    x = Vcat(1:2, [1,1,1,1,1], 3, Fill(4,∞))
+    @test maximum(x) == 4
+    @test minimum(x) == 1
 end
