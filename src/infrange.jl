@@ -184,7 +184,7 @@ end
 
 show(io::IO, r::InfUnitRange) = print(io, repr(first(r)), ':', repr(last(r)))
 show(io::IO, r::OneToInf{Int}) = print(io, "OneToInf()")
-show(io::IO, r::OneToInf{T}) where T = print(io, "OneToInf{T}()")
+show(io::IO, r::OneToInf{T}) where T = print(io, "OneToInf{$T}()")
 
 intersect(r::OneToInf{T}, s::OneToInf{V}) where {T,V} = OneToInf{promote_type(T,V)}()
 intersect(r::OneToInf{T}, s::OneTo{T}) where T = s

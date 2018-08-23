@@ -428,6 +428,7 @@ end
 @testset "Broadcast Fill Lowers" begin
     @test broadcast(+, Zeros{Int}(∞) , Fill(1,∞)) isa Fill
     @test broadcast(+, Zeros{Int}(∞) , Zeros(∞)) isa Zeros
+    @test broadcast(*, Ones(∞), Ones(∞)) ≡ Ones(∞)
 end
 
 
