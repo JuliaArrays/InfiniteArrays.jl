@@ -207,11 +207,9 @@ end
         @test broadcast(-, 2, 1:∞) ≡ 1:-1:-∞
     end
 
-
-
-    # near-equal ranges
-    @test 0.0:0.1:∞ != 0.0f0:0.1f0:∞
-
+    @testset "near-equal ranges" begin
+        @test 0.0:0.1:∞ != 0.0f0:0.1f0:∞
+    end
 
     @testset "comparing InfiniteUnitRanges and OneToInf" begin
         @test 1:2:∞ == 1:2:∞ != 1:3:∞ != 2:3:∞ == 2:3:∞ != 2:∞
@@ -235,14 +233,15 @@ end
         @test r3 + r3 == 2 * r3
     end
 
-    # Preservation of high precision upon addition
-    let r = (-0.1:0.1:∞) + broadcast(+, -0.3:0.1:∞, 1e-12)
-        @test_broken r[3] == 1e-12
+    @testset "Preservation of high precision upon addition" begin
+        let r = (-0.1:0.1:∞) + broadcast(+, -0.3:0.1:∞, 1e-12)
+            @test_broken r[3] == 1e-12
+        end
     end
 
-    # issue #8584
-    @test (0:1//2:∞)[1:2:3] == 0:1//1:1
-
+    @testset "issue #8584" begin
+        @test (0:1//2:∞)[1:2:3] == 0:1//1:1
+    end
 
     @testset "issue #9962" begin
         @test eltype(0:1//3:∞) <: Rational
@@ -419,4 +418,10 @@ end
     @test y[1:12] == cumsum(x[1:12])
     @test cumsum(x).arrays[2] ≡ 8:12
     @test last(y.arrays) == sum(x[1:9]):2:∞
+end
+
+@testset "Sub-array" begin
+    @test Ones(∞)[3:∞] ≡ Ones(∞)
+    @test Ones{Int}(∞)[4:6] ≡ Ones{Int}(3)
+    @test (1:∞)[3:∞] ≡ 3:∞
 end
