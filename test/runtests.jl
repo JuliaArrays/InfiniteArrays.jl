@@ -57,9 +57,6 @@ using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, Statistics, Test
     @test exp(im*π/4)+∞ == ∞
 end
 
-
-
-
 @testset "ranges" begin
     @test size(10:1:∞) == (∞,)
     @testset "colon" begin
@@ -369,6 +366,16 @@ end
     @test_throws BoundsError A[-1,1]
 end
 
+# This should be generalized, but it at the moment
+# it is restricted to a single Number. Support smart
+# addition for any number of Number/SVector's would be better
+# allowibng for the tail to be variable lenth
+@testset "Vcat special case" begin
+    @test Vcat(1,Zeros{Int}(∞)) + Vcat(3,Zeros{Int}(∞)) ≡
+          Vcat(1,Zeros{Int}(∞)) .+ Vcat(3,Zeros{Int}(∞)) ≡
+          Vcat(4,Zeros{Int}(∞))
+end
+
 @testset "Fill indexing" begin
     B = Ones(∞,∞)
     @test IndexStyle(B) == IndexCartesian()
@@ -415,8 +422,11 @@ end
     y = @inferred(cumsum(x))
     @test y isa Vcat
     @test y[1:12] == cumsum(x[1:12])
+
     @test cumsum(x).arrays[2] ≡ 8:12
     @test last(y.arrays) == sum(x[1:9]):2:∞
+    r = (3:4:∞)
+    @test cumsum(r)[1:20] == cumsum(r[1:20])
 end
 
 @testset "Sub-array" begin
