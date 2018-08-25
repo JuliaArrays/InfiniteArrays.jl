@@ -367,3 +367,23 @@ BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:Any,<:InfIndexRanges}}}
 
 
 cumsum(r::InfRanges) = OneToInf() .* (first(r) .+ r) .÷ 2
+
+
+##
+# conv
+# This is useful for determining polynomial dimensions
+##
+
+function conv(r::InfRanges, x::AbstractVector)
+    length(x) ≠ 1 && throw(ArgumentError("conv(::$(typeof(r)), ::$(typeof(x))) not implemented"))
+    first(x)*r
+end
+function conv(x::AbstractVector, r::InfRanges)
+    length(x) ≠ 1 && throw(ArgumentError("conv(::$(typeof(r)), ::$(typeof(x))) not implemented"))
+    first(x)*r
+end
+
+conv(r1::InfRanges, r2::AbstractFill) = cumsum(r1*getindex_value(r2))
+conv(r2::AbstractFill, r1::InfRanges) = cumsum(getindex_value(r2)*r1)
+
+conv(r1::InfRanges, r2::InfRanges) = throw(ArgumentError("conv(::$(typeof(r1)), ::$(typeof(r2))) not implemented"))

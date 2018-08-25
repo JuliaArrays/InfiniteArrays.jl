@@ -1,4 +1,4 @@
-using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, Statistics, Test
+using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, Statistics, DSP, Test
     import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
 
 
@@ -450,6 +450,12 @@ end
     @test minimum(x) == 1
 
     @test_throws ArgumentError maximum(exp.(1:∞))
+end
+
+@testset "conv" begin
+    @test conv(1:∞, [2]) == conv([2], 1:∞) == 2:2:∞
+    @test conv(1:2:∞, [2]) == conv([2], 1:2:∞) == 2:4:∞
+    @test conv(1:∞, Ones(∞))[1:5] == [1,3,6,10,15]
 end
 
 

@@ -1,7 +1,7 @@
 __precompile__()
 
 module InfiniteArrays
-   using Base, Statistics, LinearAlgebra, FillArrays, LazyArrays, StaticArrays
+   using Base, Statistics, LinearAlgebra, FillArrays, LazyArrays, DSP
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
@@ -33,9 +33,10 @@ import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymm
 
 import Statistics: mean, median
 
-import FillArrays: AbstractFill
-
+import FillArrays: AbstractFill, getindex_value
 import LazyArrays: LazyArrayStyle
+
+import DSP: conv
 
 export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 

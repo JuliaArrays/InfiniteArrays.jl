@@ -38,7 +38,7 @@ function show_delim_array(io::IO, itr::AbstractArray, op, delim, cl,
               if i > l
                   print(io, delim)
                   print(io, ' ')
-                  print(io, '…')                  
+                  print(io, '…')
                   delim_one && first && print(io, delim)
                   break
               end
@@ -83,17 +83,3 @@ BroadcastStyle(::Type{Eye{T,Tuple{Infinity,Int}}}) where {T} = LazyArrayStyle{2}
 
 
 BroadcastStyle(::Type{<:Diagonal{<:Any,<:AbstractInfUnitRange}}) = LazyArrayStyle{2}()
-
-
-######
-# PaddedArrays
-######
-
-# this is a special override that may be generalisable
-broadcasted(::LazyArrayStyle{1}, op, A::Vcat{<:Any, 1, <:Tuple{<:Number, <:AbstractFill}},
-                                     B::Vcat{<:Any, 1, <:Tuple{<:Number, <:AbstractFill}}) =
-     Vcat(op(A.arrays[1], B.arrays[1]), op.(A.arrays[2], B.arrays[2]))
-
-broadcasted(::LazyArrayStyle{1}, op, A::Vcat{<:Any, 1, <:Tuple{<:SVector{M}, <:AbstractFill}},
-                                     B::Vcat{<:Any, 1, <:Tuple{<:SVector{M}, <:AbstractFill}}) where M =
-  Vcat(op.(A.arrays[1], B.arrays[1]), op.(A.arrays[2], B.arrays[2]))
