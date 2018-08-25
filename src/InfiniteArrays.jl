@@ -1,7 +1,7 @@
 __precompile__()
 
 module InfiniteArrays
-   using Base, Statistics, LinearAlgebra, FillArrays, LazyArrays
+   using Base, Statistics, LinearAlgebra, FillArrays, LazyArrays, StaticArrays
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
@@ -22,7 +22,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
          _in_range, _range, _rangestyle, Ordered,
          ArithmeticWraps, floatrange, reverse, unitrange_last,
          AbstractArray, AbstractVector, axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
-         cumsum
+         cumsum, show_delim_array, show_circular
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,

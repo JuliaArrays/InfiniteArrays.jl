@@ -122,6 +122,9 @@ done(r::InfStepRange{T}, i) where {T} = false
 
 _sub2ind(inds::Tuple{OneToInf}, i::Integer)    = i
 
+getindex(::AbstractInfUnitRange, ::Infinity) = ∞
+getindex(::OneToInf, ::Infinity) = ∞
+
 function getindex(v::InfUnitRange{T}, i::Integer) where T
     @boundscheck i > 0 || Base.throw_boundserror(v, i)
     convert(T, first(v) + i - 1)

@@ -31,7 +31,7 @@ uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 
 [[LazyArrays]]
 deps = ["LinearAlgebra", "Test"]
-path = "/Users/sheehanolver/Projects/LazyArrays.jl"
+git-tree-sha1 = "30dd5ca1981163296f5deba6c094d91db4b4fd6a"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
 version = "0.1.0"
 
@@ -87,6 +87,12 @@ uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
 [[SparseArrays]]
 deps = ["LinearAlgebra", "Random"]
 uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+
+[[StaticArrays]]
+deps = ["InteractiveUtils", "LinearAlgebra", "Random", "Statistics", "Test"]
+git-tree-sha1 = "d432c79bef174a830304f8601427a4357dfdbfb7"
+uuid = "90137ffa-7385-5640-81b9-e52037218182"
+version = "0.8.3"
 
 [[Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]

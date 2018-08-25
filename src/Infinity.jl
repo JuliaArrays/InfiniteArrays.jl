@@ -107,7 +107,7 @@ OrientedInfinity() = OrientedInfinity{Bool}()
 OrientedInfinity{T}(::Infinity) where T<:Real = OrientedInfinity{T}()
 OrientedInfinity(::Infinity) = OrientedInfinity()
 -(::Infinity) = OrientedInfinity(true)
-+(::Infinity) = OrientedInfinity(false)
++(::Infinity) = ∞
 
 
 isinf(::OrientedInfinity) = true

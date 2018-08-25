@@ -28,13 +28,13 @@ using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, Statistics, Test
         OrientedInfinity(false)
 
     @test -∞ ≡ OrientedInfinity(true)
-    @test +∞ ≡ OrientedInfinity(false)
+    @test +∞ ≡ ∞
 
-    @test ∞ == +∞
+    @test ∞ == +∞ == OrientedInfinity(∞)
     @test ∞ ≠  -∞
     @test 1-∞ == -∞
 
-    @test (-∞)*(-∞) ≡ ∞*(+∞) ≡ (+∞)*∞
+    @test (-∞)*(-∞) ≡ ∞*OrientedInfinity(∞) ≡ OrientedInfinity(∞)*∞
 
     @test  isless(-∞, 1)
     @test !isless(-∞, -Inf)
@@ -188,7 +188,7 @@ end
     @testset "sums of ranges" begin
         @test sum(1:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ∞
         @test sum(0:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ∞
-        @test sum(0:2:∞) ≡ mean(0:2:∞) ≡ median(0:2:∞) ≡ +∞
+        @test sum(0:2:∞) ≡ mean(0:2:∞) ≡ median(0:2:∞) ≡ OrientedInfinity(∞)
         @test sum(0:-2:-∞) ≡ mean(0:-2:-∞) ≡ median(0:-2:-∞) ≡ -∞
     end
 
@@ -374,6 +374,8 @@ end
     @test Vcat(1,Zeros{Int}(∞)) + Vcat(3,Zeros{Int}(∞)) ≡
           Vcat(1,Zeros{Int}(∞)) .+ Vcat(3,Zeros{Int}(∞)) ≡
           Vcat(4,Zeros{Int}(∞))
+
+          size(Vcat(1:∞)) ≡ (∞,)
 end
 
 @testset "Fill indexing" begin
@@ -448,4 +450,10 @@ end
     @test minimum(x) == 1
 
     @test_throws ArgumentError maximum(exp.(1:∞))
+end
+
+
+@testset "show" begin
+    @test repr(Vcat(1:∞)) == "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, …]"
+    @test repr(Vcat(2,1:∞)) == "[2, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, …]"
 end
