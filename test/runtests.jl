@@ -455,7 +455,10 @@ end
 @testset "conv" begin
     @test conv(1:∞, [2]) == conv([2], 1:∞) == 2:2:∞
     @test conv(1:2:∞, [2]) == conv([2], 1:2:∞) == 2:4:∞
-    @test conv(1:∞, Ones(∞))[1:5] == [1,3,6,10,15]
+    @test conv(1:∞, Ones(∞))[1:5] == conv(Ones(∞),1:∞)[1:5] == [1,3,6,10,15]
+    @test conv(Ones(∞), Ones(∞)) == 1.0:1.0:∞
+    @test conv(Ones{Int}(∞), Ones{Int}(∞)) == Base.OneTo(∞)
+    @test conv(Ones{Bool}(∞), Ones{Bool}(∞)) == Base.OneTo(∞)
 end
 
 
