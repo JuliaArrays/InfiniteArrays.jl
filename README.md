@@ -19,20 +19,7 @@ Here are some examples of current functionality:
 julia> using InfiniteArrays, LinearAlgebra
 
 julia> x = Ones(∞) # infinite vector of all ones
-Ones{Float64,1,Tuple{InfiniteArrays.Infinity}} with indices OneToInf():
- 1.0
- 1.0
- 1.0
- 1.0
- 1.0
- 1.0
- 1.0
- 1.0
- 1.0
- 1.0
- 1.0
- 1.0
- 1.0
+Ones{Float64,1,Tuple{InfiniteArrays.OneToInf{Int64}}} with indices OneToInf():
  1.0
  1.0
  1.0

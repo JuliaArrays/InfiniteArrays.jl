@@ -400,11 +400,11 @@ function conv(r1::AbstractFill, r2::AbstractFill)
     a:a:∞
 end
 
-conv(::Ones{T,1,Tuple{Infinity}}, ::Ones{V,1,Tuple{Infinity}}) where {T<:Integer,V<:Integer} =
+conv(::Ones{T,1,<:Tuple{<:OneToInf}}, ::Ones{V,1,<:Tuple{<:OneToInf}}) where {T<:Integer,V<:Integer} =
     OneToInf{promote_type(T,V)}()
 
-conv(::Ones{Bool,1,Tuple{Infinity}}, ::Ones{Bool,1,Tuple{Infinity}}) =
+conv(::Ones{Bool,1,<:Tuple{<:OneToInf}}, ::Ones{Bool,1,<:Tuple{<:OneToInf}}) =
     OneToInf()
 
-conv(::Ones{T,1,Tuple{Infinity}}, ::Ones{V,1,Tuple{Infinity}}) where {T,V} =
+conv(::Ones{T,1,<:Tuple{<:OneToInf}}, ::Ones{V,1,<:Tuple{<:OneToInf}}) where {T,V} =
     one(promote_type(T,V)):∞

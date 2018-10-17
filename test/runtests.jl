@@ -1,4 +1,4 @@
-using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, Statistics, DSP, Test
+using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, Test
     import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
 
 
@@ -406,8 +406,10 @@ end
 end
 
 @testset "Taylor ODE" begin
-    e₁ = Vcat(1, Zeros(∞));
-    D = Hcat(Zeros(∞), Diagonal(1:∞));
+    e₁ = Vcat(1, Zeros(∞))
+    D = Hcat(Zeros(∞), Diagonal(1:∞))
+    @test typeof(Eye(∞)) == Eye{Float64,OneToInf{Int}}
+    @test Base.BroadcastStyle(typeof(Eye(∞))) == LazyArrays.LazyArrayStyle{2}()
     L = Vcat(e₁', Eye(∞) + D)
     @test L[1:3,1:3] == [1.0 0.0 0.0;
                          1.0 1.0 0.0;
@@ -443,7 +445,6 @@ end
     @test broadcast(*, Ones(∞), Ones(∞)) ≡ Ones(∞)
 end
 
-
 @testset "maximum/minimum Vcat" begin
     x = Vcat(1:2, [1,1,1,1,1], 3, Fill(4,∞))
     @test maximum(x) == 4
@@ -453,14 +454,13 @@ end
 end
 
 @testset "conv" begin
-    @test conv(1:∞, [2]) == conv([2], 1:∞) == 2:2:∞
-    @test conv(1:2:∞, [2]) == conv([2], 1:2:∞) == 2:4:∞
+    @test conv(1:∞, [2]) ≡ conv([2], 1:∞) ≡ 2:2:∞
+    @test conv(1:2:∞, [2]) ≡ conv([2], 1:2:∞) ≡ 2:4:∞
     @test conv(1:∞, Ones(∞))[1:5] == conv(Ones(∞),1:∞)[1:5] == [1,3,6,10,15]
-    @test conv(Ones(∞), Ones(∞)) == 1.0:1.0:∞
-    @test conv(Ones{Int}(∞), Ones{Int}(∞)) == Base.OneTo(∞)
-    @test conv(Ones{Bool}(∞), Ones{Bool}(∞)) == Base.OneTo(∞)
+    @test conv(Ones(∞), Ones(∞)) ≡ 1.0:1.0:∞
+    @test conv(Ones{Int}(∞), Ones{Int}(∞)) ≡ Base.OneTo(∞)
+    @test conv(Ones{Bool}(∞), Ones{Bool}(∞)) ≡ Base.OneTo(∞)
 end
-
 
 @testset "show" begin
     @test repr(Vcat(1:∞)) == "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, …]"
