@@ -22,7 +22,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
          _in_range, _range, _rangestyle, Ordered,
          ArithmeticWraps, floatrange, reverse, unitrange_last,
          AbstractArray, AbstractVector, axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
-         cumsum, show_delim_array, show_circular
+         cumsum, show_delim_array, show_circular, Int
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
@@ -44,6 +44,16 @@ export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 include("Infinity.jl")
 include("infrange.jl")
 include("infarrays.jl")
+
+##
+# Temporary hacks for base support
+##
+OneTo(::Infinity) = OneToInf()
+OneTo{T}(::Infinity) where T<:Integer = OneToInf{T}()
+UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
+UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
+
+Int(::Infinity) = ∞
 
 
 end # module

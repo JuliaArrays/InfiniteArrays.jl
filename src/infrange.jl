@@ -344,12 +344,6 @@ in(x::Real, r::InfRanges{T}) where {T<:Integer} =
 -(r1::AbstractInfUnitRange, r2::AbstractInfUnitRange) = Fill(first(r1)-first(r2), ∞)
 
 
-# The following are hacks needed for some Base support
-OneTo(::Infinity) = OneToInf()
-OneTo{T}(::Infinity) where T<:Integer = OneToInf{T}()
-UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
-UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
-
 
 
 ### Lazy broadcasting
