@@ -7,7 +7,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
             <, ≤, >, ≥, promote_rule, convert, copy,
             size, step, isempty, length, first, last,
-            getindex, setindex!, OneTo, intersect, @_inline_meta,
+            getindex, setindex!, intersect, @_inline_meta,
             sort, sort!, issorted, sortperm, sum, in, broadcast,
             eltype, parent, real, imag,
             conj, transpose,
@@ -35,7 +35,8 @@ import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymm
 import Statistics: mean, median
 
 import FillArrays: AbstractFill, getindex_value
-import LazyArrays: LazyArrayStyle
+import LazyArrays: LazyArrayStyle, _materialize, ArrayMulArray, AbstractBandedLayout,
+                    ZerosLayout, VcatLayout, MatMulVec
 
 import DSP: conv
 
@@ -55,6 +56,15 @@ UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
 UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
 
 Int(::Infinity) = ∞
+
+# stay lazy if infinite
+_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf}) = M
+_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf,<:OneToInf}) = M
+_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf,<:OneTo}) = M
+_materialize(M::ArrayMulArray, ::Tuple{<:OneTo,<:OneToInf}) = M
+
+_materialize(M::MatMulVec{<:AbstractBandedLayout,<:VcatLayout{<:Tuple{<:Any,ZerosLayout}}}, ::Tuple{<:OneToInf}) =
+    copyto!(similar(M), M)
 
 
 end # module
