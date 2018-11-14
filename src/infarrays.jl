@@ -1,5 +1,14 @@
+Array{T}(::UndefInitializer, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
 
+Array{T}(::UndefInitializer, ::Infinity, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
+Array{T}(::UndefInitializer, ::Infinity, ::Integer) where T = throw(ArgumentError("Cannot create infinite Array"))
+Array{T}(::UndefInitializer, ::Integer, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
 
+Matrix{T}(::UndefInitializer, ::Infinity, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
+Matrix{T}(::UndefInitializer, ::Infinity, ::Integer) where T = throw(ArgumentError("Cannot create infinite Array"))
+Matrix{T}(::UndefInitializer, ::Integer, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
+
+Vector{T}(::UndefInitializer, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
 
 # This gets called when infinit number of columns
 print_matrix_row(io::IO,

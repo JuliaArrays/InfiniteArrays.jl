@@ -384,9 +384,9 @@ end
     V = view(B,:,1)
     @test_broken size(V) == (∞,1)
     V = view(B,1,:)
-    @test_broken size(V) == (∞,)
+    @test size(V) == (∞,)
     V = view(B,1:1,:)
-    @test_broken size(V) == (1,∞)
+    @test size(V) == (1,∞)
 end
 
 @testset "∞ BroadcastArray" begin
@@ -465,4 +465,16 @@ end
 @testset "show" begin
     @test repr(Vcat(1:∞)) == "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, …]"
     @test repr(Vcat(2,1:∞)) == "[2, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, …]"
+end
+
+@testset "Array constructor errors" begin
+    @test_throws ArgumentError Array{Float64}(undef, ∞)
+    @test_throws ArgumentError Array{Float64}(undef, ∞, ∞)
+    @test_throws ArgumentError Array{Float64}(undef, 1, ∞)
+    @test_throws ArgumentError Array{Float64}(undef, ∞, 1)
+
+    @test_throws ArgumentError Vector{Float64}(undef, ∞)
+    @test_throws ArgumentError Matrix{Float64}(undef, ∞, ∞)
+    @test_throws ArgumentError Matrix{Float64}(undef, 1, ∞)
+    @test_throws ArgumentError Matrix{Float64}(undef, ∞, 1)
 end

@@ -21,7 +21,8 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
          checkindex, Slice, @propagate_inbounds, @_propagate_inbounds_meta,
          _in_range, _range, _rangestyle, Ordered,
          ArithmeticWraps, floatrange, reverse, unitrange_last,
-         AbstractArray, AbstractVector, axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
+         AbstractArray, AbstractVector, Array, Vector, Matrix,
+         axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
          cumsum, show_delim_array, show_circular, Int
 
 using Base.Broadcast
