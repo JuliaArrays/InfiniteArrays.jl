@@ -36,7 +36,7 @@ import Statistics: mean, median
 
 import FillArrays: AbstractFill, getindex_value
 import LazyArrays: LazyArrayStyle, _materialize, ArrayMulArray, AbstractBandedLayout,
-                    ZerosLayout, VcatLayout, MatMulVec
+                    ZerosLayout, VcatLayout, MatMulVec, MulArray
 
 import DSP: conv
 
@@ -58,10 +58,10 @@ UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
 Int(::Infinity) = ∞
 
 # stay lazy if infinite
-_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf}) = M
-_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf,<:OneToInf}) = M
-_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf,<:OneTo}) = M
-_materialize(M::ArrayMulArray, ::Tuple{<:OneTo,<:OneToInf}) = M
+_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf}) = MulArray(M)
+_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf,<:OneToInf}) = MulArray(M)
+_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf,<:OneTo}) = MulArray(M)
+_materialize(M::ArrayMulArray, ::Tuple{<:OneTo,<:OneToInf}) = MulArray(M)
 
 _materialize(M::MatMulVec{<:AbstractBandedLayout,<:VcatLayout{<:Tuple{<:Any,ZerosLayout}}}, ::Tuple{<:OneToInf}) =
     copyto!(similar(M), M)
