@@ -58,10 +58,10 @@ UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
 Int(::Infinity) = ∞
 
 # stay lazy if infinite
-_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf}) = MulArray(M)
-_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf,<:OneToInf}) = MulArray(M)
-_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf,<:OneTo}) = MulArray(M)
-_materialize(M::ArrayMulArray, ::Tuple{<:OneTo,<:OneToInf}) = MulArray(M)
+_materialize(M::Mul{<:Tuple,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf}) = MulArray(M)
+_materialize(M::Mul{<:Tuple,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf,<:OneToInf}) = MulArray(M)
+_materialize(M::Mul{<:Tuple,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf,<:OneTo}) = MulArray(M)
+_materialize(M::Mul{<:Tuple,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneTo,<:OneToInf}) = MulArray(M)
 
 _materialize(M::MatMulVec{<:AbstractBandedLayout,<:VcatLayout{<:Tuple{<:Any,ZerosLayout}}}, ::Tuple{<:OneToInf}) =
     copyto!(similar(M), M)
