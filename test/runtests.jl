@@ -408,9 +408,12 @@ end
 @testset "Taylor ODE" begin
     e₁ = Vcat(1, Zeros(∞))
     D = Hcat(Zeros(∞), Diagonal(1:∞))
-    @test typeof(Eye(∞)) == Eye{Float64,OneToInf{Int}}
-    @test Base.BroadcastStyle(typeof(Eye(∞))) == LazyArrays.LazyArrayStyle{2}()
-    L = Vcat(e₁', Eye(∞) + D)
+    I_inf = Eye(∞)
+    @test I_inf isa Eye{Float64,OneToInf{Int}}
+    @test axes(I_inf) == (OneToInf{Int}(), OneToInf{Int}())
+    @test eltype(I_inf) == Float64
+    @test Base.BroadcastStyle(typeof(I_inf)) == LazyArrays.LazyArrayStyle{2}()
+    L = Vcat(e₁', I_inf + D)
     @test L[1:3,1:3] == [1.0 0.0 0.0;
                          1.0 1.0 0.0;
                          0.0 1.0 2.0]
