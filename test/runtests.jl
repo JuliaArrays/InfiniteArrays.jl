@@ -304,7 +304,8 @@ end
     end
 
     @testset "show" begin
-        @test summary(1:∞) == "InfUnitRange{Int64} with indices OneToInf()"
+        # NOTE: Interpolating Int to ensure it's displayed properly across 32- and 64-bit
+        @test summary(1:∞) == "InfUnitRange{$Int} with indices OneToInf()"
         @test Base.inds2string(axes(1:∞)) == "OneToInf()"
     end
 end
