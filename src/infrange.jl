@@ -362,6 +362,9 @@ BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:Any,<:InfIndexRanges}}}
 
 cumsum(r::InfRanges) = OneToInf() .* (first(r) .+ r) .÷ 2
 
+diff(r::InfRanges) = Fill(step(r),∞)
+diff(r::OneToInf{T}) where T = Ones{T}(∞)
+
 
 ##
 # conv

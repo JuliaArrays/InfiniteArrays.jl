@@ -420,16 +420,24 @@ end
                          0.0 1.0 2.0]
 end
 
-@testset "Cumsum" begin
+@testset "Cumsum and diff" begin
     @test cumsum(Ones(∞)) ≡ 1.0:1.0:∞
     @test cumsum(Fill(2,∞)) ≡ 2:2:∞
     @test cumsum(Ones{Int}(∞)) ≡ Base.OneTo(∞)
     @test cumsum(Ones{BigInt}(∞)) ≡ Base.OneTo{BigInt}(∞)
 
+    @test diff(Base.OneTo(∞)) ≡ Ones{Int}(∞)
+    @test diff(1:∞) ≡ Fill(1,∞)
+    @test diff(1:2:∞) ≡ Fill(2,∞)
+    @test diff(1:2.0:∞) ≡ Fill(2.0,∞)
+
     x = Vcat([3,4], Ones{Int}(5), 3, Fill(2,∞))
     y = @inferred(cumsum(x))
     @test y isa Vcat
     @test y[1:12] == cumsum(x[1:12])
+
+    @test diff(x[1:10]) == diff(x)[1:9]
+    @test diff(y)[1:20] == x[2:21]
 
     @test cumsum(x).arrays[2] ≡ 8:12
     @test last(y.arrays) == sum(x[1:9]):2:∞
