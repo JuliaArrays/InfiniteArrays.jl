@@ -336,6 +336,8 @@ end
     A = Vcat(1:10, 1:∞)
     @test @inferred(length(A)) == ∞
     @test @inferred(A[5]) == A[15] == 5
+    @test A[end] == @inferred(A[∞]) == ∞
+    @test_throws BoundsError Vcat(1:10)[∞]
 
     A = Vcat(Ones(1,∞), Zeros(2,∞))
     @test @inferred(size(A)) == (3,∞)

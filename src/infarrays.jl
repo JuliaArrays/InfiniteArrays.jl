@@ -83,3 +83,13 @@ BroadcastStyle(::Type{<:Eye{T,OneToInf{I}}}) where {T,I} = LazyArrayStyle{2}()
 
 
 BroadcastStyle(::Type{<:Diagonal{<:Any,<:AbstractInfUnitRange}}) = LazyArrayStyle{2}()
+
+
+#####
+# Vcat length
+#####
+
+function getindex(f::Vcat{T,1}, k::Infinity) where T
+    length(f) == ∞ || throw(BoundsError(f,k))
+    ∞
+end
