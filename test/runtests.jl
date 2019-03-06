@@ -179,11 +179,12 @@ end
         @test (3:∞)[5:4] == 7:6
         @test (0:2:∞)[7:6] == 12:2:10
     end
-    # indexing with negative ranges (#8351)
-    for a=[3:∞, 0:2:∞], b=[0:1, 2:-1:0]
-        @test_throws BoundsError a[b]
-    end
 
+    @testset "indexing with negative ranges (#8351)" begin
+        for a=[3:∞, 0:2:∞], b=[0:1, 2:-1:0]
+            @test_throws BoundsError a[b]
+        end
+    end
 
     @testset "sums of ranges" begin
         @test sum(1:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ∞
@@ -307,6 +308,13 @@ end
         # NOTE: Interpolating Int to ensure it's displayed properly across 32- and 64-bit
         @test summary(1:∞) == "InfUnitRange{$Int} with indices OneToInf()"
         @test Base.inds2string(axes(1:∞)) == "OneToInf()"
+    end
+
+    @testset "end" begin
+        @test Base.OneTo(∞)[end] ≡ Base.OneTo(∞)[∞] ≡ ∞
+        @test (1:∞)[end] ≡ (1:∞)[∞] ≡ ∞
+        @test (1:2:∞)[end] ≡ (1:2:∞)[∞] ≡ ∞
+        @test (1.0:2:∞)[end] ≡ (1.0:2:∞)[∞] ≡ ∞
     end
 end
 

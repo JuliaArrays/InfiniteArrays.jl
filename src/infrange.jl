@@ -122,8 +122,6 @@ done(r::InfStepRange{T}, i) where {T} = false
 
 _sub2ind(inds::Tuple{OneToInf}, i::Integer)    = i
 
-getindex(::AbstractInfUnitRange, ::Infinity) = ∞
-getindex(::OneToInf, ::Infinity) = ∞
 
 function getindex(v::InfUnitRange{T}, i::Integer) where T
     @boundscheck i > 0 || Base.throw_boundserror(v, i)
@@ -133,11 +131,16 @@ function getindex(v::OneToInf{T}, i::Integer) where T
     @boundscheck i > 0 || Base.throw_boundserror(v, i)
     convert(T, i)
 end
-
 function getindex(v::InfStepRange{T}, i::Integer) where T
     @boundscheck i > 0 || Base.throw_boundserror(v, i)
     convert(T, first(v) + (i - 1)*step(v))
 end
+
+getindex(::AbstractInfUnitRange, ::Infinity) = ∞
+getindex(::OneToInf, ::Infinity) = ∞
+getindex(v::InfUnitRange{T}, i::Infinity) where T = ∞
+getindex(v::OneToInf{T}, i::Infinity) where T = ∞
+getindex(v::InfStepRange{T}, i::Infinity) where T = ∞
 
 function getindex(r::AbstractInfUnitRange, s::AbstractInfUnitRange{<:Integer})
     f = first(r)
