@@ -499,4 +499,14 @@ end
     @test_throws ArgumentError Matrix{Float64}(undef, ∞, ∞)
     @test_throws ArgumentError Matrix{Float64}(undef, 1, ∞)
     @test_throws ArgumentError Matrix{Float64}(undef, ∞, 1)
+
+    @test_throws ArgumentError Array{Float64}(undef, (∞.))
+    @test_throws ArgumentError Array{Float64}(undef, (∞, ∞))
+    @test_throws ArgumentError Array{Float64}(undef, (1, ∞))
+    @test_throws ArgumentError Array{Float64}(undef, (∞, 1))
+
+    @test_throws ArgumentError Vector{Float64}(undef, (∞,))
+    @test_throws ArgumentError Matrix{Float64}(undef, (∞, ∞))
+    @test_throws ArgumentError Matrix{Float64}(undef, (1, ∞))
+    @test_throws ArgumentError Matrix{Float64}(undef, (∞, 1))
 end

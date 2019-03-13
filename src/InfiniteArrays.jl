@@ -23,7 +23,8 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
          ArithmeticWraps, floatrange, reverse, unitrange_last,
          AbstractArray, AbstractVector, Array, Vector, Matrix,
          axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
-         diff, cumsum, show_delim_array, show_circular, Int
+         diff, cumsum, show_delim_array, show_circular, Int,
+         similar
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
