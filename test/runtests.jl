@@ -511,6 +511,9 @@ end
     @test_throws ArgumentError Matrix{Float64}(undef, (∞, ∞))
     @test_throws ArgumentError Matrix{Float64}(undef, (1, ∞))
     @test_throws ArgumentError Matrix{Float64}(undef, (∞, 1))
+
+    @test Array{Float64}(undef, ()) isa Array{Float64,0}
+    @test Array{Float64,0}(undef, ()) isa Array{Float64,0}
 end
 
 @testset "similar" begin

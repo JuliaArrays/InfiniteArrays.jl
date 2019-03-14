@@ -1,5 +1,4 @@
-Array{T}(::UndefInitializer, ::NTuple{N, Infinity}) where {T,N} = throw(ArgumentError("Cannot create infinite Array"))
-Array{T,N}(::UndefInitializer, ::NTuple{N, Infinity}) where {T,N} = throw(ArgumentError("Cannot create infinite Array"))
+Array{T}(::UndefInitializer, ::Tuple{Infinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
 Array{T}(::UndefInitializer, ::Tuple{Integer, Infinity}) where {T,N} = throw(ArgumentError("Cannot create infinite Array"))
 Array{T}(::UndefInitializer, ::Tuple{Infinity, Integer}) where {T,N} = throw(ArgumentError("Cannot create infinite Array"))
 Matrix{T}(::UndefInitializer, ::Tuple{Integer, Infinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
@@ -17,6 +16,7 @@ Matrix{T}(::UndefInitializer, ::Infinity, ::Infinity) where T = throw(ArgumentEr
 Matrix{T}(::UndefInitializer, ::Infinity, ::Integer) where T = throw(ArgumentError("Cannot create infinite Array"))
 Matrix{T}(::UndefInitializer, ::Integer, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
 
+Vector{T}(::UndefInitializer, ::Tuple{Infinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
 Vector{T}(::UndefInitializer, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
 
 similar(A::AbstractArray, ::Type{T}, axes::NTuple{N,OneToInf{Int}}) where {T,N} = cache(Zeros{T,N}(axes))
