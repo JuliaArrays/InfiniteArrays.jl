@@ -4,6 +4,8 @@ Array{T}(::UndefInitializer, ::Tuple{Integer, Infinity}) where {T,N} = throw(Arg
 Array{T}(::UndefInitializer, ::Tuple{Infinity, Integer}) where {T,N} = throw(ArgumentError("Cannot create infinite Array"))
 Matrix{T}(::UndefInitializer, ::Tuple{Integer, Infinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
 Matrix{T}(::UndefInitializer, ::Tuple{Infinity, Integer}) where T = throw(ArgumentError("Cannot create infinite Array"))
+Array{T}(::UndefInitializer, ::Tuple{Infinity, Infinity}) where {T,N} = throw(ArgumentError("Cannot create infinite Array"))
+Matrix{T}(::UndefInitializer, ::Tuple{Infinity, Infinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
 
 Array{T}(::UndefInitializer, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
 
@@ -18,6 +20,7 @@ Matrix{T}(::UndefInitializer, ::Integer, ::Infinity) where T = throw(ArgumentErr
 Vector{T}(::UndefInitializer, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
 
 similar(A::AbstractArray, ::Type{T}, axes::NTuple{N,OneToInf{Int}}) where {T,N} = cache(Zeros{T,N}(axes))
+similar(A::AbstractArray, ::Type{T}, axes::NTuple{N,Infinity}) where {T,N} = cache(Zeros{T,N}(axes))
 
 # This gets called when infinit number of columns
 print_matrix_row(io::IO,

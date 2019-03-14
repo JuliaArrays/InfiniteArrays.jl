@@ -1,5 +1,6 @@
 using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, Test
     import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
+    import LazyArrays: CachedArray
 
 
 @testset "∞" begin
@@ -500,7 +501,7 @@ end
     @test_throws ArgumentError Matrix{Float64}(undef, 1, ∞)
     @test_throws ArgumentError Matrix{Float64}(undef, ∞, 1)
 
-    @test_throws ArgumentError Array{Float64}(undef, (∞.))
+    @test_throws ArgumentError Array{Float64}(undef, (∞,))
     @test_throws ArgumentError Array{Float64}(undef, (∞, ∞))
     @test_throws ArgumentError Array{Float64}(undef, (1, ∞))
     @test_throws ArgumentError Array{Float64}(undef, (∞, 1))
@@ -509,4 +510,22 @@ end
     @test_throws ArgumentError Matrix{Float64}(undef, (∞, ∞))
     @test_throws ArgumentError Matrix{Float64}(undef, (1, ∞))
     @test_throws ArgumentError Matrix{Float64}(undef, (∞, 1))
+end
+
+@testset "similar" begin
+    a = 1:∞
+    @test similar(a) isa CachedArray{Int}
+    @test similar(a, Float64) isa CachedArray{Float64}
+    @test similar(a, 5) isa Vector{Int}
+    @test similar(a, (6,)) isa Vector{Int}
+    @test similar(a, Float64, 5) isa Vector{Float64}
+    @test similar(a, Float64, (6,)) isa Vector{Float64}
+    @test similar(a, Float64, Base.OneTo(5)) isa Vector{Float64}
+    @test similar(a, Float64, (Base.OneTo(5),)) isa Vector{Float64}
+    @test similar(a, ∞) isa CachedArray{Int}
+    @test similar(a, (∞,)) isa CachedArray{Int}
+    @test similar(a, Float64, ∞) isa CachedArray{Float64}
+    @test similar(a, Float64, (∞,)) isa CachedArray{Float64}
+    @test similar(a, Float64, Base.OneTo(∞)) isa CachedArray{Float64}
+    @test similar(a, Float64, (Base.OneTo(∞),)) isa CachedArray{Float64}
 end
