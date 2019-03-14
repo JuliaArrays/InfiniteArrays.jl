@@ -68,6 +68,7 @@ end
     end
     @test_throws ArgumentError 2:-.2:∞
     @test_throws ArgumentError 0.0:-∞
+    @test_throws ArgumentError ∞:-1:1
 
     @testset "indexing" begin
         L32 = @inferred(Int32(1):∞)

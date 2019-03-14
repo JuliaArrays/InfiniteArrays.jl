@@ -7,6 +7,7 @@ function (:)(start::T, step::T, stop::OrientedInfinity) where {T<:Real}
 end
 (:)(start::T, step::Real, stop::OrientedInfinity) where {T<:Real} = (:)(promote(start, step)..., stop)
 (:)(start::Real, step, stop::Infinity)= (:)(start, step, OrientedInfinity(stop))
+(:)(::Infinity, _, ::Real) = throw(ArgumentError("Cannot create range starting at infinity"))
 
 # AbstractFloat specializations
 (:)(a::T, b::Union{Infinity,OrientedInfinity}) where {T<:Real} = (:)(a, T(1), b)
