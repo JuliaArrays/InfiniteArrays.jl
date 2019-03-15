@@ -19,8 +19,11 @@ Matrix{T}(::UndefInitializer, ::Integer, ::Infinity) where T = throw(ArgumentErr
 Vector{T}(::UndefInitializer, ::Tuple{Infinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
 Vector{T}(::UndefInitializer, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
 
-similar(A::AbstractArray, ::Type{T}, axes::NTuple{N,OneToInf{Int}}) where {T,N} = cache(Zeros{T,N}(axes))
-similar(A::AbstractArray, ::Type{T}, axes::NTuple{N,Infinity}) where {T,N} = cache(Zeros{T,N}(axes))
+similar(A::AbstractArray, ::Type{T}, axes::Tuple{OneToInf{Int}}) where T = cache(Zeros{T}(axes))
+similar(A::AbstractArray, ::Type{T}, axes::Tuple{OneToInf{Int},OneToInf{Int}}) where T = cache(Zeros{T}(axes))
+similar(A::AbstractArray, ::Type{T}, dims::Tuple{Infinity}) where T = cache(Zeros{T}(dims))
+similar(A::AbstractArray, ::Type{T}, dims::Tuple{Infinity,Infinity}) where T = cache(Zeros{T}(dims))
+
 
 # This gets called when infinit number of columns
 print_matrix_row(io::IO,

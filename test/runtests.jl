@@ -530,6 +530,10 @@ end
     @test similar(a, (∞,)) isa CachedArray{Int}
     @test similar(a, Float64, ∞) isa CachedArray{Float64}
     @test similar(a, Float64, (∞,)) isa CachedArray{Float64}
+    @test similar(a, Float64, (∞,∞)) isa CachedArray{Float64}
     @test similar(a, Float64, Base.OneTo(∞)) isa CachedArray{Float64}
     @test similar(a, Float64, (Base.OneTo(∞),)) isa CachedArray{Float64}
+    @test similar(a, Float64, (Base.OneTo(∞),Base.OneTo(∞))) isa CachedArray{Float64}
+
+    @test similar([1,2,3],Float64,()) isa Array{Float64,0}
 end
