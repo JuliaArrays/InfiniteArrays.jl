@@ -58,6 +58,55 @@ using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Stati
     @test exp(im*π/4)+∞ == ∞
 end
 
+@testset "construction" begin
+    @testset "Array constructor errors" begin
+        @test_throws ArgumentError Array{Float64}(undef, ∞)
+        @test_throws ArgumentError Array{Float64}(undef, ∞, ∞)
+        @test_throws ArgumentError Array{Float64}(undef, 1, ∞)
+        @test_throws ArgumentError Array{Float64}(undef, ∞, 1)
+
+        @test_throws ArgumentError Vector{Float64}(undef, ∞)
+        @test_throws ArgumentError Matrix{Float64}(undef, ∞, ∞)
+        @test_throws ArgumentError Matrix{Float64}(undef, 1, ∞)
+        @test_throws ArgumentError Matrix{Float64}(undef, ∞, 1)
+
+        @test_throws ArgumentError Array{Float64}(undef, (∞,))
+        @test_throws ArgumentError Array{Float64}(undef, (∞, ∞))
+        @test_throws ArgumentError Array{Float64}(undef, (1, ∞))
+        @test_throws ArgumentError Array{Float64}(undef, (∞, 1))
+
+        @test_throws ArgumentError Vector{Float64}(undef, (∞,))
+        @test_throws ArgumentError Matrix{Float64}(undef, (∞, ∞))
+        @test_throws ArgumentError Matrix{Float64}(undef, (1, ∞))
+        @test_throws ArgumentError Matrix{Float64}(undef, (∞, 1))
+
+        @test Array{Float64}(undef, ()) isa Array{Float64,0}
+        @test Array{Float64,0}(undef, ()) isa Array{Float64,0}
+    end
+
+    @testset "similar" begin
+        a = 1:∞
+        @test similar(a) isa CachedArray{Int}
+        @test similar(a, Float64) isa CachedArray{Float64}
+        @test similar(a, 5) isa Vector{Int}
+        @test similar(a, (6,)) isa Vector{Int}
+        @test similar(a, Float64, 5) isa Vector{Float64}
+        @test similar(a, Float64, (6,)) isa Vector{Float64}
+        @test similar(a, Float64, Base.OneTo(5)) isa Vector{Float64}
+        @test similar(a, Float64, (Base.OneTo(5),)) isa Vector{Float64}
+        @test similar(a, ∞) isa CachedArray{Int}
+        @test similar(a, (∞,)) isa CachedArray{Int}
+        @test similar(a, Float64, ∞) isa CachedArray{Float64}
+        @test similar(a, Float64, (∞,)) isa CachedArray{Float64}
+        @test similar(a, Float64, (∞,∞)) isa CachedArray{Float64}
+        @test similar(a, Float64, Base.OneTo(∞)) isa CachedArray{Float64}
+        @test similar(a, Float64, (Base.OneTo(∞),)) isa CachedArray{Float64}
+        @test similar(a, Float64, (Base.OneTo(∞),Base.OneTo(∞))) isa CachedArray{Float64}
+
+        @test similar([1,2,3],Float64,()) isa Array{Float64,0}
+    end
+end
+
 @testset "ranges" begin
     @test size(10:1:∞) == (∞,)
     @testset "colon" begin
@@ -321,11 +370,24 @@ end
 end
 
 @testset "fill" begin
-    for A in (Zeros(∞), Fill(1,∞), Ones(∞))
-        @test length(A) == ∞
+    @testset "fill sizes" begin
+        for A in (Zeros(∞), Fill(1,∞), Ones(∞))
+            @test length(A) == ∞
+        end
+        @test size(Zeros(∞,5)) === (∞,5)
+        @test size(Zeros(5,∞)) === (5,∞)
     end
-    @test size(Zeros(∞,5)) === (∞,5)
-    @test size(Zeros(5,∞)) === (5,∞)
+
+    @testset "Fill indexing" begin
+        B = Ones(∞,∞)
+        @test IndexStyle(B) == IndexCartesian()
+        V = view(B,:,1)
+        @test_broken size(V) == (∞,1)
+        V = view(B,1,:)
+        @test size(V) == (∞,)
+        V = view(B,1:1,:)
+        @test size(V) == (1,∞)
+    end
 end
 
 @testset "diagonal" begin
@@ -333,103 +395,101 @@ end
     @test D[1:10,1:10] == Diagonal(1:10)
 end
 
-
 @testset "concat" begin
-    A = Vcat(1:10, 1:∞)
-    @test @inferred(length(A)) == ∞
-    @test @inferred(A[5]) == A[15] == 5
-    @test A[end] == @inferred(A[∞]) == ∞
-    @test_throws BoundsError Vcat(1:10)[∞]
+    @testset "concat indexing" begin
+        A = Vcat(1:10, 1:∞)
+        @test @inferred(length(A)) == ∞
+        @test @inferred(A[5]) == A[15] == 5
+        @test A[end] == @inferred(A[∞]) == ∞
+        @test_throws BoundsError Vcat(1:10)[∞]
 
-    A = Vcat(Ones(1,∞), Zeros(2,∞))
-    @test @inferred(size(A)) == (3,∞)
-    @test @inferred(A[1,5]) == 1
-    @test @inferred(A[3,5]) == 0
-    @test_throws BoundsError A[4,1]
+        A = Vcat(Ones(1,∞), Zeros(2,∞))
+        @test @inferred(size(A)) == (3,∞)
+        @test @inferred(A[1,5]) == 1
+        @test @inferred(A[3,5]) == 0
+        @test_throws BoundsError A[4,1]
 
-    A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
-    @test @inferred(size(A)) ≡ (∞,∞)
-    @test @inferred(A[1,5]) ≡ 1
-    @test @inferred(A[5,5]) ≡ 0
-    @test @inferred(A[6,5]) ≡ 5
-    @test_throws BoundsError A[-1,1]
+        A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
+        @test @inferred(size(A)) ≡ (∞,∞)
+        @test @inferred(A[1,5]) ≡ 1
+        @test @inferred(A[5,5]) ≡ 0
+        @test @inferred(A[6,5]) ≡ 5
+        @test_throws BoundsError A[-1,1]
 
-    A = Vcat(Ones{Float64}(1,∞), Diagonal(1:∞))
-    @test @inferred(size(A)) ≡ (∞,∞)
-    @test @inferred(A[1,5]) ≡ 1.0
-    @test @inferred(A[5,5]) ≡ 0.0
-    @test @inferred(A[6,5]) ≡ 5.0
-    @test_throws BoundsError A[-1,1]
+        A = Vcat(Ones{Float64}(1,∞), Diagonal(1:∞))
+        @test @inferred(size(A)) ≡ (∞,∞)
+        @test @inferred(A[1,5]) ≡ 1.0
+        @test @inferred(A[5,5]) ≡ 0.0
+        @test @inferred(A[6,5]) ≡ 5.0
+        @test_throws BoundsError A[-1,1]
 
-    A = Vcat(1, Zeros(∞))
-    @test @inferred(A[1]) ≡ 1.0
-    @test @inferred(A[2]) ≡ 0.0
+        A = Vcat(1, Zeros(∞))
+        @test @inferred(A[1]) ≡ 1.0
+        @test @inferred(A[2]) ≡ 0.0
 
-    A = Hcat(Ones(∞), Zeros(∞,2))
-    @test @inferred(size(A)) == (∞,3)
-    @test @inferred(A[5,1]) == 1
-    @test @inferred(A[5,3]) == 0
-    @test_throws BoundsError A[1,4]
+        A = Hcat(Ones(∞), Zeros(∞,2))
+        @test @inferred(size(A)) == (∞,3)
+        @test @inferred(A[5,1]) == 1
+        @test @inferred(A[5,3]) == 0
+        @test_throws BoundsError A[1,4]
 
-    A = Hcat(Ones{Int}(∞), Diagonal(1:∞))
-    @test @inferred(size(A)) ≡ (∞,∞)
-    @test @inferred(A[5,1]) ≡ 1
-    @test @inferred(A[5,5]) ≡ 0
-    @test @inferred(A[5,6]) ≡ 5
-    @test_throws BoundsError A[-1,1]
+        A = Hcat(Ones{Int}(∞), Diagonal(1:∞))
+        @test @inferred(size(A)) ≡ (∞,∞)
+        @test @inferred(A[5,1]) ≡ 1
+        @test @inferred(A[5,5]) ≡ 0
+        @test @inferred(A[5,6]) ≡ 5
+        @test_throws BoundsError A[-1,1]
+    end
+
+    # This should be generalized, but it at the moment
+    # it is restricted to a single Number. Support smart
+    # addition for any number of Number/SVector's would be better
+    # allowibng for the tail to be variable lenth
+    @testset "Vcat special case" begin
+        @test Vcat(1,Zeros{Int}(∞)) + Vcat(3,Zeros{Int}(∞)) ≡
+            Vcat(1,Zeros{Int}(∞)) .+ Vcat(3,Zeros{Int}(∞)) ≡
+            Vcat(4,Zeros{Int}(∞))
+
+            size(Vcat(1:∞)) ≡ (∞,)
+    end
+
+    @testset "Vcat infrange getindex" begin
+        x = Vcat(1, Fill(2,∞))
+        @test x[1:end] ≡ x[1:∞] ≡ x
+        @test x[3:end] ≡ x[3:∞] ≡ Fill(2,∞)
+    end
+
+    @testset "maximum/minimum Vcat" begin
+        x = Vcat(1:2, [1,1,1,1,1], 3, Fill(4,∞))
+        @test maximum(x) == 4
+        @test minimum(x) == 1
+
+        @test_throws ArgumentError maximum(exp.(1:∞))
+    end
 end
 
-# This should be generalized, but it at the moment
-# it is restricted to a single Number. Support smart
-# addition for any number of Number/SVector's would be better
-# allowibng for the tail to be variable lenth
-@testset "Vcat special case" begin
-    @test Vcat(1,Zeros{Int}(∞)) + Vcat(3,Zeros{Int}(∞)) ≡
-          Vcat(1,Zeros{Int}(∞)) .+ Vcat(3,Zeros{Int}(∞)) ≡
-          Vcat(4,Zeros{Int}(∞))
+@testset "broadcasting" begin
+    @testset "∞ BroadcastArray" begin
+        A = 1:∞
+        B = BroadcastArray(exp, A)
+        @test length(B) == ∞
+        @test B[6] == exp(6)
+        @test exp.(A) ≡ B
+        B = Diagonal(1:∞) .+ 1
+        @test B isa BroadcastArray{Int}
+        @test B[1,5] ≡ 1
+        @test B[6,6] == 6+1
+        B = Diagonal(1:∞) - Ones{Int}(∞,∞) # lowers to broadcast
+        @test B isa BroadcastArray{Int}
+        @test B[1,5] ≡ -1
+        @test B[6,6] == 6-1
+    end
 
-          size(Vcat(1:∞)) ≡ (∞,)
-end
-
-@testset "Fill indexing" begin
-    B = Ones(∞,∞)
-    @test IndexStyle(B) == IndexCartesian()
-    V = view(B,:,1)
-    @test_broken size(V) == (∞,1)
-    V = view(B,1,:)
-    @test size(V) == (∞,)
-    V = view(B,1:1,:)
-    @test size(V) == (1,∞)
-end
-
-@testset "∞ BroadcastArray" begin
-    A = 1:∞
-    B = BroadcastArray(exp, A)
-    @test length(B) == ∞
-    @test B[6] == exp(6)
-    @test exp.(A) ≡ B
-    B = Diagonal(1:∞) .+ 1
-    @test B isa BroadcastArray{Int}
-    @test B[1,5] ≡ 1
-    @test B[6,6] == 6+1
-    B = Diagonal(1:∞) - Ones{Int}(∞,∞) # lowers to broadcast
-    @test B isa BroadcastArray{Int}
-    @test B[1,5] ≡ -1
-    @test B[6,6] == 6-1
-end
-
-@testset "Taylor ODE" begin
-    e₁ = Vcat(1, Zeros(∞))
-    D = Hcat(Zeros(∞), Diagonal(1:∞))
-    I_inf = Eye(∞)
-    @test I_inf isa Eye{Float64,OneToInf{Int}}
-    @test axes(I_inf) == (OneToInf{Int}(), OneToInf{Int}())
-    @test eltype(I_inf) == Float64
-    @test Base.BroadcastStyle(typeof(I_inf)) == LazyArrays.LazyArrayStyle{2}()
-    L = Vcat(e₁', I_inf + D)
-    @test L[1:3,1:3] == [1.0 0.0 0.0;
-                         1.0 1.0 0.0;
-                         0.0 1.0 2.0]
+    @testset "Broadcast Fill Lowers" begin
+        @test broadcast(+, Zeros{Int}(∞) , Fill(1,∞)) isa Fill
+        @test broadcast(+, Zeros{Int}(∞) , Zeros(∞)) isa Zeros
+        @test broadcast(*, Ones(∞), Ones(∞)) ≡ Ones(∞)
+    end
 end
 
 @testset "Cumsum and diff" begin
@@ -463,20 +523,6 @@ end
     @test (1:∞)[3:∞] ≡ 3:∞
 end
 
-@testset "Broadcast Fill Lowers" begin
-    @test broadcast(+, Zeros{Int}(∞) , Fill(1,∞)) isa Fill
-    @test broadcast(+, Zeros{Int}(∞) , Zeros(∞)) isa Zeros
-    @test broadcast(*, Ones(∞), Ones(∞)) ≡ Ones(∞)
-end
-
-@testset "maximum/minimum Vcat" begin
-    x = Vcat(1:2, [1,1,1,1,1], 3, Fill(4,∞))
-    @test maximum(x) == 4
-    @test minimum(x) == 1
-
-    @test_throws ArgumentError maximum(exp.(1:∞))
-end
-
 @testset "conv" begin
     @test conv(1:∞, [2]) ≡ conv([2], 1:∞) ≡ 2:2:∞
     @test conv(1:2:∞, [2]) ≡ conv([2], 1:2:∞) ≡ 2:4:∞
@@ -486,54 +532,21 @@ end
     @test conv(Ones{Bool}(∞), Ones{Bool}(∞)) ≡ Base.OneTo(∞)
 end
 
+@testset "Taylor ODE" begin
+    e₁ = Vcat(1, Zeros(∞))
+    D = Hcat(Zeros(∞), Diagonal(1:∞))
+    I_inf = Eye(∞)
+    @test I_inf isa Eye{Float64,OneToInf{Int}}
+    @test axes(I_inf) == (OneToInf{Int}(), OneToInf{Int}())
+    @test eltype(I_inf) == Float64
+    @test Base.BroadcastStyle(typeof(I_inf)) == LazyArrays.LazyArrayStyle{2}()
+    L = Vcat(e₁', I_inf + D)
+    @test L[1:3,1:3] == [1.0 0.0 0.0;
+                         1.0 1.0 0.0;
+                         0.0 1.0 2.0]
+end
+
 @testset "show" begin
     @test repr(Vcat(1:∞)) == "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, …]"
     @test repr(Vcat(2,1:∞)) == "[2, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, …]"
-end
-
-@testset "Array constructor errors" begin
-    @test_throws ArgumentError Array{Float64}(undef, ∞)
-    @test_throws ArgumentError Array{Float64}(undef, ∞, ∞)
-    @test_throws ArgumentError Array{Float64}(undef, 1, ∞)
-    @test_throws ArgumentError Array{Float64}(undef, ∞, 1)
-
-    @test_throws ArgumentError Vector{Float64}(undef, ∞)
-    @test_throws ArgumentError Matrix{Float64}(undef, ∞, ∞)
-    @test_throws ArgumentError Matrix{Float64}(undef, 1, ∞)
-    @test_throws ArgumentError Matrix{Float64}(undef, ∞, 1)
-
-    @test_throws ArgumentError Array{Float64}(undef, (∞,))
-    @test_throws ArgumentError Array{Float64}(undef, (∞, ∞))
-    @test_throws ArgumentError Array{Float64}(undef, (1, ∞))
-    @test_throws ArgumentError Array{Float64}(undef, (∞, 1))
-
-    @test_throws ArgumentError Vector{Float64}(undef, (∞,))
-    @test_throws ArgumentError Matrix{Float64}(undef, (∞, ∞))
-    @test_throws ArgumentError Matrix{Float64}(undef, (1, ∞))
-    @test_throws ArgumentError Matrix{Float64}(undef, (∞, 1))
-
-    @test Array{Float64}(undef, ()) isa Array{Float64,0}
-    @test Array{Float64,0}(undef, ()) isa Array{Float64,0}
-end
-
-@testset "similar" begin
-    a = 1:∞
-    @test similar(a) isa CachedArray{Int}
-    @test similar(a, Float64) isa CachedArray{Float64}
-    @test similar(a, 5) isa Vector{Int}
-    @test similar(a, (6,)) isa Vector{Int}
-    @test similar(a, Float64, 5) isa Vector{Float64}
-    @test similar(a, Float64, (6,)) isa Vector{Float64}
-    @test similar(a, Float64, Base.OneTo(5)) isa Vector{Float64}
-    @test similar(a, Float64, (Base.OneTo(5),)) isa Vector{Float64}
-    @test similar(a, ∞) isa CachedArray{Int}
-    @test similar(a, (∞,)) isa CachedArray{Int}
-    @test similar(a, Float64, ∞) isa CachedArray{Float64}
-    @test similar(a, Float64, (∞,)) isa CachedArray{Float64}
-    @test similar(a, Float64, (∞,∞)) isa CachedArray{Float64}
-    @test similar(a, Float64, Base.OneTo(∞)) isa CachedArray{Float64}
-    @test similar(a, Float64, (Base.OneTo(∞),)) isa CachedArray{Float64}
-    @test similar(a, Float64, (Base.OneTo(∞),Base.OneTo(∞))) isa CachedArray{Float64}
-
-    @test similar([1,2,3],Float64,()) isa Array{Float64,0}
 end
