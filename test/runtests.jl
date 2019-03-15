@@ -52,10 +52,10 @@ using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Stati
     @test OrientedInfinity(true)+1 == OrientedInfinity(true)
     @test OrientedInfinity(false)+1 == OrientedInfinity(false)
 
-
-
     @test exp(im*π/4)*∞ == Inf+im*Inf
     @test exp(im*π/4)+∞ == ∞
+
+    @test string(∞) == ∞
 end
 
 @testset "construction" begin

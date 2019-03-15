@@ -16,7 +16,8 @@ struct Infinity <: Integer end
 
 const ∞ = Infinity()
 
-show(io::IO, y::Infinity) = print(io, "∞")
+show(io::IO, ::Infinity) = print(io, "∞")
+string(::Infinity) = ∞
 
 promote_rule(::Type{Infinity}, ::Type{II}) where II<:Integer = Union{Infinity,II}
 
