@@ -393,6 +393,10 @@ end
 @testset "diagonal" begin
     D = Diagonal(1:∞)
     @test D[1:10,1:10] == Diagonal(1:10)
+    @test_broken D^2 isa Diagonal
+    @test D*D isa Diagonal
+    @test Ones(∞,∞)*D isa ApplyArray
+    @test (Ones(∞,∞)*D)[1:10,1:10] == Ones(10,10)*D[1:10,1:10]
 end
 
 @testset "concat" begin

@@ -35,16 +35,39 @@ import Statistics: mean, median
 
 import FillArrays: AbstractFill, getindex_value
 import LazyArrays: LazyArrayStyle, _materialize, ArrayMulArray, AbstractBandedLayout,
-                    ZerosLayout, VcatLayout, MatMulVec
+                    ZerosLayout, VcatLayout, MatMulVec, @lazymul
 
 import DSP: conv
 
 export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 
 
+
 include("Infinity.jl")
 include("infrange.jl")
 include("infarrays.jl")
+
+##
+# Fill FillArrays
+##
+
+@lazymul Ones{<:Any,1,Tuple{OneToInf{Int}}}
+@lazymul Fill{<:Any,1,Tuple{OneToInf{Int}}}
+@lazymul Zeros{<:Any,1,Tuple{OneToInf{Int}}}
+
+@lazymul Ones{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}
+@lazymul Ones{<:Any,2,<:Tuple{OneToInf{Int}}}
+@lazymul Ones{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}
+
+@lazymul Fill{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}
+@lazymul Fill{<:Any,2,<:Tuple{OneToInf{Int}}}
+@lazymul Fill{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}
+
+@lazymul Zeros{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}
+@lazymul Zeros{<:Any,2,<:Tuple{OneToInf{Int}}}
+@lazymul Zeros{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}
+
+
 
 ##
 # Temporary hacks for base support
@@ -57,10 +80,10 @@ UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
 Int(::Infinity) = ∞
 
 # stay lazy if infinite
-_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf}) = M
-_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf,<:OneToInf}) = M
-_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf,<:OneTo}) = M
-_materialize(M::ArrayMulArray, ::Tuple{<:OneTo,<:OneToInf}) = M
+_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf}) = ApplyArray(M)
+_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf,<:OneToInf}) = ApplyArray(M)
+_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf,<:OneTo}) = ApplyArray(M)
+_materialize(M::ArrayMulArray, ::Tuple{<:OneTo,<:OneToInf}) = ApplyArray(M)
 
 _materialize(M::MatMulVec{<:AbstractBandedLayout,<:VcatLayout{<:Tuple{<:Any,ZerosLayout}}}, ::Tuple{<:OneToInf}) =
     copyto!(similar(M), M)
