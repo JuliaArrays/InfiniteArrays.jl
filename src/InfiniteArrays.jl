@@ -85,6 +85,11 @@ _materialize(M::ArrayMulArray, ::Tuple{<:OneToInf,<:OneToInf}) = ApplyArray(M)
 _materialize(M::ArrayMulArray, ::Tuple{<:OneToInf,<:OneTo}) = ApplyArray(M)
 _materialize(M::ArrayMulArray, ::Tuple{<:OneTo,<:OneToInf}) = ApplyArray(M)
 
+_materialize(M::Mul{<:Tuple,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf}) = ApplyArray(M)
+_materialize(M::Mul{<:Tuple,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf,<:OneToInf}) = ApplyArray(M)
+_materialize(M::Mul{<:Tuple,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf,<:OneTo}) = ApplyArray(M)
+_materialize(M::Mul{<:Tuple,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneTo,<:OneToInf}) = ApplyArray(M)
+
 _materialize(M::MatMulVec{<:AbstractBandedLayout,<:VcatLayout{<:Tuple{<:Any,ZerosLayout}}}, ::Tuple{<:OneToInf}) =
     copyto!(similar(M), M)
 
