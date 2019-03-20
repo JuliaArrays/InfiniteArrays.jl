@@ -29,7 +29,7 @@ import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcas
                         @nexprs, @ncall, combine_eltypes, DefaultArrayStyle, instantiate
 
 import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
-                             det, logdet, istriu, istril, adjoint, tr
+                             det, logdet, istriu, istril, adjoint, tr, AbstractTriangular
 
 import Statistics: mean, median
 
