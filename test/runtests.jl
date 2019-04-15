@@ -371,11 +371,14 @@ end
 
 @testset "fill" begin
     @testset "fill sizes" begin
-        for A in (Zeros(∞), Fill(1,∞), Ones(∞))
-            @test length(A) == ∞
+        for A in (Zeros(∞), Fill(1,∞), Ones(∞), 
+                    Zeros(5,∞), Ones(5,∞), Fill(1,5,∞),
+                    Zeros(∞,5), Ones(∞,5), Fill(1,∞,5),
+                    Zeros(∞,∞), Ones(∞,∞), Fill(1,∞,∞))
+            @test length(A) ≡ ∞
         end
-        @test size(Zeros(∞,5)) === (∞,5)
-        @test size(Zeros(5,∞)) === (5,∞)
+        @test size(Zeros(∞,5)) ≡ (∞,5)
+        @test size(Zeros(5,∞)) ≡ (5,∞)
     end
 
     @testset "Fill indexing" begin

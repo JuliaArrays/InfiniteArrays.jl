@@ -56,16 +56,29 @@ include("infarrays.jl")
 @lazymul Zeros{<:Any,1,Tuple{OneToInf{Int}}}
 
 @lazymul Ones{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}
-@lazymul Ones{<:Any,2,<:Tuple{OneToInf{Int}}}
+@lazymul Ones{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}
 @lazymul Ones{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}
 
 @lazymul Fill{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}
-@lazymul Fill{<:Any,2,<:Tuple{OneToInf{Int}}}
+@lazymul Fill{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}
 @lazymul Fill{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}
 
 @lazymul Zeros{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}
-@lazymul Zeros{<:Any,2,<:Tuple{OneToInf{Int}}}
+@lazymul Zeros{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}
 @lazymul Zeros{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}
+
+length(::Ones{<:Any,1,Tuple{OneToInf{Int}}}) = ∞
+length(::Fill{<:Any,1,Tuple{OneToInf{Int}}}) = ∞
+length(::Zeros{<:Any,1,Tuple{OneToInf{Int}}}) = ∞
+length(::Ones{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ∞
+length(::Ones{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ∞
+length(::Ones{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ∞
+length(::Fill{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ∞
+length(::Fill{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ∞
+length(::Fill{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ∞
+length(::Zeros{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ∞
+length(::Zeros{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ∞
+length(::Zeros{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ∞
 
 
 
