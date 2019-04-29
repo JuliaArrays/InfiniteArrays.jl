@@ -1,6 +1,6 @@
 using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, Test
-    import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
-    import LazyArrays: CachedArray
+import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
+import LazyArrays: CachedArray
 
 
 @testset "∞" begin
@@ -104,6 +104,24 @@ end
         @test similar(a, Float64, (Base.OneTo(∞),Base.OneTo(∞))) isa CachedArray{Float64}
 
         @test similar([1,2,3],Float64,()) isa Array{Float64,0}
+    end
+
+    @testset "zeros/fill" begin
+        a = zeros(1,∞)
+        @test length(a) === ∞
+        @test size(a) === (1,∞)
+        @test a isa CachedArray{Float64}
+        @test all(iszero,a[1,1:100])
+        a[5] = 1
+        @test a[1,1:100] == [zeros(4); 1; zeros(95)]
+
+        a = fill(1,∞)
+        @test length(a) === ∞
+        @test size(a) === (∞,)
+        @test a isa CachedArray{Int}
+        @test all(x -> x===1,a[1:100])
+        a[5] = 2
+        @test a[1:100] == [fill(1,4); 2; fill(1,95)]
     end
 end
 

@@ -24,6 +24,17 @@ similar(A::AbstractArray, ::Type{T}, axes::Tuple{OneToInf{Int},OneToInf{Int}}) w
 similar(A::AbstractArray, ::Type{T}, dims::Tuple{Infinity}) where T = cache(Zeros{T}(dims))
 similar(A::AbstractArray, ::Type{T}, dims::Tuple{Infinity,Infinity}) where T = cache(Zeros{T}(dims))
 
+zeros(::Type{T}, ::Tuple{Infinity}) where T = cache(Zeros{T}(∞))
+zeros(::Type{T}, nm::Tuple{Integer, Infinity}) where T = cache(Zeros{T}(nm...))
+zeros(::Type{T}, nm::Tuple{Infinity, Integer}) where T = cache(Zeros{T}(nm...))
+zeros(::Type{T}, nm::Tuple{Infinity, Infinity}) where T = cache(Zeros{T}(nm...))
+
+fill(x, ::Tuple{Infinity}) = cache(Fill(x,∞))
+fill(x, nm::Tuple{Integer, Infinity}) = cache(Fill(x,nm...))
+fill(x, nm::Tuple{Infinity, Integer}) = cache(Fill(x,nm...))
+fill(x, nm::Tuple{Infinity, Infinity}) = cache(Fill(x,nm...))
+
+
 
 # This gets called when infinit number of columns
 print_matrix_row(io::IO,
