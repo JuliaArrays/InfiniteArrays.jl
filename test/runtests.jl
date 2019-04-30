@@ -555,6 +555,10 @@ end
     @test conv(Ones(∞), Ones(∞)) ≡ 1.0:1.0:∞
     @test conv(Ones{Int}(∞), Ones{Int}(∞)) ≡ Base.OneTo(∞)
     @test conv(Ones{Bool}(∞), Ones{Bool}(∞)) ≡ Base.OneTo(∞)
+    @test conv(Ones{Int}(∞), [1,5,8])[1:10] == conv([1,5,8], Ones{Int}(∞))[1:10] == 
+                    conv(fill(1,100),[1,5,8])[1:10] == conv([1,5,8], fill(1,100))[1:10]
+    @test conv(Ones{Int}(∞), 1:4)[1:10] == conv(1:4, Ones{Int}(∞))[1:10] == 
+                    conv(fill(1,100),collect(1:4))[1:10] == conv(collect(1:4), fill(1,100))[1:10]                    
 end
 
 @testset "Taylor ODE" begin
