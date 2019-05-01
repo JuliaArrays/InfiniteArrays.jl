@@ -431,4 +431,11 @@ function conv(r1::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}, r2::AbstractFill{<:
     a = getindex_value(r1) * getindex_value(r2)
     a:a:∞
 end
-
+function conv(r1::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}, r2::Ones{<:Any,1,<:Tuple{<:OneToInf}})
+    a = getindex_value(r1) * getindex_value(r2)
+    a:a:∞
+end
+function conv(r1::Ones{<:Any,1,<:Tuple{<:OneToInf}}, r2::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}})
+    a = getindex_value(r1) * getindex_value(r2)
+    a:a:∞
+end

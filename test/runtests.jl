@@ -555,6 +555,8 @@ end
     @test conv(Ones(∞), Ones(∞)) ≡ 1.0:1.0:∞
     @test conv(Ones{Int}(∞), Ones{Int}(∞)) ≡ Base.OneTo(∞)
     @test conv(Ones{Bool}(∞), Ones{Bool}(∞)) ≡ Base.OneTo(∞)
+    @test conv(Fill{Int}(2,∞), Fill{Int}(1,∞)) ≡ conv(Fill{Int}(2,∞), Ones{Int}(∞)) ≡ 
+                conv(Ones{Int}(∞), Fill{Int}(2,∞)) ≡ 2:2:∞
     @test conv(Ones{Int}(∞), [1,5,8])[1:10] == conv([1,5,8], Ones{Int}(∞))[1:10] == 
                     conv(fill(1,100),[1,5,8])[1:10] == conv([1,5,8], fill(1,100))[1:10]
     @test conv(Ones{Int}(∞), 1:4)[1:10] == conv(1:4, Ones{Int}(∞))[1:10] == 
