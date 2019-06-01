@@ -1,6 +1,6 @@
 name = "InfiniteArrays"
 uuid = "4858937d-0d70-526a-a4dd-2d5cb5dd786c"
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
@@ -14,5 +14,5 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 [compat]
 DSP = "≥ 0.5.1"
 FillArrays = "≥ 0.5.0"
-LazyArrays = "0.8.0"
-julia = "≥ 0.7.0"
+LazyArrays = "0.8, 0.9"
+julia = "0.7, 1"
