@@ -375,7 +375,11 @@ end
 
     @testset "show" begin
         # NOTE: Interpolating Int to ensure it's displayed properly across 32- and 64-bit
-        @test summary(1:∞) == "InfUnitRange{$Int} with indices OneToInf()"
+        if VERSION ≥ v"1.2-"
+            @test summary(1:∞) == "∞-element InfUnitRange{$Int} with indices OneToInf()"
+        else
+            @test summary(1:∞) == "InfUnitRange{$Int} with indices OneToInf()"
+        end
         @test Base.inds2string(axes(1:∞)) == "OneToInf()"
     end
 
