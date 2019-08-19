@@ -34,8 +34,8 @@ import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymm
 import Statistics: mean, median
 
 import FillArrays: AbstractFill, getindex_value
-import LazyArrays: LazyArrayStyle, _materialize, ArrayMulArray, AbstractBandedLayout,
-                    ZerosLayout, VcatLayout, MatMulVec, @lazymul
+import LazyArrays: LazyArrayStyle, _materialize, AbstractBandedLayout,
+                    ZerosLayout, VcatLayout, @lazymul, mulapplystyle
 
 import DSP: conv
 
@@ -93,18 +93,9 @@ UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
 Int(::Infinity) = ∞
 
 # stay lazy if infinite
-_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf}) = ApplyArray(M)
-_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf,<:OneToInf}) = ApplyArray(M)
-_materialize(M::ArrayMulArray, ::Tuple{<:OneToInf,<:OneTo}) = ApplyArray(M)
-_materialize(M::ArrayMulArray, ::Tuple{<:OneTo,<:OneToInf}) = ApplyArray(M)
-
-_materialize(M::Mul{<:Tuple,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf}) = ApplyArray(M)
-_materialize(M::Mul{<:Tuple,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf,<:OneToInf}) = ApplyArray(M)
-_materialize(M::Mul{<:Tuple,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf,<:OneTo}) = ApplyArray(M)
-_materialize(M::Mul{<:Tuple,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneTo,<:OneToInf}) = ApplyArray(M)
-
-_materialize(M::MatMulVec{<:AbstractBandedLayout,<:VcatLayout{<:Tuple{<:Any,ZerosLayout}}}, ::Tuple{<:OneToInf}) =
-    copyto!(similar(M), M)
-
+_materialize(M::Mul{<:Any,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf,<:OneToInf}) = ApplyArray(M)
+_materialize(M::Mul{<:Any,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf}) = ApplyArray(M)
+_materialize(M::Mul{<:Any,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf,<:OneTo}) = ApplyArray(M)
+_materialize(M::Mul{<:Any,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneTo,<:OneToInf}) = ApplyArray(M)
 
 end # module
