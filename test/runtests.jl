@@ -585,3 +585,17 @@ end
     @test repr(Vcat(1:∞)) == "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, …]"
     @test repr(Vcat(2,1:∞)) == "[2, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, …]"
 end
+
+@testset "*" begin
+    A = Fill(1,3,∞)
+    B = Diagonal(1:∞)
+    C = Vcat([1,2,3], Zeros(∞))
+    D = Vcat(Fill(1,3,∞), Zeros(∞,∞))
+
+    @test A*B isa ApplyArray
+    @test size(A*B) == (3,∞)
+    @test (A*B)[1:3,1:10] == Fill(1,3,10)*Diagonal(1:10)
+
+    @test_broken A*B*C isa ApplyArray
+    @test A*B*D isa ApplyArray
+end

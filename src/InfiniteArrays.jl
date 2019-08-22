@@ -35,7 +35,8 @@ import Statistics: mean, median
 
 import FillArrays: AbstractFill, getindex_value
 import LazyArrays: LazyArrayStyle, _materialize, AbstractBandedLayout,
-                    ZerosLayout, VcatLayout, @lazymul, mulapplystyle
+                    ZerosLayout, VcatLayout, @lazymul, mulapplystyle, AbstractArrayApplyStyle,
+                    ArrayMuls
 
 import DSP: conv
 
@@ -93,9 +94,15 @@ UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
 Int(::Infinity) = ∞
 
 # stay lazy if infinite
-_materialize(M::Mul{<:Any,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf,<:OneToInf}) = ApplyArray(M)
-_materialize(M::Mul{<:Any,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf}) = ApplyArray(M)
-_materialize(M::Mul{<:Any,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf,<:OneTo}) = ApplyArray(M)
-_materialize(M::Mul{<:Any,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneTo,<:OneToInf}) = ApplyArray(M)
+_materialize(M::Mul{<:AbstractArrayApplyStyle,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf,<:OneToInf}) = ApplyArray(M)
+_materialize(M::Mul{<:AbstractArrayApplyStyle,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf}) = ApplyArray(M)
+_materialize(M::Mul{<:AbstractArrayApplyStyle,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneToInf,<:OneTo}) = ApplyArray(M)
+_materialize(M::Mul{<:AbstractArrayApplyStyle,<:Tuple{Vararg{<:AbstractArray}}}, ::Tuple{<:OneTo,<:OneToInf}) = ApplyArray(M)
+_materialize(M::ArrayMuls, ::Tuple{<:OneToInf,<:OneToInf}) = ApplyArray(M)
+_materialize(M::ArrayMuls, ::Tuple{<:OneToInf}) = ApplyArray(M)
+_materialize(M::ArrayMuls, ::Tuple{<:OneToInf,<:OneTo}) = ApplyArray(M)
+_materialize(M::ArrayMuls, ::Tuple{<:OneTo,<:OneToInf}) = ApplyArray(M)
+
+
 
 end # module
