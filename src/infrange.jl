@@ -439,3 +439,11 @@ function conv(r1::Ones{<:Any,1,<:Tuple{<:OneToInf}}, r2::AbstractFill{<:Any,1,<:
     a = getindex_value(r1) * getindex_value(r2)
     a:a:∞
 end
+
+
+###
+# MemoryLayout
+####
+
+MemoryLayout(::Type{<:AbstractInfUnitRange}) = LazyLayout()
+MemoryLayout(::Type{<:InfStepRange}) = LazyLayout()

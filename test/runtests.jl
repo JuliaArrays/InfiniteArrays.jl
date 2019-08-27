@@ -1,7 +1,7 @@
-using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, Test
+using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, Test
 import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
 import LazyArrays: CachedArray
-
+import BandedMatrices: _BandedMatrix
 
 @testset "∞" begin
     @test ∞ ≠ 1
@@ -598,4 +598,12 @@ end
 
     @test_broken A*B*C isa ApplyArray
     @test A*B*D isa ApplyArray
+end
+
+@testset "MemoryLayout" end
+    MemoryLayout(OneToInf{Int}) == LazyLayout()
+end
+
+@testset "Banded" begin
+    A = _
 end
