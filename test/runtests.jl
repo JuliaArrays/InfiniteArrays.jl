@@ -1,6 +1,6 @@
 using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, Test
 import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
-import LazyArrays: CachedArray
+import LazyArrays: CachedArray, MemoryLayout, LazyLayout
 import BandedMatrices: _BandedMatrix
 
 @testset "∞" begin
@@ -420,6 +420,8 @@ end
     @test D[1:10,1:10] == Diagonal(1:10)
     @test_broken D^2 isa Diagonal
     @test D*D isa Diagonal
+    @test MemoryLayout(typeof(D.diag)) == LazyLayout()
+    @test MemoryLayout(typeof(D)) == LazyLayout()
     @test Ones(∞,∞)*D isa ApplyArray
     @test (Ones(∞,∞)*D)[1:10,1:10] == Ones(10,10)*D[1:10,1:10]
 end
@@ -605,5 +607,6 @@ end
 end
 
 @testset "Banded" begin
-    A = _
+    A = _BandedMatrix((0:∞)', ∞, -1, 1)
+    @which materialize(applied(*, Eye(∞), A))
 end
