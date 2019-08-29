@@ -542,8 +542,8 @@ end
     @test diff(x[1:10]) == diff(x)[1:9]
     @test diff(y)[1:20] == x[2:21]
 
-    @test cumsum(x).arrays[2] ≡ 8:12
-    @test last(y.arrays) == sum(x[1:9]):2:∞
+    @test cumsum(x).args[2] ≡ 8:12
+    @test last(y.args) == sum(x[1:9]):2:∞
     r = (3:4:∞)
     @test cumsum(r)[1:20] == cumsum(r[1:20])
 end
@@ -598,15 +598,24 @@ end
     @test size(A*B) == (3,∞)
     @test (A*B)[1:3,1:10] == Fill(1,3,10)*Diagonal(1:10)
 
-    @test_broken A*B*C isa ApplyArray
+    @test A*B*C isa ApplyArray
+    @test size(A*B*C) == (3,)
+    @test (A*B*C)[1] == 14
+    @test A*B*C == fill(14,3)
+    @test_throws BoundsError (A*B*C)[1:10,1:10]
     @test A*B*D isa ApplyArray
+    @test (A*B*D)[1:3,1:5] == fill(6.0,3,5)
 end
 
-@testset "MemoryLayout" end
-    MemoryLayout(OneToInf{Int}) == LazyLayout()
+@testset "MemoryLayout" begin
+    @test MemoryLayout(OneToInf{Int}) == LazyLayout()
+    @test MemoryLayout(typeof((0:∞))) == LazyLayout()
+    @test MemoryLayout(typeof((0:∞)')) == LazyLayout()
+    A = _BandedMatrix((0:∞)', ∞, -1, 1)
+    @test MemoryLayout(typeof(A)) == LazyLayout()
 end
 
 @testset "Banded" begin
     A = _BandedMatrix((0:∞)', ∞, -1, 1)
-    @which materialize(applied(*, Eye(∞), A))
+    @test_broken apply(*, Eye(∞), A) ≡ A
 end
