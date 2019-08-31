@@ -35,7 +35,7 @@ import Statistics: mean, median
 
 import FillArrays: AbstractFill, getindex_value
 import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout,
-                    ZerosLayout, @lazymul, mulapplystyle, AbstractArrayApplyStyle
+                    ZerosLayout, @lazymul, AbstractArrayApplyStyle
 
 import DSP: conv
 

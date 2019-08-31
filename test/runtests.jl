@@ -1,7 +1,7 @@
 using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, Test
 import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout
-import BandedMatrices: _BandedMatrix
+import BandedMatrices: _BandedMatrix, BandedColumns
 
 @testset "∞" begin
     @test ∞ ≠ 1
@@ -612,7 +612,7 @@ end
     @test MemoryLayout(typeof((0:∞))) == LazyLayout()
     @test MemoryLayout(typeof((0:∞)')) == LazyLayout()
     A = _BandedMatrix((0:∞)', ∞, -1, 1)
-    @test MemoryLayout(typeof(A)) == LazyLayout()
+    @test MemoryLayout(typeof(A)) == BandedColumns{LazyLayout}()
 end
 
 @testset "Banded" begin
