@@ -1,6 +1,7 @@
 # This file is mmodified from Julia. License is MIT: https://julialang.org/license
 
 (:)(start::T, stop::Infinity) where {T<:Integer} = InfUnitRange{T}(start)
+(:)(start::Infinity, stop::Integer) = start+1:start
 function (:)(start::T, step::T, stop::OrientedInfinity) where {T<:Real}
     sign(step) == sign(stop) || throw(ArgumentError("InfStepRange must have infinite length"))
     InfStepRange(start, step)
