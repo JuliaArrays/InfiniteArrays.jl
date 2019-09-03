@@ -1,6 +1,7 @@
 # This file is mmodified from Julia. License is MIT: https://julialang.org/license
 
 (:)(start::T, stop::Infinity) where {T<:Integer} = InfUnitRange{T}(start)
+(:)(start::Infinity, stop::Integer) = start+1:start
 function (:)(start::T, step::T, stop::OrientedInfinity) where {T<:Real}
     sign(step) == sign(stop) || throw(ArgumentError("InfStepRange must have infinite length"))
     InfStepRange(start, step)
@@ -439,3 +440,11 @@ function conv(r1::Ones{<:Any,1,<:Tuple{<:OneToInf}}, r2::AbstractFill{<:Any,1,<:
     a = getindex_value(r1) * getindex_value(r2)
     a:a:∞
 end
+
+
+###
+# MemoryLayout
+####
+
+MemoryLayout(::Type{<:AbstractInfUnitRange}) = LazyLayout()
+MemoryLayout(::Type{<:InfStepRange}) = LazyLayout()
