@@ -272,6 +272,12 @@ end
         @test broadcast(-, 1:2:∞, 1) ≡ 0:2:∞
         @test broadcast(-, 1:2:∞, 0.3) ≡ 1-0.3:2:∞
         @test broadcast(-, 2, 1:∞) ≡ 1:-1:-∞
+        @test broadcast(exp, (1:∞)') === exp.(1:∞)'
+        @test broadcast(exp, transpose(1:∞)) === transpose(exp.(1:∞))
+        @test broadcast(+, 1, (1:∞)') === (2:∞)'
+        @test broadcast(+, 1, transpose(1:∞)) === transpose(2:∞)
+        @test broadcast(+, (1:∞)', 1) === (2:∞)'
+        @test broadcast(+, transpose(1:∞), 1) === transpose(2:∞)
     end
 
     @testset "near-equal ranges" begin
