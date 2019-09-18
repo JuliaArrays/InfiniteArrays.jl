@@ -364,6 +364,13 @@ BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:InfIndexRanges,<:InfInd
 BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:InfIndexRanges,<:Any}}})= LazyArrayStyle{1}()
 BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:Any,<:InfIndexRanges}}})= LazyArrayStyle{1}()
 
+broadcasted(::DefaultArrayStyle{2}, f, r::Adjoint{<:Any,<:InfRanges}) = broadcast(f,parent(r))'
+broadcasted(::DefaultArrayStyle{2}, f, r::Transpose{<:Any,<:InfRanges}) = transpose(broadcast(f,parent(r)))
+broadcasted(::DefaultArrayStyle{2}, f, a::Number, r::Adjoint{<:Any,<:InfRanges}) = broadcast(f,a,parent(r))'
+broadcasted(::DefaultArrayStyle{2}, f, a::Number, r::Transpose{<:Any,<:InfRanges}) = transpose(broadcast(f,a,parent(r)))
+broadcasted(::DefaultArrayStyle{2}, f, r::Adjoint{<:Any,<:InfRanges}, a::Number) = broadcast(f,parent(r),a)'
+broadcasted(::DefaultArrayStyle{2}, f, r::Transpose{<:Any,<:InfRanges}, a::Number) = transpose(broadcast(f,parent(r),a))
+
 broadcast(f, r::Adjoint{<:Any,<:InfRanges}) = broadcast(f,parent(r))'
 broadcast(f, r::Transpose{<:Any,<:InfRanges}) = transpose(broadcast(f,parent(r)))
 broadcast(f, a::Number, r::Adjoint{<:Any,<:InfRanges}) = broadcast(f,a,parent(r))'
