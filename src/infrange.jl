@@ -354,6 +354,8 @@ in(x::Real, r::InfRanges{T}) where {T<:Integer} =
 ### Lazy broadcasting
 
 BroadcastStyle(::Type{<:InfRanges}) = LazyArrayStyle{1}()
+BroadcastStyle(::Type{<:Adjoint{<:Any,<:InfRanges}}) = LazyArrayStyle{2}()
+BroadcastStyle(::Type{<:Transpose{<:Any,<:InfRanges}}) = LazyArrayStyle{1}()
 
 
 
@@ -364,12 +366,12 @@ BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:InfIndexRanges,<:InfInd
 BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:InfIndexRanges,<:Any}}})= LazyArrayStyle{1}()
 BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:Any,<:InfIndexRanges}}})= LazyArrayStyle{1}()
 
-broadcasted(::DefaultArrayStyle{2}, f, r::Adjoint{<:Any,<:InfRanges}) = broadcast(f,parent(r))'
-broadcasted(::DefaultArrayStyle{2}, f, r::Transpose{<:Any,<:InfRanges}) = transpose(broadcast(f,parent(r)))
-broadcasted(::DefaultArrayStyle{2}, f, a::Number, r::Adjoint{<:Any,<:InfRanges}) = broadcast(f,a,parent(r))'
-broadcasted(::DefaultArrayStyle{2}, f, a::Number, r::Transpose{<:Any,<:InfRanges}) = transpose(broadcast(f,a,parent(r)))
-broadcasted(::DefaultArrayStyle{2}, f, r::Adjoint{<:Any,<:InfRanges}, a::Number) = broadcast(f,parent(r),a)'
-broadcasted(::DefaultArrayStyle{2}, f, r::Transpose{<:Any,<:InfRanges}, a::Number) = transpose(broadcast(f,parent(r),a))
+broadcasted(::BroadcastStyle, f, r::Adjoint{<:Any,<:InfRanges}) = broadcast(f,parent(r))'
+broadcasted(::BroadcastStyle, f, r::Transpose{<:Any,<:InfRanges}) = transpose(broadcast(f,parent(r)))
+broadcasted(::BroadcastStyle, f, a::Number, r::Adjoint{<:Any,<:InfRanges}) = broadcast(f,a,parent(r))'
+broadcasted(::BroadcastStyle, f, a::Number, r::Transpose{<:Any,<:InfRanges}) = transpose(broadcast(f,a,parent(r)))
+broadcasted(::BroadcastStyle, f, r::Adjoint{<:Any,<:InfRanges}, a::Number) = broadcast(f,parent(r),a)'
+broadcasted(::BroadcastStyle, f, r::Transpose{<:Any,<:InfRanges}, a::Number) = transpose(broadcast(f,parent(r),a))
 
 broadcast(f, r::Adjoint{<:Any,<:InfRanges}) = broadcast(f,parent(r))'
 broadcast(f, r::Transpose{<:Any,<:InfRanges}) = transpose(broadcast(f,parent(r)))
@@ -462,3 +464,10 @@ end
 
 MemoryLayout(::Type{<:AbstractInfUnitRange}) = LazyLayout()
 MemoryLayout(::Type{<:InfStepRange}) = LazyLayout()
+
+
+####
+# permutedims
+####
+permutedims(r::InfRanges) = transpose(r)
+permutedims(r::BroadcastVector{<:Number,<:Any,<:Tuple{Int,InfRanges}}) = transpose(r)

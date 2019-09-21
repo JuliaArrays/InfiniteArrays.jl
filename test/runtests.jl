@@ -625,3 +625,8 @@ end
     A = _BandedMatrix((0:∞)', ∞, -1, 1)
     @test_broken apply(*, Eye(∞), A) ≡ A
 end
+
+@testset "permutedims" begin
+    @test permutedims(1:∞) isa Transpose
+    @test permutedims(1:∞)[1,1:10] == (1:10)
+end

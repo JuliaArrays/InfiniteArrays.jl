@@ -22,7 +22,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
          AbstractArray, AbstractVector, Array, Vector, Matrix,
          axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
          diff, cumsum, show_delim_array, show_circular, Int,
-         similar, _unsafe_getindex, string, zeros, fill
+         similar, _unsafe_getindex, string, zeros, fill, permutedims
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
