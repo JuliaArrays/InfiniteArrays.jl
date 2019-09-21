@@ -1,6 +1,6 @@
 using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, Test
 import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
-import LazyArrays: CachedArray, MemoryLayout, LazyLayout
+import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
 
 @testset "∞" begin
@@ -427,8 +427,8 @@ end
     @test_broken D^2 isa Diagonal
     @test D*D isa Diagonal
     @test MemoryLayout(typeof(D.diag)) == LazyLayout()
-    @test MemoryLayout(typeof(D)) == LazyLayout()
-    @test Ones(∞,∞)*D isa ApplyArray
+    @test MemoryLayout(typeof(D)) == DiagonalLayout{LazyLayout}()
+    @test Ones(∞,∞)*D isa BroadcastArray
     @test (Ones(∞,∞)*D)[1:10,1:10] == Ones(10,10)*D[1:10,1:10]
 end
 
@@ -600,7 +600,7 @@ end
     C = Vcat([1,2,3], Zeros(∞))
     D = Vcat(Fill(1,3,∞), Zeros(∞,∞))
 
-    @test A*B isa ApplyArray
+    @test A*B isa BroadcastArray
     @test size(A*B) == (3,∞)
     @test (A*B)[1:3,1:10] == Fill(1,3,10)*Diagonal(1:10)
 
