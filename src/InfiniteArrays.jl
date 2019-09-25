@@ -80,7 +80,8 @@ length(::Zeros{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ∞
 length(::Zeros{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ∞
 length(::Zeros{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ∞
 
-
+vcat(a::Number, b::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}) = Vcat(a, b)
+vcat(a::AbstractVector, b::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}) = Vcat(a, b)
 
 ##
 # Temporary hacks for base support
