@@ -1,7 +1,8 @@
 using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, Test
 import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
-import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout
+import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle 
 import BandedMatrices: _BandedMatrix, BandedColumns
+import Base.Broadcast: broadcasted, Broadcasted
 
 @testset "∞" begin
     @test ∞ ≠ 1
@@ -428,6 +429,10 @@ end
     @test D*D isa Diagonal
     @test MemoryLayout(typeof(D.diag)) == LazyLayout()
     @test MemoryLayout(typeof(D)) == DiagonalLayout{LazyLayout}()
+    @test Base.BroadcastStyle(typeof(D)) == LazyArrayStyle{2}()
+    @test Base.BroadcastStyle(typeof(permutedims(D.diag))) == LazyArrayStyle{2}()
+    @test broadcasted(*,Ones(∞,∞),permutedims(D.diag)) isa Broadcasted{LazyArrayStyle{2}}
+    @test broadcast(*,Ones(∞,∞),permutedims(D.diag)) isa BroadcastArray
     @test Ones(∞,∞)*D isa BroadcastArray
     @test (Ones(∞,∞)*D)[1:10,1:10] == Ones(10,10)*D[1:10,1:10]
 end
