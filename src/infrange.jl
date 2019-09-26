@@ -355,7 +355,7 @@ in(x::Real, r::InfRanges{T}) where {T<:Integer} =
 
 BroadcastStyle(::Type{<:InfRanges}) = LazyArrayStyle{1}()
 BroadcastStyle(::Type{<:Adjoint{<:Any,<:InfRanges}}) = LazyArrayStyle{2}()
-BroadcastStyle(::Type{<:Transpose{<:Any,<:InfRanges}}) = LazyArrayStyle{1}()
+BroadcastStyle(::Type{<:Transpose{<:Any,<:InfRanges}}) = LazyArrayStyle{2}()
 
 
 
