@@ -1,7 +1,8 @@
 using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, Test
 import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
-import LazyArrays: CachedArray, MemoryLayout, LazyLayout
+import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle 
 import BandedMatrices: _BandedMatrix, BandedColumns
+import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
 @testset "∞" begin
     @test ∞ ≠ 1
@@ -272,6 +273,12 @@ end
         @test broadcast(-, 1:2:∞, 1) ≡ 0:2:∞
         @test broadcast(-, 1:2:∞, 0.3) ≡ 1-0.3:2:∞
         @test broadcast(-, 2, 1:∞) ≡ 1:-1:-∞
+        @test exp.((1:∞)') ≡ broadcast(exp, (1:∞)') ≡ exp.(1:∞)'
+        @test exp.(transpose(1:∞)) ≡ broadcast(exp, transpose(1:∞)) ≡ transpose(exp.(1:∞))
+        @test 1 .+ (1:∞)' ≡ broadcast(+, 1, (1:∞)') ≡ (2:∞)'
+        @test 1 .+ transpose(1:∞) ≡ broadcast(+, 1, transpose(1:∞)) ≡ transpose(2:∞)
+        @test (1:∞)' .+ 1 ≡ broadcast(+, (1:∞)', 1) ≡ (2:∞)'
+        @test transpose(1:∞) .+ 1 ≡ broadcast(+, transpose(1:∞), 1) ≡ transpose(2:∞)
     end
 
     @testset "near-equal ranges" begin
@@ -421,8 +428,15 @@ end
     @test_broken D^2 isa Diagonal
     @test D*D isa Diagonal
     @test MemoryLayout(typeof(D.diag)) == LazyLayout()
-    @test MemoryLayout(typeof(D)) == LazyLayout()
-    @test Ones(∞,∞)*D isa ApplyArray
+    @test MemoryLayout(typeof(D)) == DiagonalLayout{LazyLayout}()
+    @test Base.BroadcastStyle(typeof(D)) == LazyArrayStyle{2}()
+    @test Base.BroadcastStyle(typeof(permutedims(D.diag))) == LazyArrayStyle{2}()
+    bc = broadcasted(*,Ones(∞,∞),permutedims(D.diag))
+    @test bc isa Broadcasted{LazyArrayStyle{2}}
+    @test instantiate(bc) isa Broadcasted{LazyArrayStyle{2}}
+    @test copy(instantiate(bc)) isa BroadcastArray
+    @test broadcast(*,Ones(∞,∞),permutedims(D.diag)) isa BroadcastArray
+    @test Ones(∞,∞)*D isa BroadcastArray
     @test (Ones(∞,∞)*D)[1:10,1:10] == Ones(10,10)*D[1:10,1:10]
 end
 
@@ -594,7 +608,7 @@ end
     C = Vcat([1,2,3], Zeros(∞))
     D = Vcat(Fill(1,3,∞), Zeros(∞,∞))
 
-    @test A*B isa ApplyArray
+    @test A*B isa BroadcastArray
     @test size(A*B) == (3,∞)
     @test (A*B)[1:3,1:10] == Fill(1,3,10)*Diagonal(1:10)
 
@@ -618,4 +632,9 @@ end
 @testset "Banded" begin
     A = _BandedMatrix((0:∞)', ∞, -1, 1)
     @test_broken apply(*, Eye(∞), A) ≡ A
+end
+
+@testset "permutedims" begin
+    @test permutedims(1:∞) isa Transpose
+    @test permutedims(1:∞)[1,1:10] == (1:10)
 end
