@@ -2,7 +2,7 @@ using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Stati
 import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle 
 import BandedMatrices: _BandedMatrix, BandedColumns
-import Base.Broadcast: broadcasted, Broadcasted
+import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
 @testset "∞" begin
     @test ∞ ≠ 1
@@ -431,7 +431,10 @@ end
     @test MemoryLayout(typeof(D)) == DiagonalLayout{LazyLayout}()
     @test Base.BroadcastStyle(typeof(D)) == LazyArrayStyle{2}()
     @test Base.BroadcastStyle(typeof(permutedims(D.diag))) == LazyArrayStyle{2}()
-    @test broadcasted(*,Ones(∞,∞),permutedims(D.diag)) isa Broadcasted{LazyArrayStyle{2}}
+    bc = broadcasted(*,Ones(∞,∞),permutedims(D.diag))
+    @test bc isa Broadcasted{LazyArrayStyle{2}}
+    @test instantiate(bc) isa Broadcasted{LazyArrayStyle{2}}
+    @test copy(instantiate(bc)) isa BroadcastArray
     @test broadcast(*,Ones(∞,∞),permutedims(D.diag)) isa BroadcastArray
     @test Ones(∞,∞)*D isa BroadcastArray
     @test (Ones(∞,∞)*D)[1:10,1:10] == Ones(10,10)*D[1:10,1:10]
