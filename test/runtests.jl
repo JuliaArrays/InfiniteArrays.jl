@@ -638,3 +638,9 @@ end
     @test permutedims(1:∞) isa Transpose
     @test permutedims(1:∞)[1,1:10] == (1:10)
 end
+
+@testset "norm" begin
+    for p in (-Inf, 0, 0.1, 1, 2, 3, Inf)
+        @test norm(Zeros(∞), p) == 0.0
+    end
+end

@@ -29,7 +29,8 @@ import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcas
                         @nexprs, @ncall, combine_eltypes, DefaultArrayStyle, instantiate
 
 import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
-                             det, logdet, istriu, istril, adjoint, tr, AbstractTriangular
+                             det, logdet, istriu, istril, adjoint, tr, AbstractTriangular,
+                             norm2, norm1, normp
 
 import Statistics: mean, median
 
@@ -40,6 +41,8 @@ import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayou
 import DSP: conv
 
 export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
+
+
 
 
 
@@ -80,6 +83,25 @@ length(::Zeros{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ∞
 length(::Zeros{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ∞
 length(::Zeros{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ∞
 
+for op in (:norm2, :norm1)
+   @eval $op(a::Zeros{T,N,NTuple{N,OneToInf{Int}}}) where {T,N} = norm(getindex_value(a))
+end
+
+normp(a::Zeros{T,N,NTuple{N,OneToInf{Int}}}, p) where {T,N} = norm(getindex_value(a))
+
+for op in (:norm2, :norm1)
+   @eval function $op(a::AbstractFill{T,N,NTuple{N,OneToInf{Int}}}) where {T,N}
+      z = norm(getindex_value(a))
+      iszero(z) && return z
+      typeof(z)(Inf)
+   end
+end
+function normp(a::AbstractFill{T,N,NTuple{N,OneToInf{Int}}}, p) where {T,N }
+   z = norm(getindex_value(a))
+   iszero(z) && return z
+   typeof(z)(Inf)
+end
+
 vcat(a::Number, b::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}) = Vcat(a, b)
 vcat(a::AbstractVector, b::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}) = Vcat(a, b)
 
@@ -94,6 +116,8 @@ OneTo(a::OneToInf) = a
 OneTo{T}(::OneToInf) where T<:Integer = OneToInf{T}()
 
 Int(::Infinity) = ∞
+
+
 
 
 end # module
