@@ -642,5 +642,7 @@ end
 @testset "norm" begin
     for p in (-Inf, 0, 0.1, 1, 2, 3, Inf)
         @test norm(Zeros(∞), p) == 0.0
+        @test norm(Fill(5),p) ≈ norm(Array(Fill(5)),p) # tests tuple bug
+        @test norm(Zeros{Float64}(),p) == 0.0 # tests tuple bug
     end
 end

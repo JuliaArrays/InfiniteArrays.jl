@@ -89,17 +89,19 @@ end
 
 normp(a::Zeros{T,N,NTuple{N,OneToInf{Int}}}, p) where {T,N} = norm(getindex_value(a))
 
-for op in (:norm2, :norm1)
-   @eval function $op(a::AbstractFill{T,N,NTuple{N,OneToInf{Int}}}) where {T,N}
+for N=1:3
+   for op in (:norm2, :norm1)
+      @eval function $op(a::AbstractFill{T,$N,NTuple{$N,OneToInf{Int}}}) where {T,N}
+         z = norm(getindex_value(a))
+         iszero(z) && return z
+         typeof(z)(Inf)
+      end
+   end
+   @eval function normp(a::AbstractFill{T,$N,NTuple{$N,OneToInf{Int}}}, p) where {T,N }
       z = norm(getindex_value(a))
       iszero(z) && return z
       typeof(z)(Inf)
    end
-end
-function normp(a::AbstractFill{T,N,NTuple{N,OneToInf{Int}}}, p) where {T,N }
-   z = norm(getindex_value(a))
-   iszero(z) && return z
-   typeof(z)(Inf)
 end
 
 vcat(a::Number, b::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}) = Vcat(a, b)
