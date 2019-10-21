@@ -511,6 +511,13 @@ end
 
         @test_throws ArgumentError maximum(exp.(1:∞))
     end
+
+    @testset "special vcat" begin
+        @test [1; Zeros(∞)][1:10] == [1; zeros(9)]
+        @test [[1,2,3]; Zeros(∞)][1:10] == [1;2;3;zeros(7)]
+        @test [1; zeros(∞)] isa CachedArray
+        @test [[1,2,3]; zeros(∞)] isa CachedArray
+    end
 end
 
 @testset "broadcasting" begin

@@ -22,7 +22,8 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
          AbstractArray, AbstractVector, Array, Vector, Matrix,
          axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
          diff, cumsum, show_delim_array, show_circular, Int,
-         similar, _unsafe_getindex, string, zeros, fill, permutedims
+         similar, _unsafe_getindex, string, zeros, fill, permutedims,
+         cat_similar, vcat
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
@@ -36,7 +37,7 @@ import Statistics: mean, median
 
 import FillArrays: AbstractFill, getindex_value
 import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout,
-                    ZerosLayout, @lazymul, AbstractArrayApplyStyle
+                    ZerosLayout, @lazymul, AbstractArrayApplyStyle, CachedArray, CachedVector
 
 import DSP: conv
 
@@ -104,8 +105,15 @@ for N=1:3
    end
 end
 
-vcat(a::Number, b::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}) = Vcat(a, b)
-vcat(a::AbstractVector, b::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}) = Vcat(a, b)
+for Typ in (:Number, :AbstractVector)
+   @eval begin
+      vcat(a::$Typ, b::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}) = Vcat(a, b)      
+      vcat(a::$Typ, c::CachedVector{<:Any,<:Any,<:AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}}) = 
+         CachedArray(vcat(a, view(c.data,1:c.datasize[1])), c.array)
+   end
+end
+
+# cat_similar(A, T, ::Tuple{Infinity}) = zeros(T, ∞)
 
 ##
 # Temporary hacks for base support
