@@ -511,6 +511,13 @@ end
 
         @test_throws ArgumentError maximum(exp.(1:∞))
     end
+
+    @testset "special vcat" begin
+        @test [1; Zeros(∞)][1:10] == [1; zeros(9)]
+        @test [[1,2,3]; Zeros(∞)][1:10] == [1;2;3;zeros(7)]
+        @test [1; zeros(∞)] isa CachedArray
+        @test [[1,2,3]; zeros(∞)] isa CachedArray
+    end
 end
 
 @testset "broadcasting" begin
@@ -637,4 +644,12 @@ end
 @testset "permutedims" begin
     @test permutedims(1:∞) isa Transpose
     @test permutedims(1:∞)[1,1:10] == (1:10)
+end
+
+@testset "norm" begin
+    for p in (-Inf, 0, 0.1, 1, 2, 3, Inf)
+        @test norm(Zeros(∞), p) == 0.0
+        @test norm(Fill(5),p) ≈ norm(Array(Fill(5)),p) # tests tuple bug
+        @test norm(Zeros{Float64}(),p) == 0.0 # tests tuple bug
+    end
 end
