@@ -8,7 +8,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
             getindex, setindex!, intersect, @_inline_meta,
             sort, sort!, issorted, sortperm, sum, in, broadcast,
             eltype, elsize, parent, parentindices, reinterpret, 
-            unaliascopy, dataids, getindex, setindex!,
+            unaliascopy, dataids, 
             real, imag, conj, transpose,
             exp, log, sqrt, cos, sin, tan, csc, sec, cot,
             cosh, sinh, tanh, csch, sech, coth, acos, asin, atan, acsc, asec, acot,
@@ -118,6 +118,10 @@ end
 # Temporary hacks for base support
 ##
 OneTo(::Infinity) = OneToInf()
+function OneTo(x::OrientedInfinity)
+    iszero(x.angle) && return OneTo(∞)
+    throw(ArgumentError("Cannot create infinite range with negative length"))
+end
 OneTo{T}(::Infinity) where T<:Integer = OneToInf{T}()
 UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
 UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)

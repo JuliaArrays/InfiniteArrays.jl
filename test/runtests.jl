@@ -615,9 +615,11 @@ end
     C = Vcat([1,2,3], Zeros(∞))
     D = Vcat(Fill(1,3,∞), Zeros(∞,∞))
 
-    @test A*B isa BroadcastArray
-    @test size(A*B) == (3,∞)
-    @test (A*B)[1:3,1:10] == Fill(1,3,10)*Diagonal(1:10)
+    AB = A*B
+    @test AB isa BroadcastArray
+    @test size(AB) == (3,∞)
+    @test (AB)[1:3,1:10] == Fill(1,3,10)*Diagonal(1:10)
+    @test MemoryLayout(typeof(AB)) == LazyLayout()
 
     @test A*B*C isa ApplyArray
     @test size(A*B*C) == (3,)
@@ -647,7 +649,8 @@ end
     @test reshape(1:∞,1,∞) === InfiniteArrays.ReshapedArray(1:∞,(1,∞))
     @test permutedims(1:∞) isa InfiniteArrays.ReshapedArray
     @test permutedims(1:∞)[1,1:10] == (1:10)
-    @test reshape(Vcat(Fill(1,1,∞),Fill(2,2,∞)),∞)[1:7] == [1, 2, 2, 1, 2, 2, 1]
+    a = reshape(Vcat(Fill(1,1,∞),Fill(2,2,∞)),∞)
+    @test a[1:7] == [1, 2, 2, 1, 2, 2, 1]
 end
 
 @testset "norm" begin
