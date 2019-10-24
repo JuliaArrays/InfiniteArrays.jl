@@ -23,7 +23,12 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
          axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
          diff, cumsum, show_delim_array, show_circular, Int,
          similar, _unsafe_getindex, string, zeros, fill, permutedims,
+<<<<<<< Updated upstream
          cat_similar, vcat
+=======
+         cat_similar, vcat,
+         reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs
+>>>>>>> Stashed changes
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
