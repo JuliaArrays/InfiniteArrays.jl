@@ -27,7 +27,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
-                        @nexprs, @ncall, combine_eltypes, DefaultArrayStyle, instantiate
+                        @nexprs, @ncall, combine_eltypes, DefaultArrayStyle, instantiate, axistype
 
 import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
                              det, logdet, istriu, istril, adjoint, tr, AbstractTriangular,
@@ -130,7 +130,8 @@ OneTo{T}(::OneToInf) where T<:Integer = OneToInf{T}()
 
 Int(::Infinity) = ∞
 
-
+axistype(::OneTo{T}, ::OneToInf{V}) where {T,V} = OneToInf{promote_type(T,V)}()
+axistype(::OneToInf{V}, ::OneTo{T}) where {T,V} = OneToInf{promote_type(T,V)}()
 
 
 end # module
