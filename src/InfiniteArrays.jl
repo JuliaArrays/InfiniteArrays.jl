@@ -1,16 +1,15 @@
-__precompile__()
-
 module InfiniteArrays
-   using Base, Statistics, LinearAlgebra, FillArrays, LazyArrays, DSP
+using Base, Statistics, LinearAlgebra, FillArrays, LazyArrays, DSP
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
-            <, ≤, >, ≥, promote_rule, convert, copy,
+            <, ≤, >, ≥, promote_rule, convert, unsafe_convert, copy,
             size, step, isempty, length, first, last,
             getindex, setindex!, intersect, @_inline_meta,
             sort, sort!, issorted, sortperm, sum, in, broadcast,
-            eltype, parent, real, imag,
-            conj, transpose,
+            eltype, elsize, parent, parentindices, reinterpret, 
+            unaliascopy, dataids, 
+            real, imag, conj, transpose,
             exp, log, sqrt, cos, sin, tan, csc, sec, cot,
             cosh, sinh, tanh, csch, sech, coth, acos, asin, atan, acsc, asec, acot,
             acosh, asinh, atanh, acsch, asech, acoth, (:),
@@ -23,12 +22,8 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
          axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
          diff, cumsum, show_delim_array, show_circular, Int,
          similar, _unsafe_getindex, string, zeros, fill, permutedims,
-<<<<<<< Updated upstream
-         cat_similar, vcat
-=======
          cat_similar, vcat,
          reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs
->>>>>>> Stashed changes
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
@@ -50,11 +45,10 @@ export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 
 
 
-
-
 include("Infinity.jl")
 include("infrange.jl")
 include("infarrays.jl")
+include("reshapedarray.jl")
 
 ##
 # Fill FillArrays
@@ -124,6 +118,10 @@ end
 # Temporary hacks for base support
 ##
 OneTo(::Infinity) = OneToInf()
+function OneTo(x::OrientedInfinity)
+    iszero(x.angle) && return OneTo(∞)
+    throw(ArgumentError("Cannot create infinite range with negative length"))
+end
 OneTo{T}(::Infinity) where T<:Integer = OneToInf{T}()
 UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
 UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
