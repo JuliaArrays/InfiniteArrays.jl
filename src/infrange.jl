@@ -464,10 +464,3 @@ end
 
 MemoryLayout(::Type{<:AbstractInfUnitRange}) = LazyLayout()
 MemoryLayout(::Type{<:InfStepRange}) = LazyLayout()
-
-
-####
-# permutedims
-####
-permutedims(r::InfRanges) = transpose(r)
-permutedims(r::BroadcastVector{<:Number,<:Any,<:Tuple{Int,InfRanges}}) = transpose(r)
