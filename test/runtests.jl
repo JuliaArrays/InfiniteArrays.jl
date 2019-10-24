@@ -641,6 +641,12 @@ end
 @testset "Banded" begin
     A = _BandedMatrix((0:∞)', ∞, -1, 1)
     @test_broken apply(*, Eye(∞), A) ≡ A
+    @test 2.0A isa BandedMatrix
+    @test (2.0A)[1:10,1:10] == 2.0A[1:10,1:10]
+    @test 2.0\A isa BandedMatrix
+    @test (2.0\A)[1:10,1:10] == 2.0\A[1:10,1:10]
+    @test A/2 isa BandedMatrix
+    @test (A/2)[1:10,1:10] == (A/2)[1:10,1:10]
 end
 
 @testset "reshaped" begin
