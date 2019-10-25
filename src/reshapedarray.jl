@@ -63,6 +63,6 @@ BroadcastStyle(::Type{<:ReshapedArray{T,2,<:Any,<:Tuple{<:Any,<:Infinity}}}) whe
 BroadcastStyle(::Type{<:ReshapedArray{T,2,<:Any,<:Tuple{<:Infinity,<:Any}}}) where {T} = LazyArrayStyle{2}()
 
 
-reshapedlayout(_, _) = UnkownLayout()
+reshapedlayout(_, _) = UnknownLayout()
 reshapedlayout(::LazyLayout, _) = LazyLayout()
 MemoryLayout(::Type{<:ReshapedArray{T,N,A,DIMS}}) where {T,N,A,DIMS} = reshapedlayout(MemoryLayout(A), DIMS)

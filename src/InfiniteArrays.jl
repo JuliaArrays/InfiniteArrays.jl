@@ -36,7 +36,7 @@ import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymm
 import Statistics: mean, median
 
 import FillArrays: AbstractFill, getindex_value
-import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout,
+import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
                     ZerosLayout, @lazymul, AbstractArrayApplyStyle, CachedArray, CachedVector
 
 import DSP: conv
