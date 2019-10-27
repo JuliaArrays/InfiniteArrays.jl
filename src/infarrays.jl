@@ -107,7 +107,7 @@ for typ in (:Ones, :Zeros, :Fill)
     end
 end
 
-BroadcastStyle(::Type{<:Eye{T,OneToInf{I}}}) where {T,I} = LazyArrayStyle{2}()
+BroadcastStyle(::Type{<:Diagonal{T,<:AbstractFill{T,1,Tuple{OneToInf{I}}}}}) where {T,I} = LazyArrayStyle{2}()
 
 #####
 # Diagonal
