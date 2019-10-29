@@ -57,12 +57,15 @@ reshape(A::AbstractArray, a::Infinity, b::Integer...) = ReshapedArray(A, tuple(a
 reshape(A::AbstractArray, a::Integer, b::Infinity, c::Integer...) = ReshapedArray(A, tuple(a,b,c...))
 reshape(A::AbstractArray, dims::Tuple{Infinity,Vararg{Integer}}) = ReshapedArray(A, dims)
 reshape(A::AbstractArray, dims::Tuple{Integer,Infinity,Vararg{Integer}}) = ReshapedArray(A, dims)
+reshape(A::AbstractFill, a::Infinity, b::Integer...) = fill_reshape(A, a, b...)
+reshape(A::AbstractFill, a::Integer, b::Infinity, c::Integer...) = fill_reshape(A, a, b, c...)
+reshape(A::AbstractFill, dims::Tuple{Infinity,Vararg{Integer}}) = fill_reshape(A, dims...)
+reshape(A::AbstractFill, dims::Tuple{Integer,Infinity,Vararg{Integer}}) = fill_reshape(A, dims...)
+
 
 BroadcastStyle(::Type{<:ReshapedArray{T,N,<:Any,NTuple{N,<:Infinity}}}) where {T,N} = LazyArrayStyle{N}()
 BroadcastStyle(::Type{<:ReshapedArray{T,2,<:Any,<:Tuple{<:Any,<:Infinity}}}) where {T} = LazyArrayStyle{2}()
 BroadcastStyle(::Type{<:ReshapedArray{T,2,<:Any,<:Tuple{<:Infinity,<:Any}}}) where {T} = LazyArrayStyle{2}()
 
 
-reshapedlayout(_, _) = UnknownLayout()
-reshapedlayout(::LazyLayout, _) = LazyLayout()
 MemoryLayout(::Type{<:ReshapedArray{T,N,A,DIMS}}) where {T,N,A,DIMS} = reshapedlayout(MemoryLayout(A), DIMS)

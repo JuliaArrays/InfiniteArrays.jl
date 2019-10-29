@@ -666,3 +666,7 @@ end
         @test norm(Zeros{Float64}(),p) == 0.0 # tests tuple bug
     end
 end
+
+@testset "sub-Eye" begin
+    @test bandwidths(view(Eye(∞),:,2:∞)) == (1,-1)
+end
