@@ -26,6 +26,8 @@ similar(A::AbstractArray, ::Type{T}, dims::Tuple{Infinity,Infinity}) where T = c
 
 similar(::Type{<:AbstractArray{T}}, axes::Tuple{OneToInf{Int}}) where T = cache(Zeros{T}(axes))
 similar(::Type{<:AbstractArray{T}}, axes::Tuple{OneToInf{Int},OneToInf{Int}}) where T = cache(Zeros{T}(axes))
+similar(::Type{<:AbstractArray{T}}, axes::Tuple{OneToInf{Int},OneTo{Int}}) where T = cache(Zeros{T}(axes))
+similar(::Type{<:AbstractArray{T}}, axes::Tuple{OneTo{Int},OneToInf{Int}}) where T = cache(Zeros{T}(axes))
 similar(::Type{<:AbstractArray{T}}, dims::Tuple{Infinity}) where T = cache(Zeros{T}(dims))
 similar(::Type{<:AbstractArray{T}}, dims::Tuple{Infinity,Infinity}) where T = cache(Zeros{T}(dims))
 
