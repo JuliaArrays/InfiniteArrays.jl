@@ -16,14 +16,15 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
             AbstractMatrix, AbstractArray, checkindex, unsafe_length, OneTo,
             to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots,
             checkindex, Slice, @propagate_inbounds, @_propagate_inbounds_meta,
-         _in_range, _range, _rangestyle, Ordered,
-         ArithmeticWraps, floatrange, reverse, unitrange_last,
-         AbstractArray, AbstractVector, Array, Vector, Matrix,
-         axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
-         diff, cumsum, show_delim_array, show_circular, Int,
-         similar, _unsafe_getindex, string, zeros, fill, permutedims,
-         cat_similar, vcat,
-         reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs
+         	_in_range, _range, _rangestyle, Ordered,
+         	ArithmeticWraps, floatrange, reverse, unitrange_last,
+         	AbstractArray, AbstractVector, Array, Vector, Matrix,
+         	axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
+         	diff, cumsum, show_delim_array, show_circular, Int,
+         	similar, _unsafe_getindex, string, zeros, fill, permutedims,
+         	cat_similar, vcat,
+		 	reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs,
+         	searchsorted, Ordering, lt
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
@@ -133,6 +134,28 @@ Int(::Infinity) = ∞
 
 axistype(::OneTo{T}, ::OneToInf{V}) where {T,V} = OneToInf{promote_type(T,V)}()
 axistype(::OneToInf{V}, ::OneTo{T}) where {T,V} = OneToInf{promote_type(T,V)}()
+
+# sort.jl
+# returns the range of indices of v equal to x
+# if v does not contain x, returns a 0-length range
+# indicating the insertion point of x
+function searchsorted(v::AbstractVector, x, ilo::Int, ::Infinity, o::Ordering)
+    lo = ilo-1
+    hi = ∞
+    @inbounds while lo < hi-1
+        m = isinf(hi) ? lo + 1000 : (lo+hi)>>>1
+        if lt(o, v[m], x)
+            lo = m
+        elseif lt(o, x, v[m])
+            hi = m
+        else
+            a = searchsortedfirst(v, x, max(lo,ilo), m, o)
+            b = searchsortedlast(v, x, m, hi, o)
+            return a : b
+        end
+    end
+    return (lo + 1) : (hi - 1)
+end
 
 
 end # module
