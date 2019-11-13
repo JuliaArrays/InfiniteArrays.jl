@@ -1,4 +1,4 @@
-using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, Test
+using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, LazyBandedMatrices, Test
 import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle 
 import BandedMatrices: _BandedMatrix, BandedColumns
@@ -508,8 +508,6 @@ end
         x = Vcat(1:2, [1,1,1,1,1], 3, Fill(4,∞))
         @test maximum(x) == 4
         @test minimum(x) == 1
-
-        @test_throws ArgumentError maximum(exp.(1:∞))
     end
 
     @testset "special vcat" begin
@@ -517,6 +515,13 @@ end
         @test [[1,2,3]; Zeros(∞)][1:10] == [1;2;3;zeros(7)]
         @test [1; zeros(∞)] isa CachedArray
         @test [[1,2,3]; zeros(∞)] isa CachedArray
+    end
+
+    @testset "sparse print" begin
+        A = Vcat(1, Zeros(∞))
+        @test Base.replace_in_print_matrix(A, 2, 1, "0") == "⋅"
+        A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
+        @test Base.replace_in_print_matrix(A, 2, 2, "0") == "⋅"
     end
 end
 
@@ -615,9 +620,11 @@ end
     C = Vcat([1,2,3], Zeros(∞))
     D = Vcat(Fill(1,3,∞), Zeros(∞,∞))
 
-    @test A*B isa BroadcastArray
-    @test size(A*B) == (3,∞)
-    @test (A*B)[1:3,1:10] == Fill(1,3,10)*Diagonal(1:10)
+    AB = A*B
+    @test AB isa BroadcastArray
+    @test size(AB) == (3,∞)
+    @test (AB)[1:3,1:10] == Fill(1,3,10)*Diagonal(1:10)
+    @test MemoryLayout(typeof(AB)) == LazyLayout()
 
     @test A*B*C isa ApplyArray
     @test size(A*B*C) == (3,)
@@ -639,11 +646,22 @@ end
 @testset "Banded" begin
     A = _BandedMatrix((0:∞)', ∞, -1, 1)
     @test_broken apply(*, Eye(∞), A) ≡ A
+    @test 2.0A isa BandedMatrix
+    @test (2.0A)[1:10,1:10] == 2.0A[1:10,1:10]
+    @test 2.0\A isa BandedMatrix
+    @test (2.0\A)[1:10,1:10] == 2.0\A[1:10,1:10]
+    @test A/2 isa BandedMatrix
+    @test (A/2)[1:10,1:10] == (A/2)[1:10,1:10]
 end
 
-@testset "permutedims" begin
-    @test permutedims(1:∞) isa Transpose
+@testset "reshaped" begin
+    @test InfiniteArrays.ReshapedArray(1:6,(2,3)) == [1 3 5; 2 4 6]
+    @test InfiniteArrays.ReshapedArray(1:∞,(1,∞))[1,1:10] == 1:10
+    @test reshape(1:∞,1,∞) === InfiniteArrays.ReshapedArray(1:∞,(1,∞))
+    @test permutedims(1:∞) isa InfiniteArrays.ReshapedArray
     @test permutedims(1:∞)[1,1:10] == (1:10)
+    a = reshape(Vcat(Fill(1,1,∞),Fill(2,2,∞)),∞)
+    @test a[1:7] == [1, 2, 2, 1, 2, 2, 1]
 end
 
 @testset "norm" begin
@@ -652,4 +670,8 @@ end
         @test norm(Fill(5),p) ≈ norm(Array(Fill(5)),p) # tests tuple bug
         @test norm(Zeros{Float64}(),p) == 0.0 # tests tuple bug
     end
+end
+
+@testset "sub-Eye" begin
+    @test bandwidths(view(Eye(∞),:,2:∞)) == (1,-1)
 end

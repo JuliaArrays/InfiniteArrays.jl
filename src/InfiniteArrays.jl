@@ -1,33 +1,34 @@
-__precompile__()
-
 module InfiniteArrays
-   using Base, Statistics, LinearAlgebra, FillArrays, LazyArrays, DSP
+using Base, Statistics, LinearAlgebra, FillArrays, LazyArrays, DSP
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
-            <, ≤, >, ≥, promote_rule, convert, copy,
+            <, ≤, >, ≥, promote_rule, convert, unsafe_convert, copy,
             size, step, isempty, length, first, last,
             getindex, setindex!, intersect, @_inline_meta,
             sort, sort!, issorted, sortperm, sum, in, broadcast,
-            eltype, parent, real, imag,
-            conj, transpose,
+            eltype, elsize, parent, parentindices, reinterpret, 
+            unaliascopy, dataids, 
+            real, imag, conj, transpose,
             exp, log, sqrt, cos, sin, tan, csc, sec, cot,
             cosh, sinh, tanh, csch, sech, coth, acos, asin, atan, acsc, asec, acot,
             acosh, asinh, atanh, acsch, asech, acoth, (:),
             AbstractMatrix, AbstractArray, checkindex, unsafe_length, OneTo,
             to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots,
             checkindex, Slice, @propagate_inbounds, @_propagate_inbounds_meta,
-         _in_range, _range, _rangestyle, Ordered,
-         ArithmeticWraps, floatrange, reverse, unitrange_last,
-         AbstractArray, AbstractVector, Array, Vector, Matrix,
-         axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
-         diff, cumsum, show_delim_array, show_circular, Int,
-         similar, _unsafe_getindex, string, zeros, fill, permutedims,
-         cat_similar, vcat
+         	_in_range, _range, _rangestyle, Ordered,
+         	ArithmeticWraps, floatrange, reverse, unitrange_last,
+         	AbstractArray, AbstractVector, Array, Vector, Matrix,
+         	axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
+         	diff, cumsum, show_delim_array, show_circular, Int,
+         	similar, _unsafe_getindex, string, zeros, fill, permutedims,
+         	cat_similar, vcat,
+		 	reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs,
+         	searchsorted, Ordering, lt
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
-                        @nexprs, @ncall, combine_eltypes, DefaultArrayStyle, instantiate
+                        @nexprs, @ncall, combine_eltypes, DefaultArrayStyle, instantiate, axistype
 
 import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
                              det, logdet, istriu, istril, adjoint, tr, AbstractTriangular,
@@ -35,9 +36,10 @@ import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymm
 
 import Statistics: mean, median
 
-import FillArrays: AbstractFill, getindex_value
-import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout,
-                    ZerosLayout, @lazymul, AbstractArrayApplyStyle, CachedArray, CachedVector
+import FillArrays: AbstractFill, getindex_value, fill_reshape
+import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
+                    ZerosLayout, @lazymul, AbstractArrayApplyStyle, CachedArray, CachedVector,
+                    reshapedlayout
 
 import DSP: conv
 
@@ -45,11 +47,10 @@ export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 
 
 
-
-
 include("Infinity.jl")
 include("infrange.jl")
 include("infarrays.jl")
+include("reshapedarray.jl")
 
 ##
 # Fill FillArrays
@@ -119,6 +120,10 @@ end
 # Temporary hacks for base support
 ##
 OneTo(::Infinity) = OneToInf()
+function OneTo(x::OrientedInfinity)
+    iszero(x.angle) && return OneTo(∞)
+    throw(ArgumentError("Cannot create infinite range with negative length"))
+end
 OneTo{T}(::Infinity) where T<:Integer = OneToInf{T}()
 UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
 UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
@@ -127,7 +132,30 @@ OneTo{T}(::OneToInf) where T<:Integer = OneToInf{T}()
 
 Int(::Infinity) = ∞
 
+axistype(::OneTo{T}, ::OneToInf{V}) where {T,V} = OneToInf{promote_type(T,V)}()
+axistype(::OneToInf{V}, ::OneTo{T}) where {T,V} = OneToInf{promote_type(T,V)}()
 
+# sort.jl
+# returns the range of indices of v equal to x
+# if v does not contain x, returns a 0-length range
+# indicating the insertion point of x
+function searchsorted(v::AbstractVector, x, ilo::Int, ::Infinity, o::Ordering)
+    lo = ilo-1
+    hi = ∞
+    @inbounds while lo < hi-1
+        m = isinf(hi) ? lo + 1000 : (lo+hi)>>>1
+        if lt(o, v[m], x)
+            lo = m
+        elseif lt(o, x, v[m])
+            hi = m
+        else
+            a = searchsortedfirst(v, x, max(lo,ilo), m, o)
+            b = searchsortedlast(v, x, m, hi, o)
+            return a : b
+        end
+    end
+    return (lo + 1) : (hi - 1)
+end
 
 
 end # module
