@@ -652,6 +652,11 @@ end
     @test (2.0\A)[1:10,1:10] == 2.0\A[1:10,1:10]
     @test A/2 isa BandedMatrix
     @test (A/2)[1:10,1:10] == (A/2)[1:10,1:10]
+
+    @test A * Eye(∞) isa BandedMatrix
+    @test_broken A / Eye(∞) isa BandedMatrix
+    @test Eye(∞) * A isa BandedMatrix
+    @test Eye(∞) \ A isa BandedMatrix
 end
 
 @testset "reshaped" begin
