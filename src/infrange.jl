@@ -27,6 +27,8 @@ _range(a::Real,          ::Nothing,         ::Nothing, len::Infinity) = InfUnitR
 _range(a::AbstractFloat, ::Nothing,         ::Nothing, len::Infinity) = _range(a, oftype(a, 1),   nothing, len)
 _rangestyle(::Ordered, ::ArithmeticWraps, a::T, step::S, len::Infinity) where {T,S} =
     InfStepRange{T,S}(a, step)
+_rangestyle(::Ordered, ::ArithmeticUnknown, a::T, step::S, len::Infinity) where {T,S} =
+    InfStepRange{T,S}(a, step)    
 _range(a::T, st::T, ::Nothing, ::Infinity) where T<:Union{Float16,Float32,Float64} =
     InfStepRange{T,T}(a, st)
 
