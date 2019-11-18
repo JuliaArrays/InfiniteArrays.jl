@@ -15,7 +15,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
             acosh, asinh, atanh, acsch, asech, acoth, (:),
             AbstractMatrix, AbstractArray, checkindex, unsafe_length, OneTo,
             to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots,
-            checkindex, Slice, @propagate_inbounds, @_propagate_inbounds_meta,
+            checkindex, Slice, IdentityUnitRange, @propagate_inbounds, @_propagate_inbounds_meta,
          	_in_range, _range, _rangestyle, Ordered,
          	ArithmeticWraps, floatrange, reverse, unitrange_last,
          	AbstractArray, AbstractVector, Array, Vector, Matrix,
@@ -39,7 +39,7 @@ import Statistics: mean, median
 import FillArrays: AbstractFill, getindex_value, fill_reshape
 import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
                     ZerosLayout, @lazymul, AbstractArrayApplyStyle, CachedArray, CachedVector,
-                    reshapedlayout
+                    reshapedlayout, sub_materialize
 
 import DSP: conv
 
@@ -156,6 +156,17 @@ function searchsorted(v::AbstractVector, x, ilo::Int, ::Infinity, o::Ordering)
     end
     return (lo + 1) : (hi - 1)
 end
+
+##
+# lazy sub_materialize
+##
+
+const InfAxes = Union{AbstractInfUnitRange,Slice{<:AbstractInfUnitRange},IdentityUnitRange{<:AbstractInfUnitRange}}
+
+sub_materialize(_, V, ::Tuple{InfAxes}) = V
+sub_materialize(_, V, ::Tuple{InfAxes,InfAxes}) = V
+sub_materialize(_, V, ::Tuple{<:Any,InfAxes}) = V
+sub_materialize(_, V, ::Tuple{InfAxes,Any}) = V
 
 
 end # module
