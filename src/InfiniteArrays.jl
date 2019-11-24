@@ -24,7 +24,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
          	similar, _unsafe_getindex, string, zeros, fill, permutedims,
          	cat_similar, vcat,
 		 	reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs,
-         	searchsorted, Ordering, lt
+         	searchsorted, Ordering, lt, Fix2, findfirst
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,

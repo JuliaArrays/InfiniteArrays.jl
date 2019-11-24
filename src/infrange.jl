@@ -466,3 +466,28 @@ end
 
 MemoryLayout(::Type{<:AbstractInfUnitRange}) = LazyLayout()
 MemoryLayout(::Type{<:InfStepRange}) = LazyLayout()
+
+
+##
+# findfirst
+##
+
+function findfirst(p::Union{Fix2{typeof(isequal),T},Fix2{typeof(==),T}}, r::InfStepRange{T,S}) where {T,S}
+    first(r) <= p.x || return nothing
+    d = convert(S, p.x - first(r))
+    iszero(d % step(r)) || return nothing
+    return d ÷ step(r) + 1
+end
+
+function findfirst(p::Union{Fix2{typeof(isequal),T},Fix2{typeof(==),T}}, r::AbstractInfUnitRange{<:Integer}) where T<:Integer
+    first(r) <= p.x || return nothing
+    p.x - first(r) + 1
+end
+for op in (:isequal, :(==))
+    @eval begin 
+        findfirst(p::Fix2{typeof($op),T}, r::AbstractInfUnitRange{<:Integer}) where T<:Number =
+            isinteger(p.x) ? findfirst($op(convert(Integer, p.x)), r) : nothing
+        findfirst(p::Fix2{typeof($op),T}, r::InfStepRange{<:Integer,<:Integer}) where T<:Number =
+            isinteger(p.x) ? findfirst($op(convert(Integer, p.x)), r) : nothing            
+    end
+end

@@ -680,3 +680,16 @@ end
 @testset "sub-Eye" begin
     @test bandwidths(view(Eye(∞),:,2:∞)) == (1,-1)
 end
+
+@testset "findfirst" begin
+    @test findfirst(isequal(5), OneToInf()) == 5
+    @test isnothing(findfirst(isequal(5.5), OneToInf()))
+    @test isnothing(findfirst(isequal(-1), OneToInf()))
+    @test findfirst(isequal(5), 2:∞) == 4
+    @test isnothing(findfirst(isequal(5.5), 2:∞))
+    @test isnothing(findfirst(isequal(-1), 2:∞))
+    @test findfirst(isequal(4), 2:2:∞) == 2
+    @test isnothing(findfirst(isequal(5), 2:2:∞))
+    @test isnothing(findfirst(isequal(5.5), 2:2:∞))
+    @test isnothing(findfirst(isequal(-1), 2:2:∞))
+end
