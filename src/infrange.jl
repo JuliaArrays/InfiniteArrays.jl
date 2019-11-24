@@ -466,3 +466,39 @@ end
 
 MemoryLayout(::Type{<:AbstractInfUnitRange}) = LazyLayout()
 MemoryLayout(::Type{<:InfStepRange}) = LazyLayout()
+
+
+##
+# findfirst
+##
+
+# from array.jl
+function _step_findfirst(p, r::InfStepRange{T,S}) where {T,S}
+    first(r) <= p.x || return nothing
+    d = convert(S, p.x - first(r))
+    iszero(d % step(r)) || return nothing
+    return d ÷ step(r) + 1
+end
+
+for op in (:isequal, :(==))
+    @eval begin 
+        findfirst(p::Fix2{typeof($op),T}, r::InfStepRange{T,S}) where {T,S} =
+            _step_findfirst(p, r)
+
+        findfirst(p::Fix2{typeof($op),T}, r::InfStepRange{T,<:Integer}) where {T<:Integer} = 
+            _step_findfirst(p, r)
+
+        findfirst(p::Fix2{typeof($op),<:Integer}, r::InfStepRange{<:Integer,<:Integer}) = 
+            _step_findfirst(p, r)            
+        
+        function findfirst(p::Fix2{typeof($op),<:Integer}, r::AbstractInfUnitRange{<:Integer})
+            first(r) <= p.x || return nothing
+            p.x - first(r) + 1
+        end
+
+        findfirst(p::Fix2{typeof($op),<:Number}, r::AbstractInfUnitRange{<:Integer}) =
+            isinteger(p.x) ? findfirst($op(convert(Integer, p.x)), r) : nothing
+        findfirst(p::Fix2{typeof($op),<:Number}, r::InfStepRange{<:Integer,<:Integer}) =
+            isinteger(p.x) ? findfirst($op(convert(V, p.x)), r) : nothing            
+    end
+end
