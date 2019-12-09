@@ -2,16 +2,16 @@
 
 (:)(start::T, stop::Infinity) where {T<:Integer} = InfUnitRange{T}(start)
 (:)(start::Infinity, stop::Integer) = start+1:start
-function (:)(start::T, step::T, stop::OrientedInfinity) where {T<:Real}
-    sign(step) == sign(stop) || throw(ArgumentError("InfStepRange must have infinite length"))
+function (:)(start::T, step::T, stop::SignedInfinity) where {T<:Real}
+    signbit(step) == signbit(stop) || throw(ArgumentError("InfStepRange must have infinite length"))
     InfStepRange(start, step)
 end
-(:)(start::T, step::Real, stop::OrientedInfinity) where {T<:Real} = (:)(promote(start, step)..., stop)
-(:)(start::Real, step, stop::Infinity)= (:)(start, step, OrientedInfinity(stop))
+(:)(start::T, step::Real, stop::SignedInfinity) where {T<:Real} = (:)(promote(start, step)..., stop)
+(:)(start::Real, step, stop::Infinity)= (:)(start, step, SignedInfinity(stop))
 (:)(::Infinity, _, ::Real) = throw(ArgumentError("Cannot create range starting at infinity"))
 
 # AbstractFloat specializations
-(:)(a::T, b::Union{Infinity,OrientedInfinity}) where {T<:Real} = (:)(a, T(1), b)
+(:)(a::T, b::Union{Infinity,SignedInfinity}) where {T<:Real} = (:)(a, T(1), b)
 
 function (:)(start::T, step::T, stop::Infinity) where {T<:Real}
     sign(step) == sign(stop) || throw(ArgumentError("InfStepRange must have infinite length"))
@@ -333,7 +333,7 @@ sum(r::InfRanges{<:Real}) = last(r)
 mean(r::InfRanges{<:Real}) = last(r)
 median(r::InfRanges{<:Real}) = last(r)
 
-in(x::Union{Infinity,OrientedInfinity}, r::InfRanges) = false # never reach it...
+in(x::Union{Infinity,SignedInfinity}, r::InfRanges) = false # never reach it...
 in(x::Infinity, r::InfRanges{<:Integer}) = false # never reach it...
 in(x::Real, r::InfRanges{<:Real}) = _in_range(x, r)
 # This method needs to be defined separately since -(::T, ::T) can be implemented

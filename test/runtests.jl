@@ -1,62 +1,96 @@
 using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, LazyBandedMatrices, Test
-import InfiniteArrays: OrientedInfinity, OneToInf, InfUnitRange, InfStepRange
+import InfiniteArrays: OrientedInfinity, SignedInfinity, OneToInf, InfUnitRange, InfStepRange
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle 
 import BandedMatrices: _BandedMatrix, BandedColumns
 import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
 @testset "∞" begin
-    @test ∞ ≠ 1
-    @test ∞ == ∞
-    @test ∞ == Inf
+    @testset "∞" begin
+        @test ∞ ≠ 1
+        @test ∞ == ∞
+        @test ∞ == Inf
 
-    @test isless(1, ∞)
-    @test !isless(Inf, ∞)
-    @test !isless(∞, Inf)
-    @test !isless(∞, 1)
+        @test +∞ ≡ ∞
 
-    @test !isless(∞, ∞)
-    @test !(∞ < ∞)
-    @test ∞ ≤ ∞
-    @test !(∞ > ∞)
-    @test ∞ ≥ ∞
+        @test isless(1, ∞)
+        @test !isless(Inf, ∞)
+        @test !isless(∞, Inf)
+        @test !isless(∞, 1)
 
-    @test ∞ + ∞ ≡ ∞
-    @test ∞ + 1 ≡ ∞
-    @test *(∞) ≡ ∞
-    @test ∞*∞ ≡ ∞
+        @test !isless(∞, ∞)
+        @test !(∞ < ∞)
+        @test ∞ ≤ ∞
+        @test !(∞ > ∞)
+        @test ∞ ≥ ∞
 
-    # oriented infinity
-    @test OrientedInfinity(∞) ≡ convert(OrientedInfinity, ∞) ≡ OrientedInfinity() ≡
-        OrientedInfinity(false)
+        @test ∞ + ∞ ≡ ∞
+        @test ∞ + 1 ≡ ∞
+        @test *(∞) ≡ ∞
+        @test ∞*∞ ≡ ∞
 
-    @test -∞ ≡ OrientedInfinity(true)
-    @test +∞ ≡ ∞
+        @test max(1,∞) == max(∞,1) == ∞
+        @test min(1,∞) == min(∞,1) == 1
+        @test maximum([1,∞]) == ∞
+        @test minimum([1,∞]) == 1
 
-    @test ∞ == +∞ == OrientedInfinity(∞)
-    @test ∞ ≠  -∞
-    @test 1-∞ == -∞
+        @test string(∞) == "∞"
+    end
 
-    @test (-∞)*(-∞) ≡ ∞*OrientedInfinity(∞) ≡ OrientedInfinity(∞)*∞
+    @testset "SignedInfinity" begin
+        @test SignedInfinity(∞) ≡ convert(SignedInfinity, ∞) ≡ SignedInfinity() ≡ SignedInfinity(false)
 
-    @test  isless(-∞, 1)
-    @test !isless(-∞, -Inf)
-    @test !isless(-Inf, -∞)
-    @test !isless(1, -∞)
+        @test -∞ ≡ SignedInfinity(true)
+        @test +∞ ≡ ∞
 
-    @test max(1,∞) == max(∞,1) == ∞
-    @test min(1,∞) == min(∞,1) == 1
-    @test maximum([1,∞]) == ∞
-    @test minimum([1,∞]) == 1
+        @test ∞ == +∞ == SignedInfinity(∞)
+        @test ∞ ≠  -∞
+        @test 1-∞ == -∞
 
-    @test OrientedInfinity(true) + OrientedInfinity(true) == OrientedInfinity(true)
-    @test OrientedInfinity(false) + OrientedInfinity(false) == OrientedInfinity(false)
-    @test OrientedInfinity(true)+1 == OrientedInfinity(true)
-    @test OrientedInfinity(false)+1 == OrientedInfinity(false)
+        @test (-∞)*(-∞) ≡ ∞*SignedInfinity(∞) ≡ SignedInfinity(∞)*∞
 
-    @test exp(im*π/4)*∞ == Inf+im*Inf
-    @test exp(im*π/4)+∞ == ∞
+        @test  isless(-∞, 1)
+        @test !isless(-∞, -Inf)
+        @test !isless(-Inf, -∞)
+        @test !isless(1, -∞)
 
-    @test string(∞) == ∞
+        @test SignedInfinity(true) + SignedInfinity(true) == SignedInfinity(true)
+        @test SignedInfinity(false) + SignedInfinity(false) == SignedInfinity(false)
+        @test SignedInfinity(true)+1 == SignedInfinity(true)
+        @test SignedInfinity(false)+1 == SignedInfinity(false)
+
+        @test string(-∞) == "-∞"
+
+        @test !(SignedInfinity(false) < SignedInfinity(false))
+        @test SignedInfinity(false) ≤ SignedInfinity(false)
+        @test SignedInfinity(true) < SignedInfinity(false)
+        @test SignedInfinity(true) ≤ SignedInfinity(false)
+        @test !(SignedInfinity(false) < SignedInfinity(true))
+        @test !(SignedInfinity(false) ≤ SignedInfinity(true))
+        @test !(SignedInfinity(true) < SignedInfinity(true))
+        @test SignedInfinity(true) ≤ SignedInfinity(true)
+    end
+
+    @testset "OrientedInfinity" begin
+        @test OrientedInfinity(∞) ≡ convert(OrientedInfinity, ∞) ≡ OrientedInfinity() ≡
+            OrientedInfinity(false)
+
+        @test ∞ == +∞ == OrientedInfinity(∞)
+        @test ∞ ≠  -∞
+        @test 1-∞ == -∞
+
+        @test  isless(-∞, 1)
+        @test !isless(-∞, -Inf)
+        @test !isless(-Inf, -∞)
+        @test !isless(1, -∞)
+
+        @test OrientedInfinity(true) + OrientedInfinity(true) == OrientedInfinity(true)
+        @test OrientedInfinity(false) + OrientedInfinity(false) == OrientedInfinity(false)
+        @test OrientedInfinity(true)+1 == OrientedInfinity(true)
+        @test OrientedInfinity(false)+1 == OrientedInfinity(false)
+
+        @test exp(im*π/4)*∞ == Inf+im*Inf
+        @test exp(im*π/4)+∞ == ∞
+    end
 end
 
 @testset "construction" begin
@@ -259,7 +293,7 @@ end
     @testset "sums of ranges" begin
         @test sum(1:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ∞
         @test sum(0:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ∞
-        @test sum(0:2:∞) ≡ mean(0:2:∞) ≡ median(0:2:∞) ≡ OrientedInfinity(∞)
+        @test sum(0:2:∞) ≡ mean(0:2:∞) ≡ median(0:2:∞) ≡ SignedInfinity(∞)
         @test sum(0:-2:-∞) ≡ mean(0:-2:-∞) ≡ median(0:-2:-∞) ≡ -∞
     end
 

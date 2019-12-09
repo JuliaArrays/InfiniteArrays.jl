@@ -17,7 +17,7 @@ struct Infinity <: Integer end
 const ∞ = Infinity()
 
 show(io::IO, ::Infinity) = print(io, "∞")
-string(::Infinity) = ∞
+string(::Infinity) = "∞"
 
 promote_rule(::Type{Infinity}, ::Type{II}) where II<:Integer = Union{Infinity,II}
 
@@ -98,6 +98,83 @@ for OP in (:>, :≥)
 end
 
 
+struct SignedInfinity <: Integer
+    signbit::Bool
+end
+
+SignedInfinity() = SignedInfinity(false)
+SignedInfinity(::Infinity) = SignedInfinity()
+SignedInfinity(x::SignedInfinity) = x
+
+-(::Infinity) = SignedInfinity(true)
++(::Infinity) = ∞
+
+isinf(::SignedInfinity) = true
+isfinite(::SignedInfinity) = false
+
+promote_rule(::Type{Infinity}, ::Type{SignedInfinity}) = SignedInfinity
+convert(::Type{SignedInfinity}, ::Infinity) = SignedInfinity(false)
+
+signbit(y::SignedInfinity) = y.signbit
+sign(y::SignedInfinity) = 1-2signbit(y)
+angle(x::SignedInfinity) = π*signbit(x)
+mod(::SignedInfinity, ::Integer) = NotANumber()
+
+string(y::SignedInfinity) = signbit(y) ? "-∞" : "+∞"
+show(io::IO, y::SignedInfinity) = print(io, string(y))
+
+==(x::SignedInfinity, y::Infinity) = !x.signbit
+==(y::Infinity, x::SignedInfinity) = !x.signbit
+==(x::SignedInfinity, y::SignedInfinity) = x.signbit == y.signbit
+
+==(x::SignedInfinity, y::Number) = isinf(y) && signbit(y) == signbit(x)
+==(y::Number, x::SignedInfinity) = x == y
+
+isless(x::SignedInfinity, y::SignedInfinity) = signbit(x) && !signbit(y)
+for Typ in (:Number, :Real, :Integer, :AbstractFloat)
+    @eval begin
+        isless(x::SignedInfinity, y::$Typ) = signbit(x) && y ≠ -∞
+        isless(x::$Typ, y::SignedInfinity) = !signbit(y) && x ≠ ∞
+        +(::$Typ, y::SignedInfinity) = y
+        +(y::SignedInfinity, ::$Typ) = y
+        -(y::SignedInfinity, ::$Typ) = y
+        -(::$Typ, y::SignedInfinity) = -y
+        *(a::$Typ, y::SignedInfinity) = a > 0 ? y : (-y)
+    end
+end
+
+-(y::SignedInfinity) = SignedInfinity(!y.signbit)
+
+function +(x::SignedInfinity, y::SignedInfinity)
+    x == y || throw(ArgumentError("Angles must be the same to add ∞"))
+    x
+end
+
++(x::SignedInfinity, y::Infinity) = x+SignedInfinity(y)
++(x::Infinity, y::SignedInfinity) = SignedInfinity(x)+y
+
+# ⊻ is xor
+*(a::SignedInfinity, b::SignedInfinity) = SignedInfinity(signbit(a) ⊻ signbit(b))
+*(a::Infinity, b::SignedInfinity) = SignedInfinity(a)*b
+*(a::SignedInfinity, b::Infinity) = a*SignedInfinity(b)
+
+
+*(y::SignedInfinity, a::Real) = a*y
+
+<(x::SignedInfinity, y::SignedInfinity) = signbit(x) & !signbit(y)
+≤(x::SignedInfinity, y::SignedInfinity) = signbit(x) | !signbit(y)
+
+for OP in (:<,:≤)
+    @eval begin
+        $OP(x::Real, y::SignedInfinity) = !signbit(y)
+        $OP(y::SignedInfinity, x::Real) = signbit(y)
+    end
+end
+
+######
+# OrientedInfinity
+#######
+
 # angle is π*a where a is (false==0) and (true==1)
 struct OrientedInfinity{T<:Real} <: Number
     angle::T
@@ -107,8 +184,9 @@ OrientedInfinity{T}() where T = OrientedInfinity(zero(T))
 OrientedInfinity() = OrientedInfinity{Bool}()
 OrientedInfinity{T}(::Infinity) where T<:Real = OrientedInfinity{T}()
 OrientedInfinity(::Infinity) = OrientedInfinity()
--(::Infinity) = OrientedInfinity(true)
-+(::Infinity) = ∞
+OrientedInfinity{T}(x::SignedInfinity) where T<:Real = OrientedInfinity{T}(signbit(x))
+OrientedInfinity(::SignedInfinity) = OrientedInfinity(signbit(x))
+
 
 
 isinf(::OrientedInfinity) = true
@@ -118,24 +196,21 @@ isfinite(::OrientedInfinity) = false
 promote_rule(::Type{Infinity}, ::Type{OrientedInfinity{T}}) where T = OrientedInfinity{T}
 convert(::Type{OrientedInfinity{T}}, ::Infinity) where T = OrientedInfinity{T}()
 convert(::Type{OrientedInfinity}, ::Infinity) = OrientedInfinity()
+convert(::Type{OrientedInfinity{T}}, x::SignedInfinity) where T = OrientedInfinity{T}(x)
+convert(::Type{OrientedInfinity}, x::SignedInfinity) = OrientedInfinity(x)
 
 
 sign(y::OrientedInfinity{<:Integer}) = mod(y.angle,2) == 0 ? 1 : -1
 angle(x::OrientedInfinity) = π*x.angle
 mod(::OrientedInfinity{<:Integer}, ::Integer) = NotANumber()
 
-function show(io::IO, y::OrientedInfinity{B}) where B<:Integer
-    if sign(y) == 1
-        print(io, "+∞")
-    else
-        print(io, "-∞")
-    end
-end
 
 show(io::IO, x::OrientedInfinity) = print(io, "$(exp(im*π*x.angle))∞")
 
 ==(x::OrientedInfinity, y::Infinity) = x.angle == 0
 ==(y::Infinity, x::OrientedInfinity) = x.angle == 0
+==(x::OrientedInfinity, y::SignedInfinity) = x.angle == signbit(y)
+==(y::SignedInfinity, x::OrientedInfinity) = x.angle == signbit(y)
 ==(x::OrientedInfinity, y::OrientedInfinity) = x.angle == y.angle
 
 ==(x::OrientedInfinity, y::Number) = isinf(y) && angle(y) == angle(x)
@@ -154,6 +229,8 @@ end
 
 +(x::OrientedInfinity, y::Infinity) = x+OrientedInfinity(y)
 +(x::Infinity, y::OrientedInfinity) = OrientedInfinity(x)+y
++(x::OrientedInfinity, y::SignedInfinity) = x+OrientedInfinity(y)
++(x::SignedInfinity, y::OrientedInfinity) = OrientedInfinity(x)+y
 +(::Number, y::OrientedInfinity) = y
 +(y::OrientedInfinity, ::Number) = y
 -(y::OrientedInfinity, ::Number) = y
@@ -165,6 +242,8 @@ end
 *(a::OrientedInfinity, b::OrientedInfinity) = OrientedInfinity(a.angle + b.angle)
 *(a::Infinity, b::OrientedInfinity) = OrientedInfinity(a)*b
 *(a::OrientedInfinity, b::Infinity) = a*OrientedInfinity(b)
+*(a::SignedInfinity, b::OrientedInfinity) = OrientedInfinity(a)*b
+*(a::OrientedInfinity, b::SignedInfinity) = a*OrientedInfinity(b)
 
 *(a::Real, y::OrientedInfinity) = a > 0 ? y : (-y)
 *(y::OrientedInfinity, a::Real) = a*y
@@ -174,11 +253,15 @@ end
 
 *(a::Number,y::Infinity) = a*OrientedInfinity(y)
 *(y::Infinity, a::Number) = OrientedInfinity(y)*a
+*(y::SignedInfinity, a::Number) = OrientedInfinity(y)*a
 
-*(a::Integer,y::Infinity) = a*OrientedInfinity(y)
+*(a::Integer,y::Infinity) = a*SignedInfinity(y)
 *(a::Complex,y::Infinity) = a*OrientedInfinity(y)
 *(y::Infinity, a::Complex) = OrientedInfinity(y)*a
-*(y::Infinity, a::Integer) = OrientedInfinity(y)*a
+*(y::Infinity, a::Integer) = SignedInfinity(y)*a
+
+*(a::Complex,y::SignedInfinity) = a*OrientedInfinity(y)
+*(y::SignedInfinity, a::Complex) = OrientedInfinity(y)*a
 
 for OP in (:fld,:cld,:div)
   @eval $OP(y::OrientedInfinity, a::Number) = y*(1/sign(a))
