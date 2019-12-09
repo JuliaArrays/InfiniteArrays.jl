@@ -204,3 +204,12 @@ for OP in (:>, :≥)
         $OP(y::OrientedInfinity{B}, x::Real) where B<:Integer = sign(y) == 1
     end
 end
+
+##
+# Checked
+##
+
+Base.Checked.checked_sub(::Integer, ::Infinity) = -∞
+Base.Checked.checked_sub(::Infinity, ::Integer) = ∞
+Base.Checked.checked_add(::Integer, ::Infinity) = ∞
+Base.Checked.checked_add(::Infinity, ::Integer) = ∞
