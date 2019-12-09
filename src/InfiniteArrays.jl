@@ -24,7 +24,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
          	similar, _unsafe_getindex, string, zeros, fill, permutedims,
          	cat_similar, vcat,
 		 	reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs,
-         	searchsorted, Ordering, lt, Fix2, findfirst
+         	searchsorted, searchsortedfirst, searchsortedlast, Ordering, lt, Fix2, findfirst
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
@@ -155,6 +155,41 @@ function searchsorted(v::AbstractVector, x, ilo::Int, ::Infinity, o::Ordering)
         end
     end
     return (lo + 1) : (hi - 1)
+end
+
+
+# index of the first value of vector a that is greater than or equal to x;
+# returns length(v)+1 if x is greater than all values in v.
+function searchsortedfirst(v::AbstractVector, x, lo::Int, hi::Infinity, o::Ordering)
+   u = 1
+   lo = lo - u
+   hi = ∞
+   @inbounds while lo < hi - u
+      m = isinf(hi) ? lo + 1000 : (lo+hi)>>>1
+      if lt(o, v[m], x)
+         lo = m
+      else
+         hi = m
+      end
+   end
+   return hi
+end
+
+# index of the last value of vector a that is less than or equal to x;
+# returns 0 if x is less than all values of v.
+function searchsortedlast(v::AbstractVector, x, lo::Int, hi::Infinity, o::Ordering)
+   u = 1
+   lo = lo - u
+   hi = ∞
+   @inbounds while lo < hi - u
+       m = isinf(hi) ? lo + 1000 : (lo+hi)>>>1
+       if lt(o, x, v[m])
+           hi = m
+       else
+           lo = m
+       end
+   end
+   return lo
 end
 
 ##

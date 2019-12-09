@@ -692,4 +692,9 @@ end
     @test isnothing(findfirst(isequal(5), 2:2:∞))
     @test isnothing(findfirst(isequal(5.5), 2:2:∞))
     @test isnothing(findfirst(isequal(-1), 2:2:∞))
+
+    @test searchsorted(Vcat(2,3:∞),10) == 9:9
+    @test searchsortedfirst(Vcat(2,3:∞),10) == 9
+    @test searchsortedlast(Vcat(2,3:∞),10) == 9
+    @test searchsortedlast(Vcat(2,3:∞),0) == 0
 end
