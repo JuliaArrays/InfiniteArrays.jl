@@ -1,7 +1,7 @@
 module InfiniteArrays
 using Base, Statistics, LinearAlgebra, FillArrays, LazyArrays, DSP
 
-import Base: *, +, -, /, \, ==, isinf, isfinite, sign, angle, show, isless,
+import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
             <, ≤, >, ≥, promote_rule, convert, unsafe_convert, copy,
             size, step, isempty, length, first, last,
