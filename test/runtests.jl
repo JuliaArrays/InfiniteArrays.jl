@@ -732,3 +732,15 @@ end
     @test searchsortedlast(Vcat(2,3:∞),10) == 9
     @test searchsortedlast(Vcat(2,3:∞),0) == 0
 end
+
+@testset "checked" begin
+    @test Base.Checked.checked_sub(1,∞) === -∞
+    @test Base.Checked.checked_sub(∞,1) === ∞
+    @test Base.Checked.checked_add(1,∞) === ∞
+    @test Base.Checked.checked_add(∞,1) === ∞
+
+    @test Base.Checked.checked_sub(1,-∞) === SignedInfinity(false)
+    @test Base.Checked.checked_sub(-∞,1) === -∞
+    @test Base.Checked.checked_add(1,-∞) === -∞
+    @test Base.Checked.checked_add(-∞,1) === -∞
+end
