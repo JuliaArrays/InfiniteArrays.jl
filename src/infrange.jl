@@ -31,6 +31,9 @@ _rangestyle(::Ordered, ::ArithmeticUnknown, a::T, step::S, len::Infinity) where 
     InfStepRange{T,S}(a, step)    
 _range(a::T, st::T, ::Nothing, ::Infinity) where T<:Union{Float16,Float32,Float64} =
     InfStepRange{T,T}(a, st)
+_range(a::T, st::T, ::Nothing, ::Infinity) where T<:AbstractFloat =
+    InfStepRange{T,T}(a, st)
+
 
 # Construct range for rational start=start_n/den, step=step_n/den
 floatrange(::Type{T}, start_n::Integer, step_n::Integer, ::Infinity, den::Integer) where T =
