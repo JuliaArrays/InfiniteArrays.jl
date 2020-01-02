@@ -160,6 +160,7 @@ end
 
 
 *(y::SignedInfinity, a::Real) = a*y
+*(y::SignedInfinity, a::Integer) = a*y
 
 <(x::SignedInfinity, y::SignedInfinity) = signbit(x) & !signbit(y)
 ≤(x::SignedInfinity, y::SignedInfinity) = signbit(x) | !signbit(y)
@@ -170,6 +171,14 @@ for OP in (:<,:≤)
         $OP(y::SignedInfinity, x::Real) = signbit(y)
     end
 end
+
+
+min(x::SignedInfinity, y::SignedInfinity) = SignedInfinity(x.signbit | y.signbit)
+max(x::SignedInfinity, y::SignedInfinity) = SignedInfinity(x.signbit & y.signbit)
+min(x::Real, y::SignedInfinity) = y.signbit ? x : y
+max(x::Real, y::SignedInfinity) = y.signbit ? y : x
+min(x::SignedInfinity, y::Real) = x.signbit ? x : y
+max(x::SignedInfinity, y::Real) = x.signbit ? y : x
 
 ######
 # OrientedInfinity
