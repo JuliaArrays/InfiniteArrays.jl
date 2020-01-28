@@ -4,3 +4,4 @@
 deps/deps.jl
 .DS_Store
 src/.DS_Store
+Manifest.toml

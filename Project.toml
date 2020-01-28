@@ -17,9 +17,9 @@ LazyArrays = "0.14.6, 0.15"
 julia = "1.1"
 
 [extras]
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 BandedMatrices = "aae01518-5342-5314-be14-df237901396f"
 LazyBandedMatrices = "d7e5e226-e90b-4449-9968-0f923699bf6f"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
 test = ["Test", "BandedMatrices", "LazyBandedMatrices"]
