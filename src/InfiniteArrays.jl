@@ -22,7 +22,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isl
          	axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
          	diff, cumsum, show_delim_array, show_circular, Int,
          	similar, _unsafe_getindex, string, zeros, fill, permutedims,
-         	cat_similar, vcat,
+         	cat_similar, vcat, one, zero,
 		 	reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs,
          	searchsorted, searchsortedfirst, searchsortedlast, Ordering, lt, Fix2, findfirst
 

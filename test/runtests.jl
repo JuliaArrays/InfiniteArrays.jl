@@ -28,6 +28,12 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
         @test *(∞) ≡ ∞
         @test ∞*∞ ≡ ∞
 
+        @test one(∞) === 1
+        @test zero(∞) === 0
+
+        @test !isone(∞)
+        @test !iszero(∞)
+
         @test max(1,∞) == max(∞,1) == ∞
         @test min(1,∞) == min(∞,1) == 1
         @test maximum([1,∞]) == ∞

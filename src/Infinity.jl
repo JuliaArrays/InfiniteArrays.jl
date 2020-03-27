@@ -32,6 +32,9 @@ angle(x::Infinity) = 0
 
 ==(x::Infinity, y::Infinity) = true
 
+one(::Type{Infinity}) = 1
+zero(::Infinity) = 0
+
 isinf(::Infinity) = true
 isfinite(::Infinity) = false
 
