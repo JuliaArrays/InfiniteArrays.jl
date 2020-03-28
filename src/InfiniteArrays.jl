@@ -114,6 +114,12 @@ for Typ in (:Number, :AbstractVector)
    end
 end
 
+reshape(parent::AbstractArray, shp::Tuple{OneToInf, Vararg{Union{Integer,OneTo,OneToInf}}}) = 
+   reshape(parent, to_shape(shp))
+reshape(parent::AbstractArray, shp::Tuple{Union{Integer,OneTo}, OneToInf, Vararg{Union{Integer,OneTo,OneToInf}}}) = 
+   reshape(parent, to_shape(shp))
+
+
 # cat_similar(A, T, ::Tuple{Infinity}) = zeros(T, ∞)
 
 ##

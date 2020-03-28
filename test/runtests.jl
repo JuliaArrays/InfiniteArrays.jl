@@ -487,8 +487,7 @@ end
 
     @testset "Fill reindex" begin
         F = Fill(2.0,2,∞)
-        reshape(F,∞)
-        reshape(F,Val(1))
+        @test reshape(F,∞) ≡ reshape(F,OneToInf()) ≡ reshape(F,(OneToInf(),)) ≡ reshape(F,Val(1)) ≡ Fill(2.0,∞)
     end
 end
 
