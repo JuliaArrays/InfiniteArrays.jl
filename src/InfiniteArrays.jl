@@ -124,6 +124,10 @@ function OneTo(x::OrientedInfinity)
     iszero(x.angle) && return OneTo(∞)
     throw(ArgumentError("Cannot create infinite range with negative length"))
 end
+function OneTo(x::SignedInfinity)
+   signbit(x) || return OneTo(∞)
+   throw(ArgumentError("Cannot create infinite range with negative length"))
+end
 OneTo{T}(::Infinity) where T<:Integer = OneToInf{T}()
 UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
 UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)

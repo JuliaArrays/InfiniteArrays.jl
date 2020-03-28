@@ -146,6 +146,21 @@ for Typ in (:Number, :Real, :Integer, :AbstractFloat)
     end
 end
 
+function -(::Infinity, y::SignedInfinity) 
+    signbit(y) || throw(ArgumentError("Cannot subtract ∞ from ∞"))
+    ∞
+end
+
+function -(x::SignedInfinity, ::Infinity) 
+    signbit(x) || throw(ArgumentError("Cannot subtract ∞ from ∞"))
+    x
+end
+
+function -(x::SignedInfinity, y::SignedInfinity) 
+    signbit(x) == !signbit(y) || throw(ArgumentError("Cannot subtract ∞ from ∞"))
+    x
+end
+
 -(y::SignedInfinity) = SignedInfinity(!y.signbit)
 
 function +(x::SignedInfinity, y::SignedInfinity)

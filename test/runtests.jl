@@ -40,6 +40,8 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
         @test minimum([1,∞]) == 1
 
         @test string(∞) == "∞"
+
+        @test Base.OneTo(∞) == OneToInf()
     end
 
     @testset "SignedInfinity" begin
@@ -74,6 +76,28 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
         @test !(SignedInfinity(false) ≤ SignedInfinity(true))
         @test !(SignedInfinity(true) < SignedInfinity(true))
         @test SignedInfinity(true) ≤ SignedInfinity(true)
+
+        
+        @test (-∞) + (-∞) ≡ -∞
+        @test (1∞) + (1∞) ≡ 1∞
+        @test ∞ + (1∞) ≡ (1∞) + ∞ ≡ 1∞
+        
+        @test_throws ArgumentError ∞ + (-∞)
+        @test_throws ArgumentError (1∞) + (-∞)
+        @test_throws ArgumentError (-∞) + ∞
+
+        @test ∞ - (-∞) ≡ ∞
+        @test (-∞) - ∞ ≡ -∞
+        @test (1∞) - (-∞) ≡ 1∞
+        @test (-∞) - (1∞) ≡ -∞
+
+        @test_throws ArgumentError ∞ - (1∞)
+        @test_throws ArgumentError (1∞) - ∞
+        @test_throws ArgumentError (1∞) - (1∞)
+        @test_throws ArgumentError (-∞) - (-∞)
+
+        @test Base.OneTo(1*∞) == OneToInf()
+        @test_throws ArgumentError Base.OneTo(-∞)
     end
 
     @testset "OrientedInfinity" begin
@@ -459,6 +483,12 @@ end
         @test size(V) == (∞,)
         V = view(B,1:1,:)
         @test size(V) == (1,∞)
+    end
+
+    @testset "Fill reindex" begin
+        F = Fill(2.0,2,∞)
+        reshape(F,∞)
+        reshape(F,Val(1))
     end
 end
 

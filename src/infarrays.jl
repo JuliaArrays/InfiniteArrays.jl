@@ -51,7 +51,7 @@ print_matrix_row(io::IO,
 
 
 print_matrix_vdots(io::IO, vdots::AbstractString,
-        A::Vector, sep::AbstractString, M::Integer, ::NotANumber) = nothing
+        A::Vector, sep::AbstractString, M::Integer, ::NotANumber, pad_right::Bool = true) = nothing
 
 
 # Avoid infinite loops on maximum
