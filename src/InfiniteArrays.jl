@@ -13,7 +13,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isl
             exp, log, sqrt, cos, sin, tan, csc, sec, cot,
             cosh, sinh, tanh, csch, sech, coth, acos, asin, atan, acsc, asec, acot,
             acosh, asinh, atanh, acsch, asech, acoth, (:),
-            AbstractMatrix, AbstractArray, checkindex, unsafe_length, OneTo,
+            AbstractMatrix, AbstractArray, checkindex, unsafe_length, unsafe_indices, OneTo,
             to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots,
             checkindex, Slice, IdentityUnitRange, @propagate_inbounds, @_propagate_inbounds_meta,
          	_in_range, _range, _rangestyle, Ordered,

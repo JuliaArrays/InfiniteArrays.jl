@@ -441,6 +441,8 @@ end
             @test intersect(r, Base.OneTo(2)) == Base.OneTo(2)
             @test intersect(r, 0:5) == 1:5
             @test intersect(r, 2) === intersect(2, r) === 2:2
+
+            @test Base.unsafe_indices(Base.Slice(r)) == (r,)
         end
     end
 
