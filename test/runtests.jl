@@ -594,6 +594,13 @@ end
         A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
         @test Base.replace_in_print_matrix(A, 2, 2, "0") == "⋅"
     end
+
+    @testset "copymutable" begin
+        @test Base.copymutable(Vcat(1., Zeros(∞))) isa CachedArray
+        @test Base.copymutable(Vcat([1.], Zeros(∞))) isa CachedArray
+        @test Base.copymutable(Vcat([1.,2.], zeros(∞))) isa CachedArray
+        @test Base.copymutable(Vcat(1.,2., zeros(∞))) isa CachedArray
+    end
 end
 
 @testset "broadcasting" begin
