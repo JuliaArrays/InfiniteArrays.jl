@@ -586,6 +586,11 @@ end
         @test [[1,2,3]; Zeros(∞)][1:10] == [1;2;3;zeros(7)]
         @test [1; zeros(∞)] isa CachedArray
         @test [[1,2,3]; zeros(∞)] isa CachedArray
+
+        @test [1; 2; zeros(Int,∞)] isa CachedArray
+        @test [1; 2; 3; zeros(Int,∞)] isa CachedArray
+        @test [[1,2]; 3; zeros(Int,∞)] isa CachedArray
+        @test [2; [1,2]; 3; zeros(Int,∞)] isa CachedArray
     end
 
     @testset "sparse print" begin

@@ -24,7 +24,8 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isl
          	similar, _unsafe_getindex, string, zeros, fill, permutedims,
          	cat_similar, vcat, one, zero,
 		 	reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs,
-         	searchsorted, searchsortedfirst, searchsortedlast, Ordering, lt, Fix2, findfirst
+            searchsorted, searchsortedfirst, searchsortedlast, Ordering, lt, Fix2, findfirst,
+            cat_indices, cat_size, cat_similar, __cat
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
@@ -106,12 +107,31 @@ for N=1:3
    end
 end
 
-for Typ in (:Number, :AbstractVector)
-   @eval begin
-      vcat(a::$Typ, b::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}) = Vcat(a, b)      
-      vcat(a::$Typ, c::CachedVector{<:Any,<:Any,<:AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}}) = 
-         CachedArray(vcat(a, view(c.data,1:c.datasize[1])), c.array)
+cat_similar(A, T, shape::Tuple{Infinity}) = zeros(T,∞)
+cat_similar(A::AbstractArray, T, shape::Tuple{Infinity}) = 
+   Base.invoke(cat_similar, Tuple{AbstractArray, Any, Any}, A, T, shape)
+
+function Base.__cat(A, shape::NTuple{N,Infinity}, catdims, X...) where N
+   offsets = zeros(Union{Int,Infinity}, N)
+   inds = Vector{Union{UnitRange{Int},InfUnitRange{Int}}}(undef, N)
+   concat = copyto!(zeros(Bool, N), catdims)
+   for x in X
+       for i = 1:N
+           if concat[i]
+               inds[i] = offsets[i] .+ cat_indices(x, i)
+               offsets[i] += cat_size(x, i)
+           else
+               inds[i] = 1:shape[i]
+           end
+       end
+       I::NTuple{N, Union{InfUnitRange{Int},UnitRange{Int}}} = (inds...,)
+       if x isa AbstractArray
+           copyto!(view(A, I...), x)
+       else
+           fill!(view(A, I...), x)
+       end
    end
+   return A
 end
 
 reshape(parent::AbstractArray, shp::Tuple{OneToInf, Vararg{Union{Integer,OneTo,OneToInf}}}) = 
