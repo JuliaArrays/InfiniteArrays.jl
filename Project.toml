@@ -3,13 +3,10 @@ uuid = "4858937d-0d70-526a-a4dd-2d5cb5dd786c"
 version = "0.7.0"
 
 [deps]
-BlockBandedMatrices = "ffab5731-97b5-5995-9138-79e8c1846df0"
 DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 FillArrays = "1a297f60-69ca-5386-bcde-b61e274b549b"
 LazyArrays = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-LazyBandedMatrices = "d7e5e226-e90b-4449-9968-0f923699bf6f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-MatrixFactorizations = "a3b82374-2e81-5b9e-98ce-41277c0e4c87"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
