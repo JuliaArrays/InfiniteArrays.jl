@@ -169,6 +169,11 @@ end
         @test similar(a, Float64, (Base.OneTo(∞),Base.OneTo(∞))) isa CachedArray{Float64}
 
         @test similar([1,2,3],Float64,()) isa Array{Float64,0}
+
+        @test similar(a, Float64, (2,∞)) isa CachedArray{Float64}
+        @test similar(a, Float64, (∞,2)) isa CachedArray{Float64}
+        @test similar(Array{Float64}, (2,∞)) isa CachedArray{Float64}
+        @test similar(Array{Float64}, (∞,2)) isa CachedArray{Float64}
     end
 
     @testset "zeros/fill" begin
