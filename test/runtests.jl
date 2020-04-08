@@ -28,12 +28,20 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
         @test *(∞) ≡ ∞
         @test ∞*∞ ≡ ∞
 
+        @test one(∞) === 1
+        @test zero(∞) === 0
+
+        @test !isone(∞)
+        @test !iszero(∞)
+
         @test max(1,∞) == max(∞,1) == ∞
         @test min(1,∞) == min(∞,1) == 1
         @test maximum([1,∞]) == ∞
         @test minimum([1,∞]) == 1
 
         @test string(∞) == "∞"
+
+        @test Base.OneTo(∞) == OneToInf()
     end
 
     @testset "SignedInfinity" begin
@@ -68,6 +76,28 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
         @test !(SignedInfinity(false) ≤ SignedInfinity(true))
         @test !(SignedInfinity(true) < SignedInfinity(true))
         @test SignedInfinity(true) ≤ SignedInfinity(true)
+
+        
+        @test (-∞) + (-∞) ≡ -∞
+        @test (1∞) + (1∞) ≡ 1∞
+        @test ∞ + (1∞) ≡ (1∞) + ∞ ≡ 1∞
+        
+        @test_throws ArgumentError ∞ + (-∞)
+        @test_throws ArgumentError (1∞) + (-∞)
+        @test_throws ArgumentError (-∞) + ∞
+
+        @test ∞ - (-∞) ≡ ∞
+        @test (-∞) - ∞ ≡ -∞
+        @test (1∞) - (-∞) ≡ 1∞
+        @test (-∞) - (1∞) ≡ -∞
+
+        @test_throws ArgumentError ∞ - (1∞)
+        @test_throws ArgumentError (1∞) - ∞
+        @test_throws ArgumentError (1∞) - (1∞)
+        @test_throws ArgumentError (-∞) - (-∞)
+
+        @test Base.OneTo(1*∞) == OneToInf()
+        @test_throws ArgumentError Base.OneTo(-∞)
     end
 
     @testset "OrientedInfinity" begin
@@ -139,6 +169,11 @@ end
         @test similar(a, Float64, (Base.OneTo(∞),Base.OneTo(∞))) isa CachedArray{Float64}
 
         @test similar([1,2,3],Float64,()) isa Array{Float64,0}
+
+        @test similar(a, Float64, (2,∞)) isa CachedArray{Float64}
+        @test similar(a, Float64, (∞,2)) isa CachedArray{Float64}
+        @test similar(Array{Float64}, (2,∞)) isa CachedArray{Float64}
+        @test similar(Array{Float64}, (∞,2)) isa CachedArray{Float64}
     end
 
     @testset "zeros/fill" begin
@@ -411,6 +446,8 @@ end
             @test intersect(r, Base.OneTo(2)) == Base.OneTo(2)
             @test intersect(r, 0:5) == 1:5
             @test intersect(r, 2) === intersect(2, r) === 2:2
+
+            @test Base.unsafe_indices(Base.Slice(r)) == (r,)
         end
     end
 
@@ -453,6 +490,11 @@ end
         @test size(V) == (∞,)
         V = view(B,1:1,:)
         @test size(V) == (1,∞)
+    end
+
+    @testset "Fill reindex" begin
+        F = Fill(2.0,2,∞)
+        @test reshape(F,∞) ≡ reshape(F,OneToInf()) ≡ reshape(F,(OneToInf(),)) ≡ reshape(F,Val(1)) ≡ Fill(2.0,∞)
     end
 end
 
@@ -549,6 +591,11 @@ end
         @test [[1,2,3]; Zeros(∞)][1:10] == [1;2;3;zeros(7)]
         @test [1; zeros(∞)] isa CachedArray
         @test [[1,2,3]; zeros(∞)] isa CachedArray
+
+        @test [1; 2; zeros(Int,∞)] isa CachedArray
+        @test [1; 2; 3; zeros(Int,∞)] isa CachedArray
+        @test [[1,2]; 3; zeros(Int,∞)] isa CachedArray
+        @test [2; [1,2]; 3; zeros(Int,∞)] isa CachedArray
     end
 
     @testset "sparse print" begin
@@ -556,6 +603,13 @@ end
         @test Base.replace_in_print_matrix(A, 2, 1, "0") == "⋅"
         A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
         @test Base.replace_in_print_matrix(A, 2, 2, "0") == "⋅"
+    end
+
+    @testset "copymutable" begin
+        @test Base.copymutable(Vcat(1., Zeros(∞))) isa CachedArray
+        @test Base.copymutable(Vcat([1.], Zeros(∞))) isa CachedArray
+        @test Base.copymutable(Vcat([1.,2.], zeros(∞))) isa CachedArray
+        @test Base.copymutable(Vcat(1.,2., zeros(∞))) isa CachedArray
     end
 end
 

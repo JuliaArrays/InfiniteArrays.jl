@@ -13,7 +13,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isl
             exp, log, sqrt, cos, sin, tan, csc, sec, cot,
             cosh, sinh, tanh, csch, sech, coth, acos, asin, atan, acsc, asec, acot,
             acosh, asinh, atanh, acsch, asech, acoth, (:),
-            AbstractMatrix, AbstractArray, checkindex, unsafe_length, OneTo,
+            AbstractMatrix, AbstractArray, checkindex, unsafe_length, unsafe_indices, OneTo,
             to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots,
             checkindex, Slice, IdentityUnitRange, @propagate_inbounds, @_propagate_inbounds_meta,
          	_in_range, _range, _rangestyle, Ordered,
@@ -22,9 +22,10 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isl
          	axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
          	diff, cumsum, show_delim_array, show_circular, Int,
          	similar, _unsafe_getindex, string, zeros, fill, permutedims,
-         	cat_similar, vcat,
+         	cat_similar, vcat, one, zero,
 		 	reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs,
-         	searchsorted, searchsortedfirst, searchsortedlast, Ordering, lt, Fix2, findfirst
+            searchsorted, searchsortedfirst, searchsortedlast, Ordering, lt, Fix2, findfirst,
+            cat_indices, cat_size, cat_similar, __cat
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
@@ -114,6 +115,39 @@ for Typ in (:Number, :AbstractVector)
    end
 end
 
+cat_similar(A, T, shape::Tuple{Infinity}) = zeros(T,∞)
+cat_similar(A::AbstractArray, T, shape::Tuple{Infinity}) = 
+   Base.invoke(cat_similar, Tuple{AbstractArray, Any, Any}, A, T, shape)
+
+function Base.__cat(A, shape::NTuple{N,Infinity}, catdims, X...) where N
+   offsets = zeros(Union{Int,Infinity}, N)
+   inds = Vector{Union{UnitRange{Int},InfUnitRange{Int}}}(undef, N)
+   concat = copyto!(zeros(Bool, N), catdims)
+   for x in X
+       for i = 1:N
+           if concat[i]
+               inds[i] = offsets[i] .+ cat_indices(x, i)
+               offsets[i] += cat_size(x, i)
+           else
+               inds[i] = 1:shape[i]
+           end
+       end
+       I::NTuple{N, Union{InfUnitRange{Int},UnitRange{Int}}} = (inds...,)
+       if x isa AbstractArray
+           copyto!(view(A, I...), x)
+       else
+           fill!(view(A, I...), x)
+       end
+   end
+   return A
+end
+
+reshape(parent::AbstractArray, shp::Tuple{OneToInf, Vararg{Union{Integer,OneTo,OneToInf}}}) = 
+   reshape(parent, to_shape(shp))
+reshape(parent::AbstractArray, shp::Tuple{Union{Integer,OneTo}, OneToInf, Vararg{Union{Integer,OneTo,OneToInf}}}) = 
+   reshape(parent, to_shape(shp))
+
+
 # cat_similar(A, T, ::Tuple{Infinity}) = zeros(T, ∞)
 
 ##
@@ -123,6 +157,10 @@ OneTo(::Infinity) = OneToInf()
 function OneTo(x::OrientedInfinity)
     iszero(x.angle) && return OneTo(∞)
     throw(ArgumentError("Cannot create infinite range with negative length"))
+end
+function OneTo(x::SignedInfinity)
+   signbit(x) || return OneTo(∞)
+   throw(ArgumentError("Cannot create infinite range with negative length"))
 end
 OneTo{T}(::Infinity) where T<:Integer = OneToInf{T}()
 UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)

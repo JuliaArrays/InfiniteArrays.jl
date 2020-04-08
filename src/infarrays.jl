@@ -23,6 +23,8 @@ similar(A::AbstractArray, ::Type{T}, axes::Tuple{OneToInf{Int}}) where T = cache
 similar(A::AbstractArray, ::Type{T}, axes::Tuple{OneToInf{Int},OneToInf{Int}}) where T = cache(Zeros{T}(axes))
 similar(A::AbstractArray, ::Type{T}, dims::Tuple{Infinity}) where T = cache(Zeros{T}(dims))
 similar(A::AbstractArray, ::Type{T}, dims::Tuple{Infinity,Infinity}) where T = cache(Zeros{T}(dims))
+similar(A::AbstractArray, ::Type{T}, dims::Tuple{Integer,Infinity}) where T = cache(Zeros{T}(dims))
+similar(A::AbstractArray, ::Type{T}, dims::Tuple{Infinity,Integer}) where T = cache(Zeros{T}(dims))
 
 similar(::Type{<:AbstractArray{T}}, axes::Tuple{OneToInf{Int}}) where T = cache(Zeros{T}(axes))
 similar(::Type{<:AbstractArray{T}}, axes::Tuple{OneToInf{Int},OneToInf{Int}}) where T = cache(Zeros{T}(axes))
@@ -30,6 +32,8 @@ similar(::Type{<:AbstractArray{T}}, axes::Tuple{OneToInf{Int},OneTo{Int}}) where
 similar(::Type{<:AbstractArray{T}}, axes::Tuple{OneTo{Int},OneToInf{Int}}) where T = cache(Zeros{T}(axes))
 similar(::Type{<:AbstractArray{T}}, dims::Tuple{Infinity}) where T = cache(Zeros{T}(dims))
 similar(::Type{<:AbstractArray{T}}, dims::Tuple{Infinity,Infinity}) where T = cache(Zeros{T}(dims))
+similar(::Type{<:AbstractArray{T}}, dims::Tuple{Integer,Infinity}) where T = cache(Zeros{T}(dims))
+similar(::Type{<:AbstractArray{T}}, dims::Tuple{Infinity,Integer}) where T = cache(Zeros{T}(dims))
 
 
 zeros(::Type{T}, ::Tuple{Infinity}) where T = cache(Zeros{T}(∞))
@@ -51,7 +55,7 @@ print_matrix_row(io::IO,
 
 
 print_matrix_vdots(io::IO, vdots::AbstractString,
-        A::Vector, sep::AbstractString, M::Integer, ::NotANumber) = nothing
+        A::Vector, sep::AbstractString, M::Integer, ::NotANumber, pad_right::Bool = true) = nothing
 
 
 # Avoid infinite loops on maximum

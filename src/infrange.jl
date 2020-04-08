@@ -127,7 +127,11 @@ done(r::InfStepRange{T}, i) where {T} = false
 
 ## indexing
 
+unsafe_indices(S::Slice{<:OneToInf}) = (S.indices,)
+
 _sub2ind(inds::Tuple{OneToInf}, i::Integer)    = i
+
+to_shape(::OneToInf) = ∞
 
 
 function getindex(v::InfUnitRange{T}, i::Integer) where T

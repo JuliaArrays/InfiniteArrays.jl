@@ -32,6 +32,9 @@ angle(x::Infinity) = 0
 
 ==(x::Infinity, y::Infinity) = true
 
+one(::Type{Infinity}) = 1
+zero(::Infinity) = 0
+
 isinf(::Infinity) = true
 isfinite(::Infinity) = false
 
@@ -141,6 +144,21 @@ for Typ in (:Number, :Real, :Integer, :AbstractFloat)
         -(::$Typ, y::SignedInfinity) = -y
         *(a::$Typ, y::SignedInfinity) = a > 0 ? y : (-y)
     end
+end
+
+function -(::Infinity, y::SignedInfinity) 
+    signbit(y) || throw(ArgumentError("Cannot subtract ∞ from ∞"))
+    ∞
+end
+
+function -(x::SignedInfinity, ::Infinity) 
+    signbit(x) || throw(ArgumentError("Cannot subtract ∞ from ∞"))
+    x
+end
+
+function -(x::SignedInfinity, y::SignedInfinity) 
+    signbit(x) == !signbit(y) || throw(ArgumentError("Cannot subtract ∞ from ∞"))
+    x
 end
 
 -(y::SignedInfinity) = SignedInfinity(!y.signbit)
