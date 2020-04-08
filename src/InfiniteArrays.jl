@@ -107,6 +107,14 @@ for N=1:3
    end
 end
 
+for Typ in (:Number, :AbstractVector)
+   @eval begin
+      vcat(a::$Typ, b::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}) = Vcat(a, b)      
+      vcat(a::$Typ, c::CachedVector{<:Any,<:Any,<:AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}}) = 
+         CachedArray(vcat(a, view(c.data,1:c.datasize[1])), c.array)
+   end
+end
+
 cat_similar(A, T, shape::Tuple{Infinity}) = zeros(T,∞)
 cat_similar(A::AbstractArray, T, shape::Tuple{Infinity}) = 
    Base.invoke(cat_similar, Tuple{AbstractArray, Any, Any}, A, T, shape)
