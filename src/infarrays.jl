@@ -49,14 +49,10 @@ fill(x, nm::Tuple{Infinity, Infinity}) = cache(Fill(x,nm...))
 
 
 # This gets called when infinit number of columns
-print_matrix_row(io::IO,
-        X::AbstractVecOrMat, A::Vector,
-        i::Integer, cols::AbstractVector{<:Infinity}, sep::AbstractString) = nothing
-
+layout_print_matrix_row(_, io, X, A, i, ::AbstractVector{<:Infinity}, sep) = nothing
 
 print_matrix_vdots(io::IO, vdots::AbstractString,
         A::Vector, sep::AbstractString, M::Integer, ::NotANumber, pad_right::Bool = true) = nothing
-
 
 # Avoid infinite loops on maximum
 Base.mapreduce_impl(f, op, A::AbstractArray, ifirst::Integer, ::Infinity) =

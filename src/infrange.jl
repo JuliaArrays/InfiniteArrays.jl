@@ -147,6 +147,11 @@ function getindex(v::InfStepRange{T}, i::Integer) where T
     convert(T, first(v) + (i - 1)*step(v))
 end
 
+function getindex(x::AbstractUnitRange, ::Infinity)
+    isinf(length(x)) || throw(BoundsError(x,∞))
+    ∞
+end
+
 getindex(::AbstractInfUnitRange, ::Infinity) = ∞
 getindex(::OneToInf, ::Infinity) = ∞
 getindex(v::InfUnitRange{T}, i::Infinity) where T = ∞
