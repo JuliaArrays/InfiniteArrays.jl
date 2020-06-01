@@ -328,3 +328,6 @@ Base.Checked.checked_sub(::Integer, x::SignedInfinity) = -x
 Base.Checked.checked_sub(x::SignedInfinity, ::Integer) = x
 Base.Checked.checked_add(::Integer, x::SignedInfinity) = x
 Base.Checked.checked_add(x::SignedInfinity, ::Integer) = x
+
+
+Base.to_index(::Infinity) = ∞
