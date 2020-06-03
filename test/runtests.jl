@@ -602,8 +602,10 @@ end
         A = Vcat(1, Zeros(∞))
         @test colsupport(A,1) == 1:1
         @test Base.replace_in_print_matrix(A, 2, 1, "0") == "⋅"
-        @test stringmime("text/plain", A; context=(:limit => true)) == 
-                "∞-element ApplyArray{Float64,1,typeof(vcat),Tuple{$Int,Zeros{Float64,1,Tuple{OneToInf{$Int}}}}} with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
+        if VERSION ≥ v"1.4"
+            @test stringmime("text/plain", A; context=(:limit => true)) == 
+                    "∞-element ApplyArray{Float64,1,typeof(vcat),Tuple{$Int,Zeros{Float64,1,Tuple{OneToInf{$Int}}}}} with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
+        end
         A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
         @test Base.replace_in_print_matrix(A, 2, 2, "0") == "⋅"
     end
