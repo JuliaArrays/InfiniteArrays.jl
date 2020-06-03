@@ -33,14 +33,14 @@ import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcas
 
 import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
                              det, logdet, istriu, istril, adjoint, tr, AbstractTriangular,
-                             norm2, norm1, normp
+                             norm2, norm1, normp, AdjOrTrans, HermOrSym
 
 import Statistics: mean, median
 
-import FillArrays: AbstractFill, getindex_value, fill_reshape
+import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal
 import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
                     ZerosLayout, @lazymul, AbstractArrayApplyStyle, CachedArray, CachedVector,
-                    reshapedlayout, sub_materialize
+                    reshapedlayout, sub_materialize, LayoutMatrix, LayoutVector
 
 import DSP: conv
 

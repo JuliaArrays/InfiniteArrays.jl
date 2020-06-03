@@ -49,14 +49,31 @@ fill(x, nm::Tuple{Infinity, Infinity}) = cache(Fill(x,nm...))
 
 
 # This gets called when infinit number of columns
-print_matrix_row(io::IO,
-        X::AbstractVecOrMat, A::Vector,
-        i::Integer, cols::AbstractVector{<:Infinity}, sep::AbstractString) = nothing
+axes_print_matrix_row(_, io, X, A, i, ::AbstractVector{<:Infinity}, sep) = nothing
+print_matrix_row(io::IO, X::AbstractVecOrMat, A::Vector, i::Integer, cols::AbstractVector{<:Infinity}, sep::AbstractString) = nothing
+Base.print_matrix_row(io::IO,
+        X::Union{LayoutMatrix,
+        LayoutVector,
+        AbstractTriangular{<:Any,<:LayoutMatrix},
+        AdjOrTrans{<:Any,<:LayoutMatrix},
+        HermOrSym{<:Any,<:LayoutMatrix},
+        SubArray{<:Any,2,<:LayoutMatrix},
+        Diagonal{<:Any,<:LayoutVector}}, A::Vector,
+        i::Integer, cols::AbstractVector{<:Infinity}, sep::AbstractString) =
+    axes_print_matrix_row(axes(X), io, X, A, i, cols, sep)
+Base.print_matrix_row(io::IO,
+        X::Union{AbstractFill{<:Any,1},
+                 AbstractFill{<:Any,2},
+                 Diagonal{<:Any,<:AbstractFill{<:Any,1}},
+                 RectDiagonal,
+                 AbstractTriangular{<:Any,<:AbstractFill{<:Any,2}}
+                 }, A::Vector,
+        i::Integer, cols::AbstractVector{<:Infinity}, sep::AbstractString) =
+    axes_print_matrix_row(axes(X), io, X, A, i, cols, sep)
 
 
 print_matrix_vdots(io::IO, vdots::AbstractString,
         A::Vector, sep::AbstractString, M::Integer, ::NotANumber, pad_right::Bool = true) = nothing
-
 
 # Avoid infinite loops on maximum
 Base.mapreduce_impl(f, op, A::AbstractArray, ifirst::Integer, ::Infinity) =
