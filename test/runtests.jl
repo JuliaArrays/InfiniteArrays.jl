@@ -1,5 +1,5 @@
 using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, LazyBandedMatrices, Test, Base64
-import InfiniteArrays: OrientedInfinity, SignedInfinity, OneToInf, InfUnitRange, InfStepRange, OneToInf
+import InfiniteArrays: OrientedInfinity, SignedInfinity, InfUnitRange, InfStepRange, OneToInf
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport
 import BandedMatrices: _BandedMatrix, BandedColumns
 import Base.Broadcast: broadcasted, Broadcasted, instantiate
@@ -663,8 +663,13 @@ end
 
     @test cumsum(x).args[2] ≡ 8:12
     @test last(y.args) == sum(x[1:9]):2:∞
-    r = (3:4:∞)
-    @test cumsum(r)[1:20] == cumsum(r[1:20])
+
+    for r in (3:4:∞, 2:∞, Base.OneTo(∞))
+        c = cumsum(r)
+        @test c isa Cumsum
+        @test c[1:20] == [c[k] for k=1:20] == cumsum(r[1:20])
+        @test c == c
+    end
 end
 
 @testset "Sub-array" begin
