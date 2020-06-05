@@ -28,7 +28,7 @@ _range(a::AbstractFloat, ::Nothing,         ::Nothing, len::Infinity) = _range(a
 _rangestyle(::Ordered, ::ArithmeticWraps, a::T, step::S, len::Infinity) where {T,S} =
     InfStepRange{T,S}(a, step)
 _rangestyle(::Ordered, ::ArithmeticUnknown, a::T, step::S, len::Infinity) where {T,S} =
-    InfStepRange{T,S}(a, step)    
+    InfStepRange{T,S}(a, step)
 _range(a::T, st::T, ::Nothing, ::Infinity) where T<:Union{Float16,Float32,Float64} =
     InfStepRange{T,T}(a, st)
 _range(a::T, st::T, ::Nothing, ::Infinity) where T<:AbstractFloat =
@@ -395,7 +395,19 @@ broadcast(f, r::Adjoint{<:Any,<:InfRanges}, a::Number) = broadcast(f,parent(r),a
 broadcast(f, r::Transpose{<:Any,<:InfRanges}, a::Number) = transpose(broadcast(f,parent(r),a))
 
 
-cumsum(r::InfRanges) = OneToInf() .* (first(r) .+ r) .÷ 2
+# cumsum(r::InfRanges) = OneToInf() .* (first(r) .+ r) .÷ 2
+
+cumsum(r::InfRanges) = Cumsum(r)
+function getindex(c::Cumsum{<:Integer,1,<:InfStepRange}, k::Integer)
+    r = c.v
+    k * (first(r) + r[k]) ÷ 2
+end
+function getindex(c::Cumsum{<:Integer,1,<:AbstractInfUnitRange}, k::Integer)
+    r = c.v
+    k * (2first(r) + k - 1) ÷ 2
+end
+getindex(c::Cumsum{<:Integer,1,<:OneToInf}, k::Integer) = k * (k+1) ÷ 2
+
 
 diff(r::InfRanges) = Fill(step(r),∞)
 diff(r::OneToInf{T}) where T = Ones{T}(∞)
@@ -418,22 +430,22 @@ conv(::Ones{Bool,1,<:Tuple{<:OneToInf}}, ::Ones{Bool,1,<:Tuple{<:OneToInf}}) =
 conv(::Ones{T,1,<:Tuple{<:OneToInf}}, ::Ones{V,1,<:Tuple{<:OneToInf}}) where {T,V} =
     one(promote_type(T,V)):∞
 
-function conv(::Ones{T,1,<:Tuple{<:OneToInf}}, a::AbstractVector{V}) where {T,V} 
+function conv(::Ones{T,1,<:Tuple{<:OneToInf}}, a::AbstractVector{V}) where {T,V}
     cs = cumsum(convert(AbstractVector{promote_type(T,V)}, a))
     Vcat(cs, Fill(last(cs), ∞))
 end
 
-function conv(::Ones{T,1,<:Tuple{<:OneToInf}}, a::Vector{V}) where {T,V} 
+function conv(::Ones{T,1,<:Tuple{<:OneToInf}}, a::Vector{V}) where {T,V}
     cs = cumsum(convert(AbstractVector{promote_type(T,V)}, a))
     Vcat(cs, Fill(last(cs), ∞))
 end
 
-function conv(a::AbstractVector{V}, ::Ones{T,1,<:Tuple{<:OneToInf}}) where {T,V} 
+function conv(a::AbstractVector{V}, ::Ones{T,1,<:Tuple{<:OneToInf}}) where {T,V}
     cs = cumsum(convert(AbstractVector{promote_type(T,V)}, a))
     Vcat(cs, Fill(last(cs), ∞))
 end
 
-function conv(a::Vector{V}, ::Ones{T,1,<:Tuple{<:OneToInf}}) where {T,V} 
+function conv(a::Vector{V}, ::Ones{T,1,<:Tuple{<:OneToInf}}) where {T,V}
     cs = cumsum(convert(AbstractVector{promote_type(T,V)}, a))
     Vcat(cs, Fill(last(cs), ∞))
 end
@@ -493,16 +505,16 @@ function _step_findfirst(p, r::InfStepRange{T,S}) where {T,S}
 end
 
 for op in (:isequal, :(==))
-    @eval begin 
+    @eval begin
         findfirst(p::Fix2{typeof($op),T}, r::InfStepRange{T,S}) where {T,S} =
             _step_findfirst(p, r)
 
-        findfirst(p::Fix2{typeof($op),T}, r::InfStepRange{T,<:Integer}) where {T<:Integer} = 
+        findfirst(p::Fix2{typeof($op),T}, r::InfStepRange{T,<:Integer}) where {T<:Integer} =
             _step_findfirst(p, r)
 
-        findfirst(p::Fix2{typeof($op),<:Integer}, r::InfStepRange{<:Integer,<:Integer}) = 
-            _step_findfirst(p, r)            
-        
+        findfirst(p::Fix2{typeof($op),<:Integer}, r::InfStepRange{<:Integer,<:Integer}) =
+            _step_findfirst(p, r)
+
         function findfirst(p::Fix2{typeof($op),<:Integer}, r::AbstractInfUnitRange{<:Integer})
             first(r) <= p.x || return nothing
             p.x - first(r) + 1
@@ -511,6 +523,6 @@ for op in (:isequal, :(==))
         findfirst(p::Fix2{typeof($op),<:Number}, r::AbstractInfUnitRange{<:Integer}) =
             isinteger(p.x) ? findfirst($op(convert(Integer, p.x)), r) : nothing
         findfirst(p::Fix2{typeof($op),<:Number}, r::InfStepRange{<:Integer,<:Integer}) =
-            isinteger(p.x) ? findfirst($op(convert(V, p.x)), r) : nothing            
+            isinteger(p.x) ? findfirst($op(convert(V, p.x)), r) : nothing
     end
 end
