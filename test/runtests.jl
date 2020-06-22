@@ -95,6 +95,8 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
         @test_throws ArgumentError (1∞) - ∞
         @test_throws ArgumentError (1∞) - (1∞)
         @test_throws ArgumentError (-∞) - (-∞)
+        @test_throws ArgumentError 0*∞
+        @test_throws ArgumentError 0*(-∞)
 
         @test Base.OneTo(1*∞) == OneToInf()
         @test_throws ArgumentError Base.OneTo(-∞)

@@ -133,6 +133,12 @@ _sub2ind(inds::Tuple{OneToInf}, i::Integer)    = i
 
 to_shape(::OneToInf) = ∞
 
+# used for linear indexing
+function _ind2sub_recurse(inds::Tuple{OneToInf{Int},Vararg{Any}}, ind::Integer)
+    @_inline_meta
+    (ind+1, _ind2sub_recurse(tail(inds), 0)...)
+end
+
 
 function getindex(v::InfUnitRange{T}, i::Integer) where T
     @boundscheck i > 0 || Base.throw_boundserror(v, i)

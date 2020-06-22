@@ -69,8 +69,12 @@ isless(x::Infinity, y::Real) = false
 *(::Infinity, ::Infinity) = ∞
 
 for OP in (:fld,:cld,:div)
-  @eval $OP(::Infinity, ::Number) = ∞
+  @eval $OP(::Infinity, ::Real) = ∞
 end
+
+div(::T, ::Infinity) where T<:Real = zero(T)
+fld(x::T, ::Infinity) where T<:Real = signbit(x) ? -one(T) : zero(T)
+cld(x::T, ::Infinity) where T<:Real = signbit(x) ? zero(T) : one(T)
 
 
 min(::Infinity, ::Infinity) = ∞
@@ -91,7 +95,6 @@ for OP in (:<, :≤)
         $OP(::Infinity, ::Real) = false
     end
 end
-
 
 for OP in (:>, :≥)
     @eval begin
@@ -142,9 +145,24 @@ for Typ in (:Number, :Real, :Integer, :AbstractFloat)
         +(y::SignedInfinity, ::$Typ) = y
         -(y::SignedInfinity, ::$Typ) = y
         -(::$Typ, y::SignedInfinity) = -y
-        *(a::$Typ, y::SignedInfinity) = a > 0 ? y : (-y)
+        function *(a::$Typ, y::SignedInfinity) 
+            iszero(a) && throw(ArgumentError("Cannot multiply $a * $y"))
+            a > 0 ? y : (-y)
+        end
     end
 end
+
+≤(::SignedInfinity, ::Infinity) = true
+≤(::Infinity, s::SignedInfinity) = !signbit(s)
+<(s::SignedInfinity, ::Infinity) = signbit(s)
+<(::Infinity, ::SignedInfinity) = false
+≥(s::SignedInfinity, ::Infinity) = !signbit(s)
+≥(::Infinity, ::SignedInfinity) = true
+>(::SignedInfinity, ::Infinity) = false
+>(::Infinity, s::SignedInfinity) = signbit(s)
+
+
+
 
 function -(::Infinity, y::SignedInfinity) 
     signbit(y) || throw(ArgumentError("Cannot subtract ∞ from ∞"))
