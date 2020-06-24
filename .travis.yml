@@ -13,8 +13,7 @@ matrix:
     - julia: nightly  
 notifications:
   email: false
-after_success:
-- julia -e 'cd(Pkg.dir("LazyArrays")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+codecov: true
 
 
 

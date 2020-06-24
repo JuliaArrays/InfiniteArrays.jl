@@ -4,7 +4,7 @@ using Base, Statistics, LinearAlgebra, FillArrays, LazyArrays, DSP
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
             <, ≤, >, ≥, promote_rule, convert, unsafe_convert, copy,
-            size, step, isempty, length, first, last,
+            size, step, isempty, length, first, last, tail,
             getindex, setindex!, intersect, @_inline_meta,
             sort, sort!, issorted, sortperm, sum, in, broadcast,
             eltype, elsize, parent, parentindices, reinterpret, 
@@ -25,7 +25,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isl
          	cat_similar, vcat, one, zero,
 		 	reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs,
             searchsorted, searchsortedfirst, searchsortedlast, Ordering, lt, Fix2, findfirst,
-            cat_indices, cat_size, cat_similar, __cat
+            cat_indices, cat_size, cat_similar, __cat, _ind2sub_recurse
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
