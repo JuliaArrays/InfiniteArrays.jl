@@ -64,18 +64,31 @@ isless(x::Infinity, y::Real) = false
 -(::Infinity, ::Complex) = ∞
 -(x::Complex, ::Infinity) = x + (-∞)
 
+-(::Infinity, ::Infinity) = NotANumber()
+
 # ⊻ is xor
 *(::Infinity) = ∞
 *(::Infinity, ::Infinity) = ∞
 
+
+
 for OP in (:fld,:cld,:div)
-  @eval $OP(::Infinity, ::Real) = ∞
+  @eval begin
+    $OP(::Infinity, ::Real) = ∞
+    $OP(::Infinity, ::Infinity) = NotANumber()
+  end
 end
 
 div(::T, ::Infinity) where T<:Real = zero(T)
 fld(x::T, ::Infinity) where T<:Real = signbit(x) ? -one(T) : zero(T)
 cld(x::T, ::Infinity) where T<:Real = signbit(x) ? zero(T) : one(T)
 
+mod(::Infinity, ::Infinity) = NotANumber()
+mod(::Infinity, ::Real) = NotANumber()
+function mod(x::Real, ::Infinity) 
+    x ≥ 0 || throw(ArgumentError("mod(x,∞) is unbounded for x < 0"))
+    x
+end
 
 min(::Infinity, ::Infinity) = ∞
 max(::Infinity, ::Infinity) = ∞
@@ -124,7 +137,12 @@ convert(::Type{SignedInfinity}, ::Infinity) = SignedInfinity(false)
 signbit(y::SignedInfinity) = y.signbit
 sign(y::SignedInfinity) = 1-2signbit(y)
 angle(x::SignedInfinity) = π*signbit(x)
-mod(::SignedInfinity, ::Integer) = NotANumber()
+mod(::SignedInfinity, ::SignedInfinity) = NotANumber()
+mod(::SignedInfinity, ::Real) = NotANumber()
+function mod(x::Real, y::SignedInfinity) 
+    signbit(x) == signbit(y) || throw(ArgumentError("mod($x,$y) is unbounded"))
+    x
+end
 
 string(y::SignedInfinity) = signbit(y) ? "-∞" : "+∞"
 show(io::IO, y::SignedInfinity) = print(io, string(y))
@@ -194,6 +212,11 @@ end
 *(a::Infinity, b::SignedInfinity) = SignedInfinity(a)*b
 *(a::SignedInfinity, b::Infinity) = a*SignedInfinity(b)
 
+*(a::Integer, y::Infinity) = a*SignedInfinity(y)
+*(y::Infinity, a::Integer) = SignedInfinity(y)*a
+
+*(a::Real, y::Infinity) = a*SignedInfinity(y)
+*(y::Infinity, a::Real) = SignedInfinity(y)*a
 
 *(y::SignedInfinity, a::Real) = a*y
 *(y::SignedInfinity, a::Integer) = a*y
@@ -215,6 +238,12 @@ min(x::Real, y::SignedInfinity) = y.signbit ? x : y
 max(x::Real, y::SignedInfinity) = y.signbit ? y : x
 min(x::SignedInfinity, y::Real) = x.signbit ? x : y
 max(x::SignedInfinity, y::Real) = x.signbit ? y : x
+min(x::SignedInfinity, ::Infinity) = x
+max(::SignedInfinity, ::Infinity) = ∞
+min(::Infinity, x::SignedInfinity) = x
+max(::Infinity, x::SignedInfinity) = ∞
+
+
 
 ######
 # OrientedInfinity
@@ -230,7 +259,7 @@ OrientedInfinity() = OrientedInfinity{Bool}()
 OrientedInfinity{T}(::Infinity) where T<:Real = OrientedInfinity{T}()
 OrientedInfinity(::Infinity) = OrientedInfinity()
 OrientedInfinity{T}(x::SignedInfinity) where T<:Real = OrientedInfinity{T}(signbit(x))
-OrientedInfinity(::SignedInfinity) = OrientedInfinity(signbit(x))
+OrientedInfinity(x::SignedInfinity) = OrientedInfinity(signbit(x))
 
 
 
@@ -296,14 +325,12 @@ end
 *(a::Number, y::OrientedInfinity) = OrientedInfinity(y.angle+angle(a)/π)
 *(y::OrientedInfinity, a::Number) = a*y
 
-*(a::Number,y::Infinity) = a*OrientedInfinity(y)
+*(a::Number, y::Infinity) = a*OrientedInfinity(y)
 *(y::Infinity, a::Number) = OrientedInfinity(y)*a
 *(y::SignedInfinity, a::Number) = OrientedInfinity(y)*a
 
-*(a::Integer,y::Infinity) = a*SignedInfinity(y)
-*(a::Complex,y::Infinity) = a*OrientedInfinity(y)
+*(a::Complex, y::Infinity) = a*OrientedInfinity(y)
 *(y::Infinity, a::Complex) = OrientedInfinity(y)*a
-*(y::Infinity, a::Integer) = SignedInfinity(y)*a
 
 *(a::Complex,y::SignedInfinity) = a*OrientedInfinity(y)
 *(y::SignedInfinity, a::Complex) = OrientedInfinity(y)*a
