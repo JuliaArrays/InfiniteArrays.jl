@@ -40,7 +40,7 @@ import Statistics: mean, median
 import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal
 import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
                     ZerosLayout, @lazymul, AbstractArrayApplyStyle, CachedArray, CachedVector,
-                    reshapedlayout, sub_materialize, LayoutMatrix, LayoutVector
+                    reshapedlayout, sub_materialize, LayoutMatrix, LayoutVector, _padded_sub_materialize, PaddedLayout
 
 import DSP: conv
 
@@ -109,11 +109,14 @@ end
 
 for Typ in (:Number, :AbstractVector)
    @eval begin
-      vcat(a::$Typ, b::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}) = Vcat(a, b)      
-      vcat(a::$Typ, c::CachedVector{<:Any,<:Any,<:AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}}) = 
+      vcat(a::$Typ, b::AbstractFill{<:Any,1,<:Tuple{OneToInf}}) = Vcat(a, b)      
+      vcat(a::$Typ, c::CachedVector{<:Any,<:Any,<:AbstractFill{<:Any,1,<:Tuple{OneToInf}}}) = 
          CachedArray(vcat(a, view(c.data,1:c.datasize[1])), c.array)
    end
 end
+
+vcat(a::AbstractMatrix, b::AbstractFill{<:Any,2,<:Tuple{OneToInf,OneTo}}) = 
+   Vcat(a, b)
 
 cat_similar(A, T, shape::Tuple{Infinity}) = zeros(T,∞)
 cat_similar(A::AbstractArray, T, shape::Tuple{Infinity}) = 
@@ -240,6 +243,9 @@ sub_materialize(_, V, ::Tuple{InfAxes}) = V
 sub_materialize(_, V, ::Tuple{InfAxes,InfAxes}) = V
 sub_materialize(_, V, ::Tuple{<:Any,InfAxes}) = V
 sub_materialize(_, V, ::Tuple{InfAxes,Any}) = V
+
+sub_materialize(::PaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T =
+    _padded_sub_materialize(v)
 
 
 end # module
