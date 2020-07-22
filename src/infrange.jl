@@ -68,10 +68,18 @@ struct InfUnitRange{T<:Real} <: AbstractInfUnitRange{T}
     start::T
 end
 
+
 InfUnitRange(a::InfUnitRange) = a
 InfUnitRange{T}(a::AbstractInfUnitRange) where T<:Real = InfUnitRange{T}(first(a))
 AbstractArray{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
 AbstractVector{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
+
+const InfRanges{T} = Union{InfStepRange{T},AbstractInfUnitRange{T}}
+
+AbstractArray{T}(ac::Adjoint{<:Any,<:InfRanges}) where T<:Real = AbstractArray{T}(parent(ac))'
+AbstractMatrix{T}(ac::Adjoint{<:Any,<:InfRanges}) where T<:Real = AbstractVector{T}(parent(ac))'
+AbstractArray{T}(ac::Transpose{<:Any,<:InfRanges}) where T<:Real = transpose(AbstractArray{T}(parent(ac)))
+AbstractMatrix{T}(ac::Transpose{<:Any,<:InfRanges}) where T<:Real = transpose(AbstractVector{T}(parent(ac)))
 
 
 
@@ -95,8 +103,6 @@ AbstractVector{T}(a::OneToInf) where T<:Real = InfUnitRange{T}(a)
 (==)(::OneToInf, ::OneToInf) = true
 
 ## interface implementations
-
-const InfRanges{T} = Union{InfStepRange{T},AbstractInfUnitRange{T}}
 
 size(r::InfRanges) = (∞,)
 
