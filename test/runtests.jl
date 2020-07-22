@@ -879,3 +879,22 @@ end
     @test Base.Checked.checked_add(1,-∞) === -∞
     @test Base.Checked.checked_add(-∞,1) === -∞
 end
+
+@testset "convert infrange" begin
+    @test convert(AbstractArray{Float64}, 1:∞) ≡ convert(AbstractArray{Float64}, Base.OneTo(∞)) ≡ 
+        convert(AbstractVector{Float64}, 1:∞) ≡ convert(AbstractVector{Float64}, Base.OneTo(∞)) ≡
+        AbstractVector{Float64}(1:∞) ≡ AbstractVector{Float64}(Base.OneTo(∞)) ≡
+        AbstractArray{Float64}(1:∞) ≡ AbstractArray{Float64}(Base.OneTo(∞)) ≡ InfUnitRange(1.0)
+
+    @test convert(AbstractArray{Float64}, (1:∞)') ≡ convert(AbstractArray{Float64}, Base.OneTo(∞)') ≡ 
+        convert(AbstractMatrix{Float64}, (1:∞)') ≡ convert(AbstractMatrix{Float64}, Base.OneTo(∞)') ≡
+        AbstractMatrix{Float64}((1:∞)') ≡ AbstractMatrix{Float64}(Base.OneTo(∞)') ≡ 
+        AbstractArray{Float64}((1:∞)') ≡ AbstractArray{Float64}(Base.OneTo(∞)') ≡ 
+        InfUnitRange(1.0)'
+
+    @test convert(AbstractArray{Float64}, transpose(1:∞)) ≡ convert(AbstractArray{Float64}, transpose(Base.OneTo(∞))) ≡ 
+        convert(AbstractMatrix{Float64}, transpose(1:∞)) ≡ convert(AbstractMatrix{Float64}, transpose(Base.OneTo(∞))) ≡
+        AbstractMatrix{Float64}(transpose(1:∞)) ≡ AbstractMatrix{Float64}(transpose(Base.OneTo(∞))) ≡ 
+        AbstractArray{Float64}(transpose(1:∞)) ≡ AbstractArray{Float64}(transpose(Base.OneTo(∞))) ≡ 
+        transpose(InfUnitRange(1.0))
+end

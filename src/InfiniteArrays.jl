@@ -7,8 +7,8 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isl
             size, step, isempty, length, first, last, tail,
             getindex, setindex!, intersect, @_inline_meta,
             sort, sort!, issorted, sortperm, sum, in, broadcast,
-            eltype, elsize, parent, parentindices, reinterpret, 
-            unaliascopy, dataids, 
+            eltype, elsize, parent, parentindices, reinterpret,
+            unaliascopy, dataids,
             real, imag, conj, transpose,
             exp, log, sqrt, cos, sin, tan, csc, sec, cot,
             cosh, sinh, tanh, csch, sech, coth, acos, asin, atan, acsc, asec, acot,
@@ -93,14 +93,17 @@ end
 
 for Typ in (:Number, :AbstractVector)
    @eval begin
-      vcat(a::$Typ, b::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}) = Vcat(a, b)      
-      vcat(a::$Typ, c::CachedVector{<:Any,<:Any,<:AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}}) = 
+      vcat(a::$Typ, b::AbstractFill{<:Any,1,<:Tuple{OneToInf}}) = Vcat(a, b)
+      vcat(a::$Typ, c::CachedVector{<:Any,<:Any,<:AbstractFill{<:Any,1,<:Tuple{OneToInf}}}) =
          CachedArray(vcat(a, view(c.data,1:c.datasize[1])), c.array)
    end
 end
 
+vcat(a::AbstractMatrix, b::AbstractFill{<:Any,2,<:Tuple{OneToInf,OneTo}}) =
+   Vcat(a, b)
+
 cat_similar(A, T, shape::Tuple{Infinity}) = zeros(T,∞)
-cat_similar(A::AbstractArray, T, shape::Tuple{Infinity}) = 
+cat_similar(A::AbstractArray, T, shape::Tuple{Infinity}) =
    Base.invoke(cat_similar, Tuple{AbstractArray, Any, Any}, A, T, shape)
 
 function Base.__cat(A, shape::NTuple{N,Infinity}, catdims, X...) where N
@@ -126,9 +129,9 @@ function Base.__cat(A, shape::NTuple{N,Infinity}, catdims, X...) where N
    return A
 end
 
-reshape(parent::AbstractArray, shp::Tuple{OneToInf, Vararg{Union{Integer,OneTo,OneToInf}}}) = 
+reshape(parent::AbstractArray, shp::Tuple{OneToInf, Vararg{Union{Integer,OneTo,OneToInf}}}) =
    reshape(parent, to_shape(shp))
-reshape(parent::AbstractArray, shp::Tuple{Union{Integer,OneTo}, OneToInf, Vararg{Union{Integer,OneTo,OneToInf}}}) = 
+reshape(parent::AbstractArray, shp::Tuple{Union{Integer,OneTo}, OneToInf, Vararg{Union{Integer,OneTo,OneToInf}}}) =
    reshape(parent, to_shape(shp))
 
 
@@ -224,6 +227,9 @@ sub_materialize(_, V, ::Tuple{InfAxes}) = V
 sub_materialize(_, V, ::Tuple{InfAxes,InfAxes}) = V
 sub_materialize(_, V, ::Tuple{<:Any,InfAxes}) = V
 sub_materialize(_, V, ::Tuple{InfAxes,Any}) = V
+
+sub_materialize(::PaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T =
+    _padded_sub_materialize(v)
 
 
 end # module
