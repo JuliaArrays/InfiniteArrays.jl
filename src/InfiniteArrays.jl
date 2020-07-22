@@ -39,8 +39,8 @@ import Statistics: mean, median
 
 import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal
 import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
-                    ZerosLayout, @lazymul, AbstractArrayApplyStyle, CachedArray, CachedVector,
-                    reshapedlayout, sub_materialize, LayoutMatrix, LayoutVector
+                    ZerosLayout, AbstractArrayApplyStyle, CachedArray, CachedVector,
+                    reshapedlayout, sub_materialize, LayoutMatrix, LayoutVector, _padded_sub_materialize, PaddedLayout
 
 import DSP: conv
 
@@ -56,22 +56,6 @@ include("reshapedarray.jl")
 ##
 # Fill FillArrays
 ##
-
-@lazymul Ones{<:Any,1,Tuple{OneToInf{Int}}}
-@lazymul Fill{<:Any,1,Tuple{OneToInf{Int}}}
-@lazymul Zeros{<:Any,1,Tuple{OneToInf{Int}}}
-
-@lazymul Ones{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}
-@lazymul Ones{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}
-@lazymul Ones{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}
-
-@lazymul Fill{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}
-@lazymul Fill{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}
-@lazymul Fill{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}
-
-@lazymul Zeros{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}
-@lazymul Zeros{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}
-@lazymul Zeros{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}
 
 length(::Ones{<:Any,1,Tuple{OneToInf{Int}}}) = ∞
 length(::Fill{<:Any,1,Tuple{OneToInf{Int}}}) = ∞

@@ -1,6 +1,7 @@
-using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, LazyBandedMatrices, Test, Base64
+using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, LazyBandedMatrices, ArrayLayouts, Test, Base64
 import InfiniteArrays: OrientedInfinity, SignedInfinity, InfUnitRange, InfStepRange, OneToInf, NotANumber
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport
+import ArrayLayouts: DualLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
 import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
@@ -805,10 +806,10 @@ end
 
 @testset "MemoryLayout" begin
     @test MemoryLayout(OneToInf{Int}) == LazyLayout()
-    @test MemoryLayout(typeof((0:∞))) == LazyLayout()
-    @test MemoryLayout(typeof((0:∞)')) == LazyLayout()
+    @test MemoryLayout(0:∞) == LazyLayout()
+    @test MemoryLayout((0:∞)') == DualLayout{LazyLayout}()
     A = _BandedMatrix((0:∞)', ∞, -1, 1)
-    @test MemoryLayout(typeof(A)) == BandedColumns{LazyLayout}()
+    @test MemoryLayout(A) == BandedColumns{LazyLayout}()
 end
 
 @testset "Banded" begin
