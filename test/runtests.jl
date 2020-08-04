@@ -850,6 +850,8 @@ end
     end
     @test norm([1; zeros(∞)]) ≡ 1.0
     @test dot([1; zeros(∞)], [1; zeros(∞)]) ≡ 1.0
+    @test dot([1; zeros(∞)], 1:∞) ≡ 1.0
+    @test dot(1:∞, [1; zeros(∞)]) ≡ 1.0
 end
 
 @testset "sub-Eye" begin
