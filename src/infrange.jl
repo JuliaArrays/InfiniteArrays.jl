@@ -81,6 +81,7 @@ AbstractMatrix{T}(ac::Adjoint{<:Any,<:InfRanges}) where T<:Real = AbstractVector
 AbstractArray{T}(ac::Transpose{<:Any,<:InfRanges}) where T<:Real = transpose(AbstractArray{T}(parent(ac)))
 AbstractMatrix{T}(ac::Transpose{<:Any,<:InfRanges}) where T<:Real = transpose(AbstractVector{T}(parent(ac)))
 
+copy(ac::AdjOrTrans{<:Any,<:InfRanges}) = ac
 
 
 """

@@ -278,6 +278,10 @@ end
     @test_throws ArgumentError 0.0:-∞
     @test_throws ArgumentError ∞:-1:1
 
+    @test_throws ArgumentError (2:.2:-∞)
+    @test_throws ArgumentError (2.:.2:-∞)
+    @test_throws ArgumentError (1:-∞)    
+
     @testset "indexing" begin
         L32 = @inferred(Int32(1):∞)
         L64 = @inferred(Int64(1):∞)
@@ -313,11 +317,6 @@ end
         @test length(2:-.2:-∞) == ∞
         @test length(2.:-.2:-∞) == ∞
     end
-
-    @test_throws ArgumentError (2:.2:-∞)
-    @test_throws ArgumentError (2.:.2:-∞)
-    @test_throws ArgumentError (1:-∞)
-
 
     @testset "intersect" begin
         @test intersect(1:∞, 2:3) == 2:3
@@ -566,6 +565,11 @@ end
     @testset "Fill reindex" begin
         F = Fill(2.0,2,∞)
         @test reshape(F,∞) ≡ reshape(F,OneToInf()) ≡ reshape(F,(OneToInf(),)) ≡ reshape(F,Val(1)) ≡ Fill(2.0,∞)
+    end
+
+    @testset "adjtrans copy" begin
+        @test copy((1:∞)') ≡ (1:∞)'
+        @test copy(transpose(1:∞)) ≡ transpose(1:∞)
     end
 end
 
