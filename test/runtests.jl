@@ -842,12 +842,14 @@ end
     @test a[1:7] == [1, 2, 2, 1, 2, 2, 1]
 end
 
-@testset "norm" begin
+@testset "norm/dot" begin
     for p in (-Inf, 0, 0.1, 1, 2, 3, Inf)
         @test norm(Zeros(∞), p) == 0.0
         @test norm(Fill(5),p) ≈ norm(Array(Fill(5)),p) # tests tuple bug
         @test norm(Zeros{Float64}(),p) == 0.0 # tests tuple bug
     end
+    @test norm([1; zeros(∞)]) ≡ 1.0
+    @test dot([1; zeros(∞)], [1; zeros(∞)]) ≡ 1.0
 end
 
 @testset "sub-Eye" begin
