@@ -484,6 +484,8 @@ end
         @test_broken promote(0f0:inv(3f0):∞, 0.:2.:∞) === (0:1/3:∞, 0.:2.:∞)
 
         @test promote(0:1/3:∞, 0:∞) === (0:1/3:∞, 0.:1.:∞)
+
+        @test AbstractVector{Float64}(1:2:∞) ≡ 1.0:2.0:∞
     end
 
     @testset "inf-range[inf-range]" begin
