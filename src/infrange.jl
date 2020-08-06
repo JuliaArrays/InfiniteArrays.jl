@@ -322,6 +322,11 @@ intersect(s::StepRange, r::InfStepRange) = intersect(r, s)
 intersect(s::AbstractRange, r::InfStepRange) = intersect(StepRange(s), r)
 intersect(s::InfStepRange, r::AbstractRange) = intersect(s, StepRange(r))
 
+function union(a::InfStepRange, b::InfStepRange)
+    first(b) ∈ a && step(b) == step(a) && return a
+    first(a) ∈ b && step(b) == step(a) && return b
+    error("Cannot take union of $a and $b")
+end
 
 promote_rule(a::Type{InfUnitRange{T1}}, b::Type{InfUnitRange{T2}}) where {T1,T2} =
     InfUnitRange{promote_type(T1,T2)}
@@ -375,7 +380,10 @@ in(x::Real, r::InfRanges{T}) where {T<:Integer} =
 -(r1::OneToInf{T}, r2::OneToInf{V}) where {T,V} = Zeros{promote_type(T,V)}(∞)
 -(r1::AbstractInfUnitRange, r2::AbstractInfUnitRange) = Fill(first(r1)-first(r2), ∞)
 
-
+function sort!(a::InfStepRange)
+    step(a) > 0 || throw(ArgumentError("Cannot sort $a"))
+    a
+end
 
 
 ### Lazy broadcasting
