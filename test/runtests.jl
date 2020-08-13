@@ -525,11 +525,7 @@ end
 
     @testset "show" begin
         # NOTE: Interpolating Int to ensure it's displayed properly across 32- and 64-bit
-        if VERSION ≥ v"1.2-"
-            @test summary(1:∞) == "∞-element InfUnitRange{$Int} with indices OneToInf()"
-        else
-            @test summary(1:∞) == "InfUnitRange{$Int} with indices OneToInf()"
-        end
+        @test summary(1:∞) == "∞-element InfUnitRange{$Int} with indices OneToInf()"
         @test Base.inds2string(axes(1:∞)) == "OneToInf()"
     end
 
@@ -679,10 +675,8 @@ end
         A = Vcat(1, Zeros(∞))
         @test colsupport(A,1) == 1:1
         @test Base.replace_in_print_matrix(A, 2, 1, "0") == "⋅"
-        if VERSION ≥ v"1.4"
-            @test stringmime("text/plain", A; context=(:limit => true)) == 
-                    "∞-element ApplyArray{Float64,1,typeof(vcat),Tuple{$Int,Zeros{Float64,1,Tuple{OneToInf{$Int}}}}} with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
-        end
+        @test stringmime("text/plain", A; context=(:limit => true)) == 
+                "∞-element ApplyArray{Float64,1,typeof(vcat),Tuple{$Int,Zeros{Float64,1,Tuple{OneToInf{$Int}}}}} with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
         A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
         @test Base.replace_in_print_matrix(A, 2, 2, "0") == "⋅"
     end
