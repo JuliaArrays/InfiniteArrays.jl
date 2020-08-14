@@ -133,6 +133,59 @@ end
 
 BroadcastStyle(::Type{<:Diagonal{T,<:AbstractFill{T,1,Tuple{OneToInf{I}}}}}) where {T,I} = LazyArrayStyle{2}()
 
+## Support broadcast(*, ::AbstractFill, A)
+
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Ones{T,1,Tuple{OneToInf{Int}}},AbstractArray{V,N}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(b)
+    convert(AbstractArray{promote_type(T,V),N}, b)
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},Ones{V,1,Tuple{OneToInf{Int}}}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(a)
+    convert(AbstractArray{promote_type(T,V),N}, a)
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractFill{T,1,Tuple{OneToInf{Int}}},AbstractArray{V,N}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(b)
+    getindex_value(a) * b
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},AbstractFill{V,1,Tuple{OneToInf{Int}}}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(a)
+    a * getindex_value(b)
+end
+
+# row Vector
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Ones{T,2,Tuple{OneTo{Int},OneToInf{Int}}},AbstractArray{V,N}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(b)
+    convert(AbstractArray{promote_type(T,V),N}, b)
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},Ones{V,2,Tuple{OneTo{Int},OneToInf{Int}}}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(a)
+    convert(AbstractArray{promote_type(T,V),N}, a)
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractFill{T,2,Tuple{OneTo{Int},OneToInf{Int}}},AbstractArray{V,N}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(b)
+    getindex_value(a) * b
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},AbstractFill{V,2,Tuple{OneTo{Int},OneToInf{Int}}}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(a)
+    a * getindex_value(b)
+end
+
+
 #####
 # Diagonal
 #####
