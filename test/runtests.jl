@@ -588,9 +588,9 @@ end
     @test (Ones(∞,∞)*D)[1:10,1:10] == Ones(10,10)*D[1:10,1:10]
     @test @inferred(broadcast(*,Ones{Int}(∞),D)) ≡ @inferred(broadcast(*,D,Ones{Int}(∞))) ≡ D
     @test @inferred(broadcast(*,Ones(∞),D)) == @inferred(broadcast(*,D,Ones(∞))) == Diagonal(1.0:∞)
-    @test @inferred(broadcast(*,Ones{Int}(1,∞),D)) ≡ @inferred(broadcast(*,D,Ones{Int}(1,∞))) ≡ D
-    @test @inferred(broadcast(*,Ones(1,∞),D)) == @inferred(broadcast(*,D,Ones(1,∞))) == Diagonal(1.0:∞)
-    @test @inferred(broadcast(*,Fill(2,1,∞),D)) ≡ @inferred(broadcast(*,D,Fill(2,1,∞))) ≡ Diagonal(2:2:∞)
+    @test @inferred(broadcast(*,Ones{Int}(∞)',D)) == @inferred(broadcast(*,D,Ones{Int}(∞)')) == D
+    @test @inferred(broadcast(*,Ones(∞)',D)) == @inferred(broadcast(*,D,Ones(∞)')) == Diagonal(1.0:∞)
+    @test @inferred(broadcast(*,Fill(2,∞)',D)) ≡ @inferred(broadcast(*,D,Fill(2,∞)')) ≡ 2D
 
     @test Eye{Int}(∞) * D ≡ Eye{Int}(∞) * D ≡ D
     @test Eye(∞) * D == Eye(∞) * D == D
