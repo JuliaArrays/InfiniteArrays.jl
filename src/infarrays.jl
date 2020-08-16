@@ -148,10 +148,22 @@ function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractA
     convert(AbstractArray{promote_type(T,V),N}, a)
 end
 
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractFill{T,1,Tuple{OneToInf{Int}}},AbstractArray{V,N}}}) where {N,T<:Number,V}
+    a,b = bc.args
+    @assert bc.axes == axes(b)
+    getindex_value(a) * b
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},AbstractFill{V,1,Tuple{OneToInf{Int}}}}}) where {N,T,V<:Number}
+    a,b = bc.args
+    @assert bc.axes == axes(a)
+    a * getindex_value(b)
+end
+
 function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractFill{T,1,Tuple{OneToInf{Int}}},AbstractArray{V,N}}}) where {N,T,V}
     a,b = bc.args
     @assert bc.axes == axes(b)
-    Ref(getindex_value(a)) .* b # Use broadcast in-case b is array-valued
+    Ref(getindex_value(a)) .* b # Use broadcast in-case a is array-valued
 end
 
 function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},AbstractFill{V,1,Tuple{OneToInf{Int}}}}}) where {N,T,V}

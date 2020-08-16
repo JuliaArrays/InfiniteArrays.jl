@@ -717,6 +717,10 @@ end
         @test broadcast(+, Zeros{Int}(∞) , Fill(1,∞)) isa Fill
         @test broadcast(+, Zeros{Int}(∞) , Zeros(∞)) isa Zeros
         @test broadcast(*, Ones(∞), Ones(∞)) ≡ Ones(∞)
+        @test broadcast(*, Ones{Int}(∞), 1:∞) ≡ 1:∞
+        @test broadcast(*, Fill(2,∞), 1:∞) ≡ 2:2:∞
+        @test broadcast(*, 1:∞, Fill(2,∞)) ≡ 2:2:∞
+        @test broadcast(*, Fill([1,2],∞), 1:∞)[1:3] == [[1,2],[2,4],[3,6]]
     end
 end
 
