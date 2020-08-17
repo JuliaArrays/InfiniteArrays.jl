@@ -84,6 +84,7 @@ AbstractArray{T}(ac::Transpose{<:Any,<:InfRanges}) where T<:Real = transpose(Abs
 AbstractMatrix{T}(ac::Transpose{<:Any,<:InfRanges}) where T<:Real = transpose(AbstractVector{T}(parent(ac)))
 
 copy(ac::AdjOrTrans{<:Any,<:InfRanges}) = ac
+reverse(a::InfRanges) = throw(ArgumentError("Cannot reverse infinite range"))
 
 
 """
@@ -324,10 +325,11 @@ intersect(s::StepRange, r::InfStepRange) = intersect(r, s)
 intersect(s::AbstractRange, r::InfStepRange) = intersect(StepRange(s), r)
 intersect(s::InfStepRange, r::AbstractRange) = intersect(s, StepRange(r))
 
-function union(a::InfStepRange, b::InfStepRange)
-    first(b) ∈ a && step(b) == step(a) && return a
-    first(a) ∈ b && step(b) == step(a) && return b
-    error("Cannot take union of $a and $b")
+function union(ain::InfRanges, bin::InfRanges)
+    a,b = promote(ain, bin)
+    first(b) ∈ a && iszero(mod(step(b), step(a))) && return a
+    first(a) ∈ b && iszero(mod(step(a), step(b))) && return b
+    throw(ArgumentError("Cannot take union of $a and $b"))
 end
 
 promote_rule(a::Type{InfUnitRange{T1}}, b::Type{InfUnitRange{T2}}) where {T1,T2} =

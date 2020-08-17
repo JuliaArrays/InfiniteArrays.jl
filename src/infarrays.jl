@@ -173,25 +173,25 @@ function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractA
 end
 
 # row Vector
-function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Adjoint{T,Ones{T,1,Tuple{OneToInf{Int}}}},AbstractArray{V,N}}}) where {N,T,V}
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Adjoint{T,Ones{T,1,Tuple{OneToInf{Int}}}},AbstractMatrix{V}}}) where {T,V}
     a,b = bc.args
     @assert bc.axes == axes(b)
-    convert(AbstractArray{promote_type(T,V),N}, b)
+    convert(AbstractMatrix{promote_type(T,V)}, b)
 end
 
-function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},Adjoint{V,Ones{V,1,Tuple{OneToInf{Int}}}}}}) where {N,T,V}
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractMatrix{T},Adjoint{V,Ones{V,1,Tuple{OneToInf{Int}}}}}}) where {T,V}
     a,b = bc.args
     @assert bc.axes == axes(a)
-    convert(AbstractArray{promote_type(T,V),N}, a)
+    convert(AbstractMatrix{promote_type(T,V)}, a)
 end
 
-function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Adjoint{T,<:AbstractFill{T,1,Tuple{OneToInf{Int}}}},AbstractArray{V,N}}}) where {N,T,V}
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Adjoint{T,<:AbstractFill{T,1,Tuple{OneToInf{Int}}}},AbstractMatrix{V}}}) where {T,V}
     a,b = bc.args
     @assert bc.axes == axes(b)
     getindex_value(a') * b
 end
 
-function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},Adjoint{V,<:AbstractFill{V,1,Tuple{OneToInf{Int}}}}}}) where {N,T,V}
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractMatrix{T},Adjoint{V,<:AbstractFill{V,1,Tuple{OneToInf{Int}}}}}}) where {T,V}
     a,b = bc.args
     @assert bc.axes == axes(a)
     a * getindex_value(b')

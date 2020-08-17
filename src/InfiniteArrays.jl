@@ -25,7 +25,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isl
          	cat_similar, vcat, one, zero,
 		 	reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs,
             searchsorted, searchsortedfirst, searchsortedlast, Ordering, lt, Fix2, findfirst,
-            cat_indices, cat_size, cat_similar, __cat, _ind2sub_recurse
+            cat_indices, cat_size, cat_similar, __cat, _ind2sub_recurse, union, intersect
 
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,

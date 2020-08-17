@@ -346,8 +346,10 @@ end
     end
 
     @testset "sort/sort!/partialsort" begin
-        @test sort(1:∞) == 1:∞
-        @test sort!(1:∞) == 1:∞
+        @test sort(1:∞) ≡ sort!(1:∞) ≡ 1:∞
+        @test sort(2:2:∞) ≡ sort!(2:2:∞) ≡ 2:2:∞
+        @test_throws ArgumentError sort(2:-2:-∞)
+        @test_throws ArgumentError sort!(2:-2:-∞)
     end
     @testset "in" begin
         @test 0 in UInt(0):100:∞
@@ -480,11 +482,13 @@ end
         @test convert(InfStepRange, 0:∞) === 0:1:∞
         @test convert(InfStepRange{Int128,Int128}, 0.:∞) === Int128(0):Int128(1):∞
 
+
         @test_broken promote(0f0:inv(3f0):∞, 0.:2.:∞) === (0:1/3:∞, 0.:2.:∞)
 
         @test promote(0:1/3:∞, 0:∞) === (0:1/3:∞, 0.:1.:∞)
 
-        @test AbstractVector{Float64}(1:2:∞) ≡ 1.0:2.0:∞
+        @test AbstractArray{Float64}(1:2:∞) ≡ AbstractVector{Float64}(1:2:∞) ≡ 
+                convert(AbstractVector{Float64}, 1:2:∞) ≡ convert(AbstractArray{Float64}, 1:2:∞)
     end
 
     @testset "inf-range[inf-range]" begin
@@ -533,6 +537,18 @@ end
         @test (1:∞)[end] ≡ (1:∞)[∞] ≡ ∞
         @test (1:2:∞)[end] ≡ (1:2:∞)[∞] ≡ ∞
         @test (1.0:2:∞)[end] ≡ (1.0:2:∞)[∞] ≡ ∞
+    end
+
+    @testset "union" begin
+        @test @inferred((1:∞) ∪ (3:∞)) ≡ @inferred((3:∞) ∪ (1:∞)) ≡ 1:∞
+        @test @inferred((1:∞) ∪ (3:1:∞)) ≡ @inferred((3:1:∞) ∪ (1:∞)) ≡ 1:1:∞
+        @test @inferred((2:2:∞) ∪ (4:2:∞)) ≡ 2:2:∞
+        @test (2.0:1.5:∞) ∪ (3.5:1.5:∞) ≡ 2.0:1.5:∞
+        @test (1:∞) ∪ (2:2:∞) ≡ 1:1:∞
+        @test (6:4:∞) ∪ (2:2:∞) ≡ 2:2:∞
+        @test_throws ArgumentError (3:∞) ∪ (2:2:∞)
+        @test_throws ArgumentError (2:2:∞) ∪ (3:∞)
+        @test_throws ArgumentError (2:3:∞) ∪ (2:2:∞)
     end
 end
 
@@ -717,10 +733,15 @@ end
         @test broadcast(+, Zeros{Int}(∞) , Fill(1,∞)) isa Fill
         @test broadcast(+, Zeros{Int}(∞) , Zeros(∞)) isa Zeros
         @test broadcast(*, Ones(∞), Ones(∞)) ≡ Ones(∞)
-        @test broadcast(*, Ones{Int}(∞), 1:∞) ≡ 1:∞
-        @test broadcast(*, Fill(2,∞), 1:∞) ≡ 2:2:∞
-        @test broadcast(*, 1:∞, Fill(2,∞)) ≡ 2:2:∞
-        @test broadcast(*, Fill([1,2],∞), 1:∞)[1:3] == [[1,2],[2,4],[3,6]]
+        @test broadcast(*, Ones{Int}(∞), 1:∞) ≡ broadcast(*, 1:∞, Ones{Int}(∞)) ≡ 1:∞
+        @test broadcast(*, Fill(2,∞), 1:∞) ≡ broadcast(*, 1:∞, Fill(2,∞)) ≡ 2:2:∞
+        @test broadcast(*, Fill([1,2],∞), 1:∞) isa BroadcastVector
+        @test broadcast(*, Fill([1,2],∞), 1:∞)[1:3] == broadcast(*, 1:∞, Fill([1,2],∞))[1:3] == [[1,2],[2,4],[3,6]]
+
+        @test broadcast(*, 1:∞, Ones(∞)') isa BroadcastArray
+        @test broadcast(*, 1:∞, Fill(2,∞)') isa BroadcastArray
+        @test broadcast(*, Diagonal(1:∞), Ones{Int}(∞)') ≡ broadcast(*, Ones{Int}(∞)', Diagonal(1:∞)) ≡ Diagonal(1:∞)
+        @test broadcast(*, Diagonal(1:∞), Fill(2,∞)') ≡ broadcast(*, Fill(2,∞)', Diagonal(1:∞)) ≡ Diagonal(2:2:∞)
     end
 end
 
