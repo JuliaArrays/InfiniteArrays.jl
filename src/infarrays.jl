@@ -133,6 +133,71 @@ end
 
 BroadcastStyle(::Type{<:Diagonal{T,<:AbstractFill{T,1,Tuple{OneToInf{I}}}}}) where {T,I} = LazyArrayStyle{2}()
 
+## Support broadcast(*, ::AbstractFill, A)
+
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Ones{T,1,Tuple{OneToInf{Int}}},AbstractArray{V,N}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(b)
+    convert(AbstractArray{promote_type(T,V),N}, b)
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},Ones{V,1,Tuple{OneToInf{Int}}}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(a)
+    convert(AbstractArray{promote_type(T,V),N}, a)
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractFill{T,1,Tuple{OneToInf{Int}}},AbstractArray{V,N}}}) where {N,T<:Number,V}
+    a,b = bc.args
+    @assert bc.axes == axes(b)
+    getindex_value(a) * b
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},AbstractFill{V,1,Tuple{OneToInf{Int}}}}}) where {N,T,V<:Number}
+    a,b = bc.args
+    @assert bc.axes == axes(a)
+    a * getindex_value(b)
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractFill{T,1,Tuple{OneToInf{Int}}},AbstractArray{V,N}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(b)
+    Ref(getindex_value(a)) .* b # Use broadcast in-case a is array-valued
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},AbstractFill{V,1,Tuple{OneToInf{Int}}}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(a)
+    a .* Ref(getindex_value(b)) # Use broadcast in-case b is array-valued
+end
+
+# row Vector
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Adjoint{T,Ones{T,1,Tuple{OneToInf{Int}}}},AbstractMatrix{V}}}) where {T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(b)
+    convert(AbstractMatrix{promote_type(T,V)}, b)
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractMatrix{T},Adjoint{V,Ones{V,1,Tuple{OneToInf{Int}}}}}}) where {T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(a)
+    convert(AbstractMatrix{promote_type(T,V)}, a)
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Adjoint{T,<:AbstractFill{T,1,Tuple{OneToInf{Int}}}},AbstractMatrix{V}}}) where {T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(b)
+    getindex_value(a') * b
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractMatrix{T},Adjoint{V,<:AbstractFill{V,1,Tuple{OneToInf{Int}}}}}}) where {T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(a)
+    a * getindex_value(b')
+end
+
+
 #####
 # Diagonal
 #####

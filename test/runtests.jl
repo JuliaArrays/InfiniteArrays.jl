@@ -1,6 +1,6 @@
 using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, LazyBandedMatrices, Test, Base64
 import InfiniteArrays: OrientedInfinity, SignedInfinity, InfUnitRange, InfStepRange, OneToInf, NotANumber
-import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport
+import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport, DualLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
 import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
@@ -277,6 +277,10 @@ end
     @test_throws ArgumentError 0.0:-∞
     @test_throws ArgumentError ∞:-1:1
 
+    @test_throws ArgumentError (2:.2:-∞)
+    @test_throws ArgumentError (2.:.2:-∞)
+    @test_throws ArgumentError (1:-∞)    
+
     @testset "indexing" begin
         L32 = @inferred(Int32(1):∞)
         L64 = @inferred(Int64(1):∞)
@@ -313,11 +317,6 @@ end
         @test length(2.:-.2:-∞) == ∞
     end
 
-    @test_throws ArgumentError (2:.2:-∞)
-    @test_throws ArgumentError (2.:.2:-∞)
-    @test_throws ArgumentError (1:-∞)
-
-
     @testset "intersect" begin
         @test intersect(1:∞, 2:3) == 2:3
         @test intersect(2:3, 1:∞) == 2:3
@@ -347,8 +346,10 @@ end
     end
 
     @testset "sort/sort!/partialsort" begin
-        @test sort(1:∞) == 1:∞
-        @test sort!(1:∞) == 1:∞
+        @test sort(1:∞) ≡ sort!(1:∞) ≡ 1:∞
+        @test sort(2:2:∞) ≡ sort!(2:2:∞) ≡ 2:2:∞
+        @test_throws ArgumentError sort(2:-2:-∞)
+        @test_throws ArgumentError sort!(2:-2:-∞)
     end
     @testset "in" begin
         @test 0 in UInt(0):100:∞
@@ -481,9 +482,13 @@ end
         @test convert(InfStepRange, 0:∞) === 0:1:∞
         @test convert(InfStepRange{Int128,Int128}, 0.:∞) === Int128(0):Int128(1):∞
 
+
         @test_broken promote(0f0:inv(3f0):∞, 0.:2.:∞) === (0:1/3:∞, 0.:2.:∞)
 
         @test promote(0:1/3:∞, 0:∞) === (0:1/3:∞, 0.:1.:∞)
+
+        @test AbstractArray{Float64}(1:2:∞) ≡ AbstractVector{Float64}(1:2:∞) ≡ 
+                convert(AbstractVector{Float64}, 1:2:∞) ≡ convert(AbstractArray{Float64}, 1:2:∞)
     end
 
     @testset "inf-range[inf-range]" begin
@@ -523,11 +528,7 @@ end
 
     @testset "show" begin
         # NOTE: Interpolating Int to ensure it's displayed properly across 32- and 64-bit
-        if VERSION ≥ v"1.2-"
-            @test summary(1:∞) == "∞-element InfUnitRange{$Int} with indices OneToInf()"
-        else
-            @test summary(1:∞) == "InfUnitRange{$Int} with indices OneToInf()"
-        end
+        @test summary(1:∞) == "∞-element InfUnitRange{$Int} with indices OneToInf()"
         @test Base.inds2string(axes(1:∞)) == "OneToInf()"
     end
 
@@ -536,6 +537,18 @@ end
         @test (1:∞)[end] ≡ (1:∞)[∞] ≡ ∞
         @test (1:2:∞)[end] ≡ (1:2:∞)[∞] ≡ ∞
         @test (1.0:2:∞)[end] ≡ (1.0:2:∞)[∞] ≡ ∞
+    end
+
+    @testset "union" begin
+        @test @inferred((1:∞) ∪ (3:∞)) ≡ @inferred((3:∞) ∪ (1:∞)) ≡ 1:∞
+        @test @inferred((1:∞) ∪ (3:1:∞)) ≡ @inferred((3:1:∞) ∪ (1:∞)) ≡ 1:1:∞
+        @test @inferred((2:2:∞) ∪ (4:2:∞)) ≡ 2:2:∞
+        @test (2.0:1.5:∞) ∪ (3.5:1.5:∞) ≡ 2.0:1.5:∞
+        @test (1:∞) ∪ (2:2:∞) ≡ 1:1:∞
+        @test (6:4:∞) ∪ (2:2:∞) ≡ 2:2:∞
+        @test_throws ArgumentError (3:∞) ∪ (2:2:∞)
+        @test_throws ArgumentError (2:2:∞) ∪ (3:∞)
+        @test_throws ArgumentError (2:3:∞) ∪ (2:2:∞)
     end
 end
 
@@ -566,6 +579,11 @@ end
         F = Fill(2.0,2,∞)
         @test reshape(F,∞) ≡ reshape(F,OneToInf()) ≡ reshape(F,(OneToInf(),)) ≡ reshape(F,Val(1)) ≡ Fill(2.0,∞)
     end
+
+    @testset "adjtrans copy" begin
+        @test copy((1:∞)') ≡ (1:∞)'
+        @test copy(transpose(1:∞)) ≡ transpose(1:∞)
+    end
 end
 
 @testset "diagonal" begin
@@ -584,6 +602,14 @@ end
     @test broadcast(*,Ones(∞,∞),permutedims(D.diag)) isa BroadcastArray
     @test Ones(∞,∞)*D isa BroadcastArray
     @test (Ones(∞,∞)*D)[1:10,1:10] == Ones(10,10)*D[1:10,1:10]
+    @test @inferred(broadcast(*,Ones{Int}(∞),D)) ≡ @inferred(broadcast(*,D,Ones{Int}(∞))) ≡ D
+    @test @inferred(broadcast(*,Ones(∞),D)) == @inferred(broadcast(*,D,Ones(∞))) == Diagonal(1.0:∞)
+    @test @inferred(broadcast(*,Ones{Int}(∞)',D)) == @inferred(broadcast(*,D,Ones{Int}(∞)')) == D
+    @test @inferred(broadcast(*,Ones(∞)',D)) == @inferred(broadcast(*,D,Ones(∞)')) == Diagonal(1.0:∞)
+    @test @inferred(broadcast(*,Fill(2,∞)',D)) ≡ @inferred(broadcast(*,D,Fill(2,∞)')) ≡ 2D
+
+    @test Eye{Int}(∞) * D ≡ Eye{Int}(∞) * D ≡ D
+    @test Eye(∞) * D == Eye(∞) * D == D
 end
 
 @testset "concat" begin
@@ -672,10 +698,8 @@ end
         A = Vcat(1, Zeros(∞))
         @test colsupport(A,1) == 1:1
         @test Base.replace_in_print_matrix(A, 2, 1, "0") == "⋅"
-        if VERSION ≥ v"1.4"
-            @test stringmime("text/plain", A; context=(:limit => true)) == 
-                    "∞-element ApplyArray{Float64,1,typeof(vcat),Tuple{$Int,Zeros{Float64,1,Tuple{OneToInf{$Int}}}}} with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
-        end
+        @test stringmime("text/plain", A; context=(:limit => true)) == 
+                "∞-element ApplyArray{Float64,1,typeof(vcat),Tuple{$Int,Zeros{Float64,1,Tuple{OneToInf{$Int}}}}} with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
         A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
         @test Base.replace_in_print_matrix(A, 2, 2, "0") == "⋅"
     end
@@ -709,6 +733,15 @@ end
         @test broadcast(+, Zeros{Int}(∞) , Fill(1,∞)) isa Fill
         @test broadcast(+, Zeros{Int}(∞) , Zeros(∞)) isa Zeros
         @test broadcast(*, Ones(∞), Ones(∞)) ≡ Ones(∞)
+        @test broadcast(*, Ones{Int}(∞), 1:∞) ≡ broadcast(*, 1:∞, Ones{Int}(∞)) ≡ 1:∞
+        @test broadcast(*, Fill(2,∞), 1:∞) ≡ broadcast(*, 1:∞, Fill(2,∞)) ≡ 2:2:∞
+        @test broadcast(*, Fill([1,2],∞), 1:∞) isa BroadcastVector
+        @test broadcast(*, Fill([1,2],∞), 1:∞)[1:3] == broadcast(*, 1:∞, Fill([1,2],∞))[1:3] == [[1,2],[2,4],[3,6]]
+
+        @test broadcast(*, 1:∞, Ones(∞)') isa BroadcastArray
+        @test broadcast(*, 1:∞, Fill(2,∞)') isa BroadcastArray
+        @test broadcast(*, Diagonal(1:∞), Ones{Int}(∞)') ≡ broadcast(*, Ones{Int}(∞)', Diagonal(1:∞)) ≡ Diagonal(1:∞)
+        @test broadcast(*, Diagonal(1:∞), Fill(2,∞)') ≡ broadcast(*, Fill(2,∞)', Diagonal(1:∞)) ≡ Diagonal(2:2:∞)
     end
 end
 
@@ -805,15 +838,15 @@ end
 
 @testset "MemoryLayout" begin
     @test MemoryLayout(OneToInf{Int}) == LazyLayout()
-    @test MemoryLayout(typeof((0:∞))) == LazyLayout()
-    @test MemoryLayout(typeof((0:∞)')) == LazyLayout()
+    @test MemoryLayout(0:∞) == LazyLayout()
+    @test MemoryLayout((0:∞)') == DualLayout{LazyLayout}()
     A = _BandedMatrix((0:∞)', ∞, -1, 1)
-    @test MemoryLayout(typeof(A)) == BandedColumns{LazyLayout}()
+    @test MemoryLayout(A) == BandedColumns{LazyLayout}()
 end
 
 @testset "Banded" begin
     A = _BandedMatrix((0:∞)', ∞, -1, 1)
-    @test_broken apply(*, Eye(∞), A) ≡ A
+    @test (Eye{Int}(∞) * A).data ≡ A.data
     @test 2.0A isa BandedMatrix
     @test (2.0A)[1:10,1:10] == 2.0A[1:10,1:10]
     @test 2.0\A isa BandedMatrix
@@ -837,12 +870,16 @@ end
     @test a[1:7] == [1, 2, 2, 1, 2, 2, 1]
 end
 
-@testset "norm" begin
+@testset "norm/dot" begin
     for p in (-Inf, 0, 0.1, 1, 2, 3, Inf)
         @test norm(Zeros(∞), p) == 0.0
         @test norm(Fill(5),p) ≈ norm(Array(Fill(5)),p) # tests tuple bug
         @test norm(Zeros{Float64}(),p) == 0.0 # tests tuple bug
     end
+    @test norm([1; zeros(∞)]) ≡ 1.0
+    @test dot([1; zeros(∞)], [1; zeros(∞)]) ≡ 1.0
+    @test dot([1; zeros(∞)], 1:∞) ≡ 1.0
+    @test dot(1:∞, [1; zeros(∞)]) ≡ 1.0
 end
 
 @testset "sub-Eye" begin

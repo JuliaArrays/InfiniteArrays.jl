@@ -73,6 +73,8 @@ InfUnitRange(a::InfUnitRange) = a
 InfUnitRange{T}(a::AbstractInfUnitRange) where T<:Real = InfUnitRange{T}(first(a))
 AbstractArray{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
 AbstractVector{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
+AbstractArray{T}(a::InfStepRange) where T<:Real = InfStepRange(convert(T,a.start), convert(T,a.step))
+AbstractVector{T}(a::InfStepRange) where T<:Real = InfStepRange(convert(T,a.start), convert(T,a.step))
 
 const InfRanges{T} = Union{InfStepRange{T},AbstractInfUnitRange{T}}
 
@@ -81,6 +83,8 @@ AbstractMatrix{T}(ac::Adjoint{<:Any,<:InfRanges}) where T<:Real = AbstractVector
 AbstractArray{T}(ac::Transpose{<:Any,<:InfRanges}) where T<:Real = transpose(AbstractArray{T}(parent(ac)))
 AbstractMatrix{T}(ac::Transpose{<:Any,<:InfRanges}) where T<:Real = transpose(AbstractVector{T}(parent(ac)))
 
+copy(ac::AdjOrTrans{<:Any,<:InfRanges}) = ac
+reverse(a::InfRanges) = throw(ArgumentError("Cannot reverse infinite range"))
 
 
 """
@@ -321,6 +325,12 @@ intersect(s::StepRange, r::InfStepRange) = intersect(r, s)
 intersect(s::AbstractRange, r::InfStepRange) = intersect(StepRange(s), r)
 intersect(s::InfStepRange, r::AbstractRange) = intersect(s, StepRange(r))
 
+function union(ain::InfRanges, bin::InfRanges)
+    a,b = promote(ain, bin)
+    first(b) ∈ a && iszero(mod(step(b), step(a))) && return a
+    first(a) ∈ b && iszero(mod(step(a), step(b))) && return b
+    throw(ArgumentError("Cannot take union of $a and $b"))
+end
 
 promote_rule(a::Type{InfUnitRange{T1}}, b::Type{InfUnitRange{T2}}) where {T1,T2} =
     InfUnitRange{promote_type(T1,T2)}
@@ -374,7 +384,10 @@ in(x::Real, r::InfRanges{T}) where {T<:Integer} =
 -(r1::OneToInf{T}, r2::OneToInf{V}) where {T,V} = Zeros{promote_type(T,V)}(∞)
 -(r1::AbstractInfUnitRange, r2::AbstractInfUnitRange) = Fill(first(r1)-first(r2), ∞)
 
-
+function sort!(a::InfStepRange)
+    step(a) > 0 || throw(ArgumentError("Cannot sort $a"))
+    a
+end
 
 
 ### Lazy broadcasting
