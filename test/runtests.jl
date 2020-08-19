@@ -825,7 +825,6 @@ end
     @test AB isa BroadcastArray
     @test size(AB) == (3,∞)
     @test (AB)[1:3,1:10] == Fill(1,3,10)*Diagonal(1:10)
-    @test MemoryLayout(typeof(AB)) == LazyLayout()
 
     @test A*B*C isa ApplyArray
     @test size(A*B*C) == (3,)
