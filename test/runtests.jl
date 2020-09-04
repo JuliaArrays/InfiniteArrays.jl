@@ -719,6 +719,7 @@ end
         @test length(B) == ∞
         @test B[6] == exp(6)
         @test exp.(A) ≡ B
+        @test B[2:∞] isa BroadcastArray
         B = Diagonal(1:∞) .+ 1
         @test B isa BroadcastArray{Int}
         @test B[1,5] ≡ 1
@@ -742,6 +743,13 @@ end
         @test broadcast(*, 1:∞, Fill(2,∞)') isa BroadcastArray
         @test broadcast(*, Diagonal(1:∞), Ones{Int}(∞)') ≡ broadcast(*, Ones{Int}(∞)', Diagonal(1:∞)) ≡ Diagonal(1:∞)
         @test broadcast(*, Diagonal(1:∞), Fill(2,∞)') ≡ broadcast(*, Fill(2,∞)', Diagonal(1:∞)) ≡ Diagonal(2:2:∞)
+    end
+
+    @testset "subview inf broadcast" begin
+        b = BroadcastArray(exp, 1:∞)
+        v = view(b, 3:∞) .+ 1
+        @test v isa BroadcastArray
+        @test b[3:10] .+ 1 == v[1:8]
     end
 end
 
