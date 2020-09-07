@@ -39,7 +39,7 @@ import Statistics: mean, median
 
 import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal
 import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
-                    ZerosLayout, AbstractArrayApplyStyle, CachedArray, CachedVector,
+                    ZerosLayout, AbstractArrayApplyStyle, CachedArray, CachedVector, ApplyLayout,
                     reshapedlayout, sub_materialize, LayoutMatrix, LayoutVector, _padded_sub_materialize, PaddedLayout
 
 import DSP: conv
@@ -227,6 +227,10 @@ sub_materialize(_, V, ::Tuple{InfAxes}) = V
 sub_materialize(_, V, ::Tuple{InfAxes,InfAxes}) = V
 sub_materialize(_, V, ::Tuple{<:Any,InfAxes}) = V
 sub_materialize(_, V, ::Tuple{InfAxes,Any}) = V
+
+sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{InfAxes,InfAxes}) = ApplyArray(V)
+sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{<:Any,InfAxes}) = ApplyArray(V)
+sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{InfAxes,Any}) = ApplyArray(V)
 
 sub_materialize(::PaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T =
     _padded_sub_materialize(v)

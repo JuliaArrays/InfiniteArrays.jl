@@ -710,6 +710,14 @@ end
         @test Base.copymutable(Vcat([1.,2.], zeros(∞))) isa CachedArray
         @test Base.copymutable(Vcat(1.,2., zeros(∞))) isa CachedArray
     end
+
+    @testset "colon" begin
+        a = Vcat(1, 1:∞)
+        a[:]
+
+        A = Vcat(Ones(1,∞), Fill(2,1,∞))
+        @test A[:,:] == A
+    end
 end
 
 @testset "broadcasting" begin
