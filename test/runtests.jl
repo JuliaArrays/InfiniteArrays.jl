@@ -711,12 +711,24 @@ end
         @test Base.copymutable(Vcat(1.,2., zeros(∞))) isa CachedArray
     end
 
-    @testset "colon" begin
+    @testset "infinite indexing" begin
         a = Vcat(1, 1:∞)
-        a[:]
+        @test a[:] isa Vcat
+        @test a[3:∞] ≡ 2:∞
+        @test a[3:2:∞] isa Vcat
 
         A = Vcat(Ones(1,∞), Fill(2,1,∞))
         @test A[:,:] == A
+        @test A[:,2:∞] isa Vcat
+
+        A = Vcat(Ones(5,5), Fill(2,∞,5))
+        @test A[:,:] == A
+        @test A[2:∞,:] isa Vcat
+
+        A = Vcat(Ones(1,∞), Fill(2,∞,∞))
+        @test A[:,:] == A
+        @test A[2:∞,2:∞] isa Vcat
+        @test A[2:∞,2:∞][1:10,1:10] == fill(2,10,10)
     end
 end
 
