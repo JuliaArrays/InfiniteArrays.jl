@@ -568,7 +568,7 @@ end
         B = Ones(∞,∞)
         @test IndexStyle(B) == IndexCartesian()
         V = view(B,:,1)
-        @test_broken size(V) == (∞,1)
+        @test_broken size(V) == (∞,)
         V = view(B,1,:)
         @test size(V) == (∞,)
         V = view(B,1:1,:)

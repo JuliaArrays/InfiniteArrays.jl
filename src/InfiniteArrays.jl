@@ -155,7 +155,7 @@ UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
 OneTo(a::OneToInf) = a
 OneTo{T}(::OneToInf) where T<:Integer = OneToInf{T}()
 
-Int(::Infinity) = ∞
+to_shape(a::Infinity) = a
 
 axistype(::OneTo{T}, ::OneToInf{V}) where {T,V} = OneToInf{promote_type(T,V)}()
 axistype(::OneToInf{V}, ::OneTo{T}) where {T,V} = OneToInf{promote_type(T,V)}()
