@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/JuliaArrays/InfiniteArrays.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaArrays/InfiniteArrays.jl)
 
 
-A Julia package for representing infinite-dimensional arrays, designed to work
+A Julia package for representing arrays with infinite dimension sizes, designed to work
 with other array types. Infinite arrays are by necessity lazy, and so this
 package is closely linked to [LazyArrays.jl](https://github.com/JuliaArrays/LazyArrays.jl).
 
