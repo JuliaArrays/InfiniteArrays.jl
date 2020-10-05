@@ -801,6 +801,8 @@ end
         @test c[1:20] == [c[k] for k=1:20] == cumsum(r[1:20])
         @test c == c
     end
+
+    @test cumsum(1:∞)[2:∞][1:5] == cumsum(1:6)[2:end]
 end
 
 @testset "Sub-array" begin
