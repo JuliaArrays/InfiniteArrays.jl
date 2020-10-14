@@ -220,6 +220,11 @@ function getindex(r::InfStepRange, s::AbstractRange{<:Integer})
     range(st; step=step(r)*step(s), length=length(s))
 end
 
+function getindex(Ac::AdjOrTrans{<:Any,<:InfRanges}, k::Integer, j)
+    @boundscheck k == 1 || throw(BoundsError(Ac, k))
+    parent(Ac)[j]
+end
+
 show(io::IO, r::InfUnitRange) = print(io, repr(first(r)), ':', repr(last(r)))
 show(io::IO, r::OneToInf{Int}) = print(io, "OneToInf()")
 show(io::IO, r::OneToInf{T}) where T = print(io, "OneToInf{$T}()")

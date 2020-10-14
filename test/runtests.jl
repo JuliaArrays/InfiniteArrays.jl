@@ -550,6 +550,13 @@ end
         @test_throws ArgumentError (2:2:∞) ∪ (3:∞)
         @test_throws ArgumentError (2:3:∞) ∪ (2:2:∞)
     end
+
+    @testset "adjoint indexing" begin
+        a = (1:∞)'
+        @test a[:,:] ≡ a
+        @test a[1,:] ≡ 1:∞
+        @test a[1,2:2:end] ≡ 2:2:∞
+    end
 end
 
 @testset "fill" begin
@@ -656,6 +663,10 @@ end
         @test @inferred(A[5,5]) ≡ 0
         @test @inferred(A[5,6]) ≡ 5
         @test_throws BoundsError A[-1,1]
+
+        A = Hcat(1, (1:∞)')
+        @test A[1,:] isa Vcat{<:Any,1}
+        @test A[1,:][1:10] == A[1,1:10]
     end
 
     # This should be generalized, but it at the moment
