@@ -402,6 +402,8 @@ BroadcastStyle(::Type{<:Adjoint{<:Any,<:InfRanges}}) = LazyArrayStyle{2}()
 BroadcastStyle(::Type{<:Transpose{<:Any,<:InfRanges}}) = LazyArrayStyle{2}()
 BroadcastStyle(::Type{<:SubArray{<:Any,1,<:Any,<:Tuple{InfRanges}}}) = LazyArrayStyle{1}()
 
+BroadcastStyle(::Type{<:Base.Slice{<:InfRanges}}) = LazyArrayStyle{1}()
+
 
 const InfIndexRanges{T<:Integer} = Union{InfStepRange{T},AbstractInfUnitRange{T},Slice{OneToInf{T}}}
 
