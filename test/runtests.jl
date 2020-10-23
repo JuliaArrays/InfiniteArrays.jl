@@ -594,6 +594,13 @@ end
         @test copy((1:∞)') ≡ (1:∞)'
         @test copy(transpose(1:∞)) ≡ transpose(1:∞)
     end
+
+    @testset "Fill slices" begin
+        A = Fill(2,∞,∞)
+        Z = Zeros(∞,∞)
+        @test A[:,1] ≡ A[1,:] ≡ A[1:∞,1] ≡ Fill(2,∞)
+        @test Z[:,1] ≡ Z[1,:] ≡ Z[1:∞,1] ≡ Zeros(∞)
+    end
 end
 
 @testset "diagonal" begin

@@ -11,7 +11,7 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 DSP = "0.6"
-FillArrays = "0.9.6"
+FillArrays = "0.10"
 LazyArrays = "0.18.1, 0.19"
 julia = "1.5"
 
