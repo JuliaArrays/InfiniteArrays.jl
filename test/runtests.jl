@@ -404,6 +404,9 @@ end
     end
 
     @testset "broadcasted operations with scalars" begin
+        @test Base.BroadcastStyle(typeof(1:∞)) isa LazyArrayStyle{1}
+        @test Base.BroadcastStyle(typeof(Base.Slice(1:∞))) isa LazyArrayStyle{1}
+
         @test broadcast(-, 1:∞, 2) ≡ -1:∞
         @test broadcast(-, 1:∞, 0.25) ≡ 1-0.25:∞
         @test broadcast(+, 1:∞, 2) ≡ 3:∞
@@ -550,6 +553,13 @@ end
         @test_throws ArgumentError (2:2:∞) ∪ (3:∞)
         @test_throws ArgumentError (2:3:∞) ∪ (2:2:∞)
     end
+
+    @testset "adjoint indexing" begin
+        a = (1:∞)'
+        @test a[:,:] ≡ a
+        @test a[1,:] ≡ 1:∞
+        @test a[1,2:2:end] ≡ 2:2:∞
+    end
 end
 
 @testset "fill" begin
@@ -583,6 +593,13 @@ end
     @testset "adjtrans copy" begin
         @test copy((1:∞)') ≡ (1:∞)'
         @test copy(transpose(1:∞)) ≡ transpose(1:∞)
+    end
+
+    @testset "Fill slices" begin
+        A = Fill(2,∞,∞)
+        Z = Zeros(∞,∞)
+        @test A[:,1] ≡ A[1,:] ≡ A[1:∞,1] ≡ Fill(2,∞)
+        @test Z[:,1] ≡ Z[1,:] ≡ Z[1:∞,1] ≡ Zeros(∞)
     end
 end
 
@@ -656,6 +673,10 @@ end
         @test @inferred(A[5,5]) ≡ 0
         @test @inferred(A[5,6]) ≡ 5
         @test_throws BoundsError A[-1,1]
+
+        A = Hcat(1, (1:∞)')
+        @test A[1,:] isa Vcat{<:Any,1}
+        @test A[1,:][1:10] == A[1,1:10]
     end
 
     # This should be generalized, but it at the moment
@@ -801,6 +822,8 @@ end
         @test c[1:20] == [c[k] for k=1:20] == cumsum(r[1:20])
         @test c == c
     end
+
+    @test cumsum(1:∞)[2:∞][1:5] == cumsum(1:6)[2:end]
 end
 
 @testset "Sub-array" begin

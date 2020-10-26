@@ -138,7 +138,7 @@ done(r::InfStepRange{T}, i) where {T} = false
 ## indexing
 
 unsafe_indices(S::Slice{<:OneToInf}) = (S.indices,)
-
+axes(S::Slice{<:OneToInf}) = (S.indices,)
 _sub2ind(inds::Tuple{OneToInf}, i::Integer)    = i
 
 to_shape(::OneToInf) = ∞
@@ -218,6 +218,11 @@ function getindex(r::InfStepRange, s::AbstractRange{<:Integer})
     @boundscheck isempty(s) || minimum(s) ≥ 1 || throw(BoundsError(r, minimum(s)))
     st = oftype(r.start, r.start + (first(s)-1)*step(r))
     range(st; step=step(r)*step(s), length=length(s))
+end
+
+function getindex(Ac::AdjOrTrans{<:Any,<:InfRanges}, k::Integer, j)
+    @boundscheck k == 1 || throw(BoundsError(Ac, k))
+    parent(Ac)[j]
 end
 
 show(io::IO, r::InfUnitRange) = print(io, repr(first(r)), ':', repr(last(r)))
@@ -396,6 +401,8 @@ BroadcastStyle(::Type{<:InfRanges}) = LazyArrayStyle{1}()
 BroadcastStyle(::Type{<:Adjoint{<:Any,<:InfRanges}}) = LazyArrayStyle{2}()
 BroadcastStyle(::Type{<:Transpose{<:Any,<:InfRanges}}) = LazyArrayStyle{2}()
 BroadcastStyle(::Type{<:SubArray{<:Any,1,<:Any,<:Tuple{InfRanges}}}) = LazyArrayStyle{1}()
+
+BroadcastStyle(::Type{<:Base.Slice{<:InfRanges}}) = LazyArrayStyle{1}()
 
 
 const InfIndexRanges{T<:Integer} = Union{InfStepRange{T},AbstractInfUnitRange{T},Slice{OneToInf{T}}}
