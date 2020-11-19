@@ -823,9 +823,12 @@ end
 
     for r in (3:4:∞, 2:∞, Base.OneTo(∞))
         c = cumsum(r)
-        @test c isa Cumsum
-        @test c[1:20] == [c[k] for k=1:20] == cumsum(r[1:20])
+        @test c isa InfiniteArrays.RangeCumsum
+        @test c[Base.OneTo(20)] == c[1:20] == [c[k] for k=1:20] == cumsum(r[1:20])
+        @test c[2:20] == [c[k] for k=2:20] == cumsum(r[1:20])[2:end]
         @test c == c
+        @test c[Base.OneTo(20)] isa InfiniteArrays.RangeCumsum
+        @test exp.(c)[1:20] == exp.(c[1:20])
     end
 
     @test cumsum(1:∞)[2:∞][1:5] == cumsum(1:6)[2:end]

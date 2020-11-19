@@ -429,18 +429,32 @@ broadcast(f, r::Transpose{<:Any,<:InfRanges}, a::Number) = transpose(broadcast(f
 
 # cumsum(r::InfRanges) = OneToInf() .* (first(r) .+ r) .÷ 2
 
-cumsum(r::InfRanges) = Cumsum(r)
-function getindex(c::Cumsum{<:Integer,1,<:InfStepRange}, k::Integer)
-    r = c.v
+struct RangeCumsum{T, RR<:AbstractRange{T}} <: LayoutVector{T}
+    range::RR
+end
+
+size(c::RangeCumsum) = size(c.range)
+
+==(a::RangeCumsum, b::RangeCumsum) = a.range == b.range
+BroadcastStyle(::Type{<:RangeCumsum{<:Any,RR}}) where RR = BroadcastStyle(RR)
+
+cumsum(r::InfRanges) = RangeCumsum(r)
+Base.@propagate_inbounds function getindex(c::RangeCumsum{<:Any,<:AbstractRange}, k::Integer)
+    @boundscheck checkbounds(c, k)
+    r = c.range
     k * (first(r) + r[k]) ÷ 2
 end
-function getindex(c::Cumsum{<:Integer,1,<:AbstractInfUnitRange}, k::Integer)
-    r = c.v
+Base.@propagate_inbounds function getindex(c::RangeCumsum{<:Any,<:AbstractUnitRange}, k::Integer)
+    @boundscheck checkbounds(c, k)
+    r = c.range
     k * (2first(r) + k - 1) ÷ 2
 end
-getindex(c::Cumsum{<:Integer,1,<:OneToInf}, k::Integer) = k * (k+1) ÷ 2
+getindex(c::RangeCumsum{<:Any,<:OneToInf}, k::Integer) = k * (k+1) ÷ 2
 
+Base.@propagate_inbounds getindex(c::RangeCumsum, kr::OneTo) = RangeCumsum(c.range[kr])
+Base.@propagate_inbounds getindex(c::RangeCumsum, kr::OneToInf) = RangeCumsum(c.range[kr])
 
+diff(r::RangeCumsum) = r.range[2:end]
 diff(r::InfRanges) = Fill(step(r),∞)
 diff(r::OneToInf{T}) where T = Ones{T}(∞)
 
