@@ -719,7 +719,7 @@ end
         A = Vcat(1, Zeros(∞))
         @test colsupport(A,1) == 1:1
         @test Base.replace_in_print_matrix(A, 2, 1, "0") == "⋅"
-        if VERSION ≤ v"1.5"
+        if VERSION < v"1.6-"
 			@test stringmime("text/plain", A; context=(:limit => true)) == 
 					"vcat($Int, ∞-element Zeros{Float64,1,Tuple{OneToInf{$Int}}} with indices OneToInf()) with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
 		else
