@@ -627,7 +627,8 @@ end
 
     @test Eye{Int}(∞) * D ≡ Eye{Int}(∞) * D ≡ D
     @test Eye(∞) * D == Eye(∞) * D == D
-    @test Eye(∞) == Eye(∞)^0 == Eye(∞)^1
+    @test Eye(∞) == Eye(∞)^0 == Eye(∞)^1 == Eye(∞)^2 == one(Eye(∞)) == copy(Eye(∞)) == one(Diagonal(Fill(2,∞)))
+    @test Diagonal(Fill(2,∞)) == copy(Diagonal(Fill(2,∞)))
 end
 
 @testset "concat" begin
