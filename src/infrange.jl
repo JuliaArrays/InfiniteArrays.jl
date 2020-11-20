@@ -454,6 +454,8 @@ getindex(c::RangeCumsum{<:Any,<:OneToInf}, k::Integer) = k * (k+1) ÷ 2
 Base.@propagate_inbounds getindex(c::RangeCumsum, kr::OneTo) = RangeCumsum(c.range[kr])
 Base.@propagate_inbounds getindex(c::RangeCumsum, kr::OneToInf) = RangeCumsum(c.range[kr])
 
+last(r::RangeCumsum) = sum(r.range)
+
 diff(r::RangeCumsum) = r.range[2:end]
 diff(r::InfRanges) = Fill(step(r),∞)
 diff(r::OneToInf{T}) where T = Ones{T}(∞)
