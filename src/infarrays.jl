@@ -202,6 +202,8 @@ end
 # Diagonal
 #####
 
+one(D::Diagonal{T,<:AbstractFill}) where T = Eye{T}(size(D,1))
+copy(D::Diagonal{T,<:AbstractFill}) where T = D
 
 BroadcastStyle(::Type{<:Diagonal{<:Any,<:AbstractInfUnitRange}}) = LazyArrayStyle{2}()
 
