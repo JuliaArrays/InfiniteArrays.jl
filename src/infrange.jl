@@ -537,7 +537,7 @@ end
 ####
 
 MemoryLayout(::Type{<:AbstractInfUnitRange}) = LazyLayout()
-MemoryLayout(::Type{<:InfStepRange}) = LazyLayout()
+@inline MemoryLayout(::Type{<:InfStepRange}) = LazyLayout()
 
 
 ##
