@@ -601,6 +601,15 @@ end
         @test A[:,1] ≡ A[1,:] ≡ A[1:∞,1] ≡ Fill(2,∞)
         @test Z[:,1] ≡ Z[1,:] ≡ Z[1:∞,1] ≡ Zeros(∞)
     end
+
+    @testset "maximum" begin
+        c = cache(Fill(2,∞));
+        c[1] = 1;
+        @test maximum(c) == maximum(Vcat([1], Fill(2,∞))) == 2
+        c[1:3] = 1:3;
+        @test maximum(c) == maximum(Vcat([1,2,3], Fill(2,∞))) == 3
+        @test minimum(c) == minimum(Vcat([1,2,3], Fill(2,∞))) == 1
+    end
 end
 
 @testset "diagonal" begin
