@@ -246,7 +246,7 @@ end
         @test similar(Array{Float64}, (∞,2)) isa CachedArray{Float64}
     end
 
-    @testset "zeros/fill" begin
+    @testset "zeros/fill/ones" begin
         a = zeros(1,∞)
         @test length(a) === ∞
         @test size(a) === (1,∞)
@@ -262,6 +262,15 @@ end
         @test all(x -> x===1,a[1:100])
         a[5] = 2
         @test a[1:100] == [fill(1,4); 2; fill(1,95)]
+
+        a = ones(∞)
+        @test a isa CachedArray{Float64}
+        a[5] = 2
+        @test a[1:100] == [fill(1,4); 2; fill(1,95)]
+
+        @test ones(5,∞)[:,1:10] == ones(5,10)
+        @test ones(∞,5)[1:10,:] == ones(10,5)
+        @test ones(∞,∞)[1:5,1:5] == ones(5,5)
     end
 end
 
@@ -602,13 +611,15 @@ end
         @test Z[:,1] ≡ Z[1,:] ≡ Z[1:∞,1] ≡ Zeros(∞)
     end
 
-    @testset "maximum" begin
+    @testset "maximum/minimum/sum" begin
         c = cache(Fill(2,∞));
         c[1] = 1;
         @test maximum(c) == maximum(Vcat([1], Fill(2,∞))) == 2
         c[1:3] = 1:3;
         @test maximum(c) == maximum(Vcat([1,2,3], Fill(2,∞))) == 3
         @test minimum(c) == minimum(Vcat([1,2,3], Fill(2,∞))) == 1
+        @test sum([1; zeros(∞)]) ≡ 1.0
+        @test sum([1; ones(∞)]) ≡ 1.0∞
     end
 end
 

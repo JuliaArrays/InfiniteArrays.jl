@@ -41,6 +41,11 @@ zeros(::Type{T}, nm::Tuple{Integer, Infinity}) where T = cache(Zeros{T}(nm...))
 zeros(::Type{T}, nm::Tuple{Infinity, Integer}) where T = cache(Zeros{T}(nm...))
 zeros(::Type{T}, nm::Tuple{Infinity, Infinity}) where T = cache(Zeros{T}(nm...))
 
+ones(::Type{T}, ::Tuple{Infinity}) where T = cache(Ones{T}(∞))
+ones(::Type{T}, nm::Tuple{Integer, Infinity}) where T = cache(Ones{T}(nm...))
+ones(::Type{T}, nm::Tuple{Infinity, Integer}) where T = cache(Ones{T}(nm...))
+ones(::Type{T}, nm::Tuple{Infinity, Infinity}) where T = cache(Ones{T}(nm...))
+
 fill(x, ::Tuple{Infinity}) = cache(Fill(x,∞))
 fill(x, nm::Tuple{Integer, Infinity}) = cache(Fill(x,nm...))
 fill(x, nm::Tuple{Infinity, Integer}) = cache(Fill(x,nm...))
