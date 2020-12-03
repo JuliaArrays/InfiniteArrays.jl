@@ -3,6 +3,7 @@ uuid = "4858937d-0d70-526a-a4dd-2d5cb5dd786c"
 version = "0.8.3"
 
 [deps]
+BandedMatrices = "aae01518-5342-5314-be14-df237901396f"
 DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 FillArrays = "1a297f60-69ca-5386-bcde-b61e274b549b"
 LazyArrays = "5078a376-72f3-5289-bfd5-ec5146d43c02"

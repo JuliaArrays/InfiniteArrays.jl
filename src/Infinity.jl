@@ -376,3 +376,4 @@ Base.Checked.checked_add(x::SignedInfinity, ::Integer) = x
 
 
 Base.to_index(::Infinity) = ∞
+Base.to_shape(::Infinity) = ∞
