@@ -776,6 +776,13 @@ end
         @test A[2:∞,2:∞] isa Vcat
         @test A[2:∞,2:∞][1:10,1:10] == fill(2,10,10)
     end
+
+    @testset "adjoint copy"  begin
+        a = Vcat(1,(1:∞))'
+        b = transpose(Vcat(1,(1:∞)))
+        @test copy(a) ≡ a
+        @test copy(b) ≡ b
+    end
 end
 
 @testset "broadcasting" begin
