@@ -1,8 +1,9 @@
 name = "InfiniteArrays"
 uuid = "4858937d-0d70-526a-a4dd-2d5cb5dd786c"
-version = "0.8.3"
+version = "0.9.0"
 
 [deps]
+ArrayLayouts = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
 DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 FillArrays = "1a297f60-69ca-5386-bcde-b61e274b549b"
 LazyArrays = "5078a376-72f3-5289-bfd5-ec5146d43c02"
@@ -10,9 +11,10 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
+ArrayLayouts = "0.5"
 DSP = "0.6"
-FillArrays = "0.10"
-LazyArrays = "0.19"
+FillArrays = "0.11"
+LazyArrays = "0.20"
 julia = "1.5"
 
 [extras]

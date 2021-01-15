@@ -246,7 +246,7 @@ end
         @test similar(Array{Float64}, (∞,2)) isa CachedArray{Float64}
     end
 
-    @testset "zeros/fill" begin
+    @testset "zeros/fill/ones" begin
         a = zeros(1,∞)
         @test length(a) === ∞
         @test size(a) === (1,∞)
@@ -262,6 +262,15 @@ end
         @test all(x -> x===1,a[1:100])
         a[5] = 2
         @test a[1:100] == [fill(1,4); 2; fill(1,95)]
+
+        a = ones(∞)
+        @test a isa CachedArray{Float64}
+        a[5] = 2
+        @test a[1:100] == [fill(1,4); 2; fill(1,95)]
+
+        @test ones(5,∞)[:,1:10] == ones(5,10)
+        @test ones(∞,5)[1:10,:] == ones(10,5)
+        @test ones(∞,∞)[1:5,1:5] == ones(5,5)
     end
 end
 
@@ -601,6 +610,17 @@ end
         @test A[:,1] ≡ A[1,:] ≡ A[1:∞,1] ≡ Fill(2,∞)
         @test Z[:,1] ≡ Z[1,:] ≡ Z[1:∞,1] ≡ Zeros(∞)
     end
+
+    @testset "maximum/minimum/sum" begin
+        c = cache(Fill(2,∞));
+        c[1] = 1;
+        @test maximum(c) == maximum(Vcat([1], Fill(2,∞))) == 2
+        c[1:3] = 1:3;
+        @test maximum(c) == maximum(Vcat([1,2,3], Fill(2,∞))) == 3
+        @test minimum(c) == minimum(Vcat([1,2,3], Fill(2,∞))) == 1
+        @test sum([1; zeros(∞)]) ≡ 1.0
+        @test sum([1; ones(∞)]) ≡ 1.0∞
+    end
 end
 
 @testset "diagonal" begin
@@ -719,7 +739,7 @@ end
         A = Vcat(1, Zeros(∞))
         @test colsupport(A,1) == 1:1
         @test Base.replace_in_print_matrix(A, 2, 1, "0") == "⋅"
-        if VERSION ≤ v"1.5"
+        if VERSION < v"1.6-"
 			@test stringmime("text/plain", A; context=(:limit => true)) == 
 					"vcat($Int, ∞-element Zeros{Float64,1,Tuple{OneToInf{$Int}}} with indices OneToInf()) with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
 		else
@@ -755,6 +775,13 @@ end
         @test A[:,:] == A
         @test A[2:∞,2:∞] isa Vcat
         @test A[2:∞,2:∞][1:10,1:10] == fill(2,10,10)
+    end
+
+    @testset "adjoint copy"  begin
+        a = Vcat(1,(1:∞))'
+        b = transpose(Vcat(1,(1:∞)))
+        @test copy(a) ≡ a
+        @test copy(b) ≡ b
     end
 end
 
@@ -823,9 +850,12 @@ end
 
     for r in (3:4:∞, 2:∞, Base.OneTo(∞))
         c = cumsum(r)
-        @test c isa Cumsum
-        @test c[1:20] == [c[k] for k=1:20] == cumsum(r[1:20])
+        @test c isa InfiniteArrays.RangeCumsum
+        @test c[Base.OneTo(20)] == c[1:20] == [c[k] for k=1:20] == cumsum(r[1:20])
+        @test c[2:20] == [c[k] for k=2:20] == cumsum(r[1:20])[2:end]
         @test c == c
+        @test c[Base.OneTo(20)] isa InfiniteArrays.RangeCumsum
+        @test exp.(c)[1:20] == exp.(c[1:20])
     end
 
     @test cumsum(1:∞)[2:∞][1:5] == cumsum(1:6)[2:end]

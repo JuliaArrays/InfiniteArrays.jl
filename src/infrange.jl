@@ -428,22 +428,11 @@ broadcast(f, r::Transpose{<:Any,<:InfRanges}, a::Number) = transpose(broadcast(f
 
 
 # cumsum(r::InfRanges) = OneToInf() .* (first(r) .+ r) .÷ 2
-
-cumsum(r::InfRanges) = Cumsum(r)
-function getindex(c::Cumsum{<:Integer,1,<:InfStepRange}, k::Integer)
-    r = c.v
-    k * (first(r) + r[k]) ÷ 2
-end
-function getindex(c::Cumsum{<:Integer,1,<:AbstractInfUnitRange}, k::Integer)
-    r = c.v
-    k * (2first(r) + k - 1) ÷ 2
-end
-getindex(c::Cumsum{<:Integer,1,<:OneToInf}, k::Integer) = k * (k+1) ÷ 2
-
-
+cumsum(r::InfRanges) = RangeCumsum(r)
 diff(r::InfRanges) = Fill(step(r),∞)
 diff(r::OneToInf{T}) where T = Ones{T}(∞)
-
+Base.@propagate_inbounds getindex(c::RangeCumsum, kr::OneToInf) = RangeCumsum(c.range[kr])
+getindex(c::RangeCumsum{<:Any,<:OneToInf}, k::Integer) = k * (k+1) ÷ 2
 
 ##
 # conv
@@ -521,7 +510,7 @@ end
 ####
 
 MemoryLayout(::Type{<:AbstractInfUnitRange}) = LazyLayout()
-MemoryLayout(::Type{<:InfStepRange}) = LazyLayout()
+@inline MemoryLayout(::Type{<:InfStepRange}) = LazyLayout()
 
 
 ##

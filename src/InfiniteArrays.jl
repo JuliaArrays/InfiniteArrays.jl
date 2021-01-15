@@ -1,5 +1,5 @@
 module InfiniteArrays
-using Base, Statistics, LinearAlgebra, FillArrays, LazyArrays, DSP
+using Base, Statistics, LinearAlgebra, FillArrays, LazyArrays, DSP, ArrayLayouts
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
@@ -21,7 +21,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isl
          	AbstractArray, AbstractVector, Array, Vector, Matrix,
          	axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
          	diff, cumsum, show_delim_array, show_circular, Int,
-         	similar, _unsafe_getindex, string, zeros, fill, permutedims,
+         	similar, _unsafe_getindex, string, zeros, ones, fill, permutedims,
          	cat_similar, vcat, one, zero,
 		 	reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs,
             searchsorted, searchsortedfirst, searchsortedlast, Ordering, lt, Fix2, findfirst,
@@ -43,6 +43,7 @@ import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayou
                     reshapedlayout, sub_materialize, LayoutMatrix, LayoutVector, _padded_sub_materialize, PaddedLayout
 
 import DSP: conv
+import ArrayLayouts: RangeCumsum
 
 export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 
@@ -228,6 +229,7 @@ sub_materialize(_, V, ::Tuple{InfAxes,InfAxes}) = V
 sub_materialize(_, V, ::Tuple{<:Any,InfAxes}) = V
 sub_materialize(_, V, ::Tuple{InfAxes,Any}) = V
 
+sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractVector, ::Tuple{InfAxes}) = ApplyArray(V)
 sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{InfAxes,InfAxes}) = ApplyArray(V)
 sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{<:Any,InfAxes}) = ApplyArray(V)
 sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{InfAxes,Any}) = ApplyArray(V)
