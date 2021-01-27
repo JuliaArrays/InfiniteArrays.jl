@@ -953,6 +953,7 @@ end
     @test permutedims(1:∞)[1,1:10] == (1:10)
     a = reshape(Vcat(Fill(1,1,∞),Fill(2,2,∞)),∞)
     @test a[1:7] == [1, 2, 2, 1, 2, 2, 1]
+    @test permutedims(permutedims(1:∞)) ≡ 1:∞
 end
 
 @testset "norm/dot" begin
