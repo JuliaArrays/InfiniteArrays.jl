@@ -69,3 +69,10 @@ BroadcastStyle(::Type{<:ReshapedArray{T,2,<:Any,<:Tuple{<:Infinity,<:Any}}}) whe
 
 
 MemoryLayout(::Type{<:ReshapedArray{T,N,A,DIMS}}) where {T,N,A,DIMS} = reshapedlayout(MemoryLayout(A), DIMS)
+
+
+###
+# permutedims for reshaped unrolls
+###
+
+permutedims(R::ReshapedArray{<:Any,2,<:AbstractVector}) = parent(R)

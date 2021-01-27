@@ -218,6 +218,15 @@ function searchsortedlast(v::AbstractVector, x, lo::Int, hi::Infinity, o::Orderi
    return lo
 end
 
+# special case for Vcat
+@inline function LazyArrays.searchsortedlast_recursive(::Infinity, x, a, args...)
+    n = sum(map(length,args))
+    r = searchsortedlast(a, x)
+    r > 0 && return n + r
+    return LazyArrays.searchsortedlast_recursive(n, x, args...)
+end
+
+
 ##
 # lazy sub_materialize
 ##
