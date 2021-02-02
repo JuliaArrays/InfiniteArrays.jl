@@ -733,6 +733,9 @@ end
         @test [1; 2; 3; zeros(Int,∞)] isa CachedArray
         @test [[1,2]; 3; zeros(Int,∞)] isa CachedArray
         @test [2; [1,2]; 3; zeros(Int,∞)] isa CachedArray
+
+        @test [[1,2]; [3,4]; Zeros(∞)] isa Vcat{<:Any,1,<:Tuple{Array,Zeros}}
+        @test [[1,2]; [3,4]; [5,6]; Zeros(∞)] isa Vcat{<:Any,1,<:Tuple{Array,Zeros}}
     end
 
     @testset "sparse print" begin
