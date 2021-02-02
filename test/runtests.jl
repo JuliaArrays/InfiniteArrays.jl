@@ -736,6 +736,8 @@ end
 
         @test [[1,2]; [3,4]; Zeros(∞)] isa Vcat{<:Any,1,<:Tuple{Array,Zeros}}
         @test [[1,2]; [3,4]; [5,6]; Zeros(∞)] isa Vcat{<:Any,1,<:Tuple{Array,Zeros}}
+
+        @test [randn(2,2); Zeros(∞,2)] isa Vcat{<:Any,2,<:Tuple{Array,Zeros}}
     end
 
     @testset "sparse print" begin
