@@ -100,8 +100,10 @@ for Typ in (:Number, :AbstractVector)
    end
 end
 
-vcat(a::AbstractMatrix, b::AbstractFill{<:Any,2,<:Tuple{OneToInf,OneTo}}) =
-   Vcat(a, b)
+vcat(a::AbstractVector, b::AbstractVector, c::AbstractFill{<:Any,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b), c)
+vcat(a::AbstractVector, b::AbstractVector, c::AbstractVector, d::AbstractFill{<:Any,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b,c), d)
+
+vcat(a::AbstractMatrix, b::AbstractFill{<:Any,2,<:Tuple{OneToInf,OneTo}}) = Vcat(a, b)
 
 cat_similar(A, T, shape::Tuple{Infinity}) = zeros(T,∞)
 cat_similar(A::AbstractArray, T, shape::Tuple{Infinity}) =
