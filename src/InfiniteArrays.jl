@@ -13,7 +13,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isl
             exp, log, sqrt, cos, sin, tan, csc, sec, cot,
             cosh, sinh, tanh, csch, sech, coth, acos, asin, atan, acsc, asec, acot,
             acosh, asinh, atanh, acsch, asech, acoth, (:),
-            AbstractMatrix, AbstractArray, checkindex, unsafe_length, unsafe_indices, OneTo, oneto,
+            AbstractMatrix, AbstractArray, checkindex, unsafe_length, unsafe_indices, OneTo,
             to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots,
             checkindex, Slice, IdentityUnitRange, @propagate_inbounds, @_propagate_inbounds_meta,
          	_in_range, _range, _rangestyle, Ordered,
@@ -47,12 +47,39 @@ import ArrayLayouts: RangeCumsum
 
 export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 
-
+if VERSION ≥ v"1.6-"
+   import Base: unitrange, oneto
+end
 
 include("Infinity.jl")
 include("infrange.jl")
 include("infarrays.jl")
 include("reshapedarray.jl")
+
+if VERSION < v"1.6-"
+   ##
+   # Temporary hacks for base support
+   ##
+   Base.OneTo(::Infinity) = OneToInf()
+   function Base.OneTo(x::OrientedInfinity)
+      iszero(x.angle) && return oneto(∞)
+      throw(ArgumentError("Cannot create infinite range with negative length"))
+   end
+   function Base.OneTo(x::SignedInfinity)
+      signbit(x) || return oneto(∞)
+      throw(ArgumentError("Cannot create infinite range with negative length"))
+   end
+   Base.OneTo{T}(::Infinity) where T<:Integer = OneToInf{T}()
+   Base.UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
+   Base.UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
+   Base.OneTo(a::OneToInf) = a
+   Base.OneTo{T}(::OneToInf) where T<:Integer = OneToInf{T}()
+
+   Base.Int(::Infinity) = ∞
+
+   unitrange(a, b) = UnitRange(a, b)
+   oneto(n) = Base.OneTo(n)
+end
 
 ##
 # Fill FillArrays
@@ -143,28 +170,6 @@ reshape(parent::AbstractArray, shp::Tuple{Union{Integer,OneTo}, OneToInf, Vararg
 
 
 # cat_similar(A, T, ::Tuple{Infinity}) = zeros(T, ∞)
-
-if VERSION < v"1.6-"
-   ##
-   # Temporary hacks for base support
-   ##
-   OneTo(::Infinity) = OneToInf()
-   function OneTo(x::OrientedInfinity)
-      iszero(x.angle) && return OneTo(∞)
-      throw(ArgumentError("Cannot create infinite range with negative length"))
-   end
-   function OneTo(x::SignedInfinity)
-      signbit(x) || return OneTo(∞)
-      throw(ArgumentError("Cannot create infinite range with negative length"))
-   end
-   OneTo{T}(::Infinity) where T<:Integer = OneToInf{T}()
-   UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
-   UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
-   OneTo(a::OneToInf) = a
-   OneTo{T}(::OneToInf) where T<:Integer = OneToInf{T}()
-
-   Int(::Infinity) = ∞
-end
 
 axistype(::OneTo{T}, ::OneToInf{V}) where {T,V} = OneToInf{promote_type(T,V)}()
 axistype(::OneToInf{V}, ::OneTo{T}) where {T,V} = OneToInf{promote_type(T,V)}()

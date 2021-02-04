@@ -72,7 +72,7 @@ end
 InfUnitRange(a::InfUnitRange) = a
 InfUnitRange{T}(a::AbstractInfUnitRange) where T<:Real = InfUnitRange{T}(first(a))
 InfUnitRange(a::AbstractInfUnitRange{T}) where T<:Real = InfUnitRange{T}(first(a))
-Base.unitrange(a::AbstractInfUnitRange) = InfUnitRange(a)
+unitrange(a::AbstractInfUnitRange) = InfUnitRange(a)
 
 AbstractArray{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
 AbstractVector{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
