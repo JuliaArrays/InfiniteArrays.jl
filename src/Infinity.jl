@@ -376,3 +376,6 @@ Base.Checked.checked_add(x::SignedInfinity, ::Integer) = x
 
 
 Base.to_index(::Infinity) = ∞
+
+
+Base.hash(::Infinity) = 0x020113134b21797f # made up

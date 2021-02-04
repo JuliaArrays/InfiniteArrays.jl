@@ -1025,3 +1025,10 @@ end
         AbstractArray{Float64}(transpose(1:∞)) ≡ AbstractArray{Float64}(transpose(Base.OneTo(∞))) ≡ 
         transpose(InfUnitRange(1.0))
 end
+
+@testset "Set" begin
+    s = Set([∞,1])
+    @test 1 in s
+    @test ∞ in s
+    @test 2 ∉ s
+end
