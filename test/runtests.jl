@@ -1,5 +1,5 @@
 using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, LazyBandedMatrices, Test, Base64
-import InfiniteArrays: OrientedInfinity, SignedInfinity, InfUnitRange, InfStepRange, OneToInf, NotANumber
+import InfiniteArrays: OrientedInfinity, SignedInfinity, InfUnitRange, InfStepRange, OneToInf, NotANumber, oneto, unitrange
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport, DualLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
 import Base.Broadcast: broadcasted, Broadcasted, instantiate
@@ -42,7 +42,7 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
         @test string(∞) == "∞"
 
-        @test Base.OneTo(∞) == OneToInf()
+        @test oneto(∞) == OneToInf()
 
         @test isinf(∞)
         @test !isfinite(∞)
@@ -147,8 +147,8 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
         @test (-∞)*2 ≡ 2*(-∞) ≡ -2 * ∞ ≡ ∞ * (-2) ≡ (-2) * SignedInfinity() ≡ -∞
         @test (-∞)*2.3 ≡ 2.3*(-∞) ≡ -2.3 * ∞ ≡ ∞ * (-2.3) ≡ (-2.3) * SignedInfinity() ≡ -∞
 
-        @test Base.OneTo(1*∞) == OneToInf()
-        @test_throws ArgumentError Base.OneTo(-∞)
+        @test oneto(1*∞) == OneToInf()
+        @test_throws ArgumentError oneto(-∞)
 
         @test isinf(-∞)
         @test !isfinite(-∞)
@@ -190,6 +190,8 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
         @test exp(im*π/4)*∞ == Inf+im*Inf
         @test exp(im*π/4)+∞ == ∞
+
+        @test_throws ArgumentError oneto(exp(im*π/4)*∞)
     end
 end
 
@@ -234,9 +236,9 @@ end
         @test similar(a, Float64, ∞) isa CachedArray{Float64}
         @test similar(a, Float64, (∞,)) isa CachedArray{Float64}
         @test similar(a, Float64, (∞,∞)) isa CachedArray{Float64}
-        @test similar(a, Float64, Base.OneTo(∞)) isa CachedArray{Float64}
-        @test similar(a, Float64, (Base.OneTo(∞),)) isa CachedArray{Float64}
-        @test similar(a, Float64, (Base.OneTo(∞),Base.OneTo(∞))) isa CachedArray{Float64}
+        @test similar(a, Float64, oneto(∞)) isa CachedArray{Float64}
+        @test similar(a, Float64, (oneto(∞),)) isa CachedArray{Float64}
+        @test similar(a, Float64, (oneto(∞),oneto(∞))) isa CachedArray{Float64}
 
         @test similar([1,2,3],Float64,()) isa Array{Float64,0}
 
@@ -443,8 +445,8 @@ end
     end
 
     @testset "Base.OneTo (misleading) overrides" begin
-        @test Base.OneTo{BigInt}(∞) isa OneToInf{BigInt}
-        @test Base.OneTo(∞) isa OneToInf{Int}
+        @test_skip Base.OneTo{BigInt}(∞) isa OneToInf{BigInt}
+        @test oneto(∞) isa OneToInf{Int}
     end
 
     @testset "issue #6973" begin
@@ -501,6 +503,8 @@ end
 
         @test AbstractArray{Float64}(1:2:∞) ≡ AbstractVector{Float64}(1:2:∞) ≡ 
                 convert(AbstractVector{Float64}, 1:2:∞) ≡ convert(AbstractArray{Float64}, 1:2:∞)
+
+        @test unitrange(oneto(∞)) ≡ InfUnitRange(oneto(∞)) ≡ InfUnitRange{Int}(oneto(∞)) ≡ InfUnitRange(1)
     end
 
     @testset "inf-range[inf-range]" begin
@@ -545,7 +549,7 @@ end
     end
 
     @testset "end" begin
-        @test Base.OneTo(∞)[end] ≡ Base.OneTo(∞)[∞] ≡ ∞
+        @test oneto(∞)[end] ≡ oneto(∞)[∞] ≡ ∞
         @test (1:∞)[end] ≡ (1:∞)[∞] ≡ ∞
         @test (1:2:∞)[end] ≡ (1:2:∞)[∞] ≡ ∞
         @test (1.0:2:∞)[end] ≡ (1.0:2:∞)[∞] ≡ ∞
@@ -834,10 +838,10 @@ end
 @testset "Cumsum and diff" begin
     @test cumsum(Ones(∞)) ≡ 1.0:1.0:∞
     @test cumsum(Fill(2,∞)) ≡ 2:2:∞
-    @test cumsum(Ones{Int}(∞)) ≡ Base.OneTo(∞)
-    @test cumsum(Ones{BigInt}(∞)) ≡ Base.OneTo{BigInt}(∞)
+    @test cumsum(Ones{Int}(∞)) ≡ oneto(∞)
+    @test cumsum(Ones{BigInt}(∞)) ≡ OneToInf{BigInt}()
 
-    @test diff(Base.OneTo(∞)) ≡ Ones{Int}(∞)
+    @test diff(oneto(∞)) ≡ Ones{Int}(∞)
     @test diff(1:∞) ≡ Fill(1,∞)
     @test diff(1:2:∞) ≡ Fill(2,∞)
     @test diff(1:2.0:∞) ≡ Fill(2.0,∞)
@@ -853,7 +857,7 @@ end
     @test cumsum(x).args[2] ≡ 8:12
     @test last(y.args) == sum(x[1:9]):2:∞
 
-    for r in (3:4:∞, 2:∞, Base.OneTo(∞))
+    for r in (3:4:∞, 2:∞, oneto(∞))
         c = cumsum(r)
         @test c isa InfiniteArrays.RangeCumsum
         @test c[Base.OneTo(20)] == c[1:20] == [c[k] for k=1:20] == cumsum(r[1:20])
@@ -877,8 +881,8 @@ end
     @test conv(1:2:∞, [2]) ≡ conv([2], 1:2:∞) ≡ 2:4:∞
     @test conv(1:∞, Ones(∞))[1:5] == conv(Ones(∞),1:∞)[1:5] == [1,3,6,10,15]
     @test conv(Ones(∞), Ones(∞)) ≡ 1.0:1.0:∞
-    @test conv(Ones{Int}(∞), Ones{Int}(∞)) ≡ Base.OneTo(∞)
-    @test conv(Ones{Bool}(∞), Ones{Bool}(∞)) ≡ Base.OneTo(∞)
+    @test conv(Ones{Int}(∞), Ones{Int}(∞)) ≡ oneto(∞)
+    @test conv(Ones{Bool}(∞), Ones{Bool}(∞)) ≡ oneto(∞)
     @test conv(Fill{Int}(2,∞), Fill{Int}(1,∞)) ≡ conv(Fill{Int}(2,∞), Ones{Int}(∞)) ≡ 
                 conv(Ones{Int}(∞), Fill{Int}(2,∞)) ≡ 2:2:∞
     @test conv(Ones{Int}(∞), [1,5,8])[1:10] == conv([1,5,8], Ones{Int}(∞))[1:10] == 
@@ -1008,21 +1012,21 @@ end
 end
 
 @testset "convert infrange" begin
-    @test convert(AbstractArray{Float64}, 1:∞) ≡ convert(AbstractArray{Float64}, Base.OneTo(∞)) ≡ 
-        convert(AbstractVector{Float64}, 1:∞) ≡ convert(AbstractVector{Float64}, Base.OneTo(∞)) ≡
-        AbstractVector{Float64}(1:∞) ≡ AbstractVector{Float64}(Base.OneTo(∞)) ≡
-        AbstractArray{Float64}(1:∞) ≡ AbstractArray{Float64}(Base.OneTo(∞)) ≡ InfUnitRange(1.0)
+    @test convert(AbstractArray{Float64}, 1:∞) ≡ convert(AbstractArray{Float64}, oneto(∞)) ≡ 
+        convert(AbstractVector{Float64}, 1:∞) ≡ convert(AbstractVector{Float64}, oneto(∞)) ≡
+        AbstractVector{Float64}(1:∞) ≡ AbstractVector{Float64}(oneto(∞)) ≡
+        AbstractArray{Float64}(1:∞) ≡ AbstractArray{Float64}(oneto(∞)) ≡ InfUnitRange(1.0)
 
-    @test convert(AbstractArray{Float64}, (1:∞)') ≡ convert(AbstractArray{Float64}, Base.OneTo(∞)') ≡ 
-        convert(AbstractMatrix{Float64}, (1:∞)') ≡ convert(AbstractMatrix{Float64}, Base.OneTo(∞)') ≡
-        AbstractMatrix{Float64}((1:∞)') ≡ AbstractMatrix{Float64}(Base.OneTo(∞)') ≡ 
-        AbstractArray{Float64}((1:∞)') ≡ AbstractArray{Float64}(Base.OneTo(∞)') ≡ 
+    @test convert(AbstractArray{Float64}, (1:∞)') ≡ convert(AbstractArray{Float64}, oneto(∞)') ≡ 
+        convert(AbstractMatrix{Float64}, (1:∞)') ≡ convert(AbstractMatrix{Float64}, oneto(∞)') ≡
+        AbstractMatrix{Float64}((1:∞)') ≡ AbstractMatrix{Float64}(oneto(∞)') ≡ 
+        AbstractArray{Float64}((1:∞)') ≡ AbstractArray{Float64}(oneto(∞)') ≡ 
         InfUnitRange(1.0)'
 
-    @test convert(AbstractArray{Float64}, transpose(1:∞)) ≡ convert(AbstractArray{Float64}, transpose(Base.OneTo(∞))) ≡ 
-        convert(AbstractMatrix{Float64}, transpose(1:∞)) ≡ convert(AbstractMatrix{Float64}, transpose(Base.OneTo(∞))) ≡
-        AbstractMatrix{Float64}(transpose(1:∞)) ≡ AbstractMatrix{Float64}(transpose(Base.OneTo(∞))) ≡ 
-        AbstractArray{Float64}(transpose(1:∞)) ≡ AbstractArray{Float64}(transpose(Base.OneTo(∞))) ≡ 
+    @test convert(AbstractArray{Float64}, transpose(1:∞)) ≡ convert(AbstractArray{Float64}, transpose(oneto(∞))) ≡ 
+        convert(AbstractMatrix{Float64}, transpose(1:∞)) ≡ convert(AbstractMatrix{Float64}, transpose(oneto(∞))) ≡
+        AbstractMatrix{Float64}(transpose(1:∞)) ≡ AbstractMatrix{Float64}(transpose(oneto(∞))) ≡ 
+        AbstractArray{Float64}(transpose(1:∞)) ≡ AbstractArray{Float64}(transpose(oneto(∞))) ≡ 
         transpose(InfUnitRange(1.0))
 end
 

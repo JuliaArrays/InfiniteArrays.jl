@@ -71,6 +71,9 @@ end
 
 InfUnitRange(a::InfUnitRange) = a
 InfUnitRange{T}(a::AbstractInfUnitRange) where T<:Real = InfUnitRange{T}(first(a))
+InfUnitRange(a::AbstractInfUnitRange{T}) where T<:Real = InfUnitRange{T}(first(a))
+unitrange(a::AbstractInfUnitRange) = InfUnitRange(a)
+
 AbstractArray{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
 AbstractVector{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
 AbstractArray{T}(a::InfStepRange) where T<:Real = InfStepRange(convert(T,a.start), convert(T,a.step))
@@ -97,6 +100,15 @@ be 1 and ∞.
 struct OneToInf{T<:Integer} <: AbstractInfUnitRange{T} end
 
 OneToInf() = OneToInf{Int}()
+oneto(::Infinity) = OneToInf()
+function oneto(x::OrientedInfinity)
+    iszero(x.angle) && return oneto(∞)
+    throw(ArgumentError("Cannot create infinite range with negative length"))
+ end
+ function oneto(x::SignedInfinity)
+    signbit(x) || return oneto(∞)
+    throw(ArgumentError("Cannot create infinite range with negative length"))
+ end
 
 AbstractArray{T}(a::OneToInf) where T<:Integer = OneToInf{T}()
 AbstractVector{T}(a::OneToInf) where T<:Integer = OneToInf{T}()

@@ -85,7 +85,7 @@ cld(x::T, ::Infinity) where T<:Real = signbit(x) ? zero(T) : one(T)
 
 mod(::Infinity, ::Infinity) = NotANumber()
 mod(::Infinity, ::Real) = NotANumber()
-function mod(x::Real, ::Infinity) 
+function mod(x::Real, ::Infinity)
     x ≥ 0 || throw(ArgumentError("mod(x,∞) is unbounded for x < 0"))
     x
 end
@@ -139,7 +139,7 @@ sign(y::SignedInfinity) = 1-2signbit(y)
 angle(x::SignedInfinity) = π*signbit(x)
 mod(::SignedInfinity, ::SignedInfinity) = NotANumber()
 mod(::SignedInfinity, ::Real) = NotANumber()
-function mod(x::Real, y::SignedInfinity) 
+function mod(x::Real, y::SignedInfinity)
     signbit(x) == signbit(y) || throw(ArgumentError("mod($x,$y) is unbounded"))
     x
 end
@@ -163,7 +163,7 @@ for Typ in (:Number, :Real, :Integer, :AbstractFloat)
         +(y::SignedInfinity, ::$Typ) = y
         -(y::SignedInfinity, ::$Typ) = y
         -(::$Typ, y::SignedInfinity) = -y
-        function *(a::$Typ, y::SignedInfinity) 
+        function *(a::$Typ, y::SignedInfinity)
             iszero(a) && throw(ArgumentError("Cannot multiply $a * $y"))
             a > 0 ? y : (-y)
         end
@@ -182,17 +182,17 @@ end
 
 
 
-function -(::Infinity, y::SignedInfinity) 
+function -(::Infinity, y::SignedInfinity)
     signbit(y) || throw(ArgumentError("Cannot subtract ∞ from ∞"))
     ∞
 end
 
-function -(x::SignedInfinity, ::Infinity) 
+function -(x::SignedInfinity, ::Infinity)
     signbit(x) || throw(ArgumentError("Cannot subtract ∞ from ∞"))
     x
 end
 
-function -(x::SignedInfinity, y::SignedInfinity) 
+function -(x::SignedInfinity, y::SignedInfinity)
     signbit(x) == !signbit(y) || throw(ArgumentError("Cannot subtract ∞ from ∞"))
     x
 end
@@ -376,6 +376,6 @@ Base.Checked.checked_add(x::SignedInfinity, ::Integer) = x
 
 
 Base.to_index(::Infinity) = ∞
-
+Base.to_shape(::Infinity) = ∞
 
 Base.hash(::Infinity) = 0x020113134b21797f # made up

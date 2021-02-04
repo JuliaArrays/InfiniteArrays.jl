@@ -47,12 +47,39 @@ import ArrayLayouts: RangeCumsum
 
 export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 
-
+if VERSION ≥ v"1.6-"
+   import Base: unitrange, oneto
+end
 
 include("Infinity.jl")
 include("infrange.jl")
 include("infarrays.jl")
 include("reshapedarray.jl")
+
+if VERSION < v"1.6-"
+   ##
+   # Temporary hacks for base support
+   ##
+   Base.OneTo(::Infinity) = OneToInf()
+   function Base.OneTo(x::OrientedInfinity)
+      iszero(x.angle) && return oneto(∞)
+      throw(ArgumentError("Cannot create infinite range with negative length"))
+   end
+   function Base.OneTo(x::SignedInfinity)
+      signbit(x) || return oneto(∞)
+      throw(ArgumentError("Cannot create infinite range with negative length"))
+   end
+   Base.OneTo{T}(::Infinity) where T<:Integer = OneToInf{T}()
+   Base.UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
+   Base.UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
+   Base.OneTo(a::OneToInf) = a
+   Base.OneTo{T}(::OneToInf) where T<:Integer = OneToInf{T}()
+
+   Base.Int(::Infinity) = ∞
+
+   unitrange(a, b) = UnitRange(a, b)
+   oneto(n) = Base.OneTo(n)
+end
 
 ##
 # Fill FillArrays
@@ -105,10 +132,14 @@ vcat(a::AbstractVector, b::AbstractVector, c::AbstractVector, d::AbstractFill{<:
 
 vcat(a::AbstractMatrix, b::AbstractFill{<:Any,2,<:Tuple{OneToInf,OneTo}}) = Vcat(a, b)
 
-cat_similar(A, T, shape::Tuple{Infinity}) = zeros(T,∞)
-cat_similar(A::AbstractArray, T, shape::Tuple{Infinity}) =
-   Base.invoke(cat_similar, Tuple{AbstractArray, Any, Any}, A, T, shape)
-
+cat_similar(A, ::Type{T}, shape::Tuple{Infinity}) where T = zeros(T,∞)
+if VERSION < v"1.6-"
+   cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{Infinity}) where T =
+      Base.invoke(cat_similar, Tuple{AbstractArray, Any, Any}, A, T, shape)
+else
+   cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{Infinity}) where T =
+      Base.invoke(cat_similar, Tuple{AbstractArray, Type{T}, Any}, A, T, shape)
+end
 function Base.__cat(A, shape::NTuple{N,Infinity}, catdims, X...) where N
    offsets = zeros(Union{Int,Infinity}, N)
    inds = Vector{Union{UnitRange{Int},InfUnitRange{Int}}}(undef, N)
@@ -139,26 +170,6 @@ reshape(parent::AbstractArray, shp::Tuple{Union{Integer,OneTo}, OneToInf, Vararg
 
 
 # cat_similar(A, T, ::Tuple{Infinity}) = zeros(T, ∞)
-
-##
-# Temporary hacks for base support
-##
-OneTo(::Infinity) = OneToInf()
-function OneTo(x::OrientedInfinity)
-    iszero(x.angle) && return OneTo(∞)
-    throw(ArgumentError("Cannot create infinite range with negative length"))
-end
-function OneTo(x::SignedInfinity)
-   signbit(x) || return OneTo(∞)
-   throw(ArgumentError("Cannot create infinite range with negative length"))
-end
-OneTo{T}(::Infinity) where T<:Integer = OneToInf{T}()
-UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
-UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
-OneTo(a::OneToInf) = a
-OneTo{T}(::OneToInf) where T<:Integer = OneToInf{T}()
-
-Int(::Infinity) = ∞
 
 axistype(::OneTo{T}, ::OneToInf{V}) where {T,V} = OneToInf{promote_type(T,V)}()
 axistype(::OneToInf{V}, ::OneTo{T}) where {T,V} = OneToInf{promote_type(T,V)}()
