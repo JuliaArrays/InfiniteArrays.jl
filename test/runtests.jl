@@ -1,5 +1,5 @@
 using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, LazyBandedMatrices, Test, Base64
-import InfiniteArrays: OrientedInfinity, SignedInfinity, InfUnitRange, InfStepRange, OneToInf, NotANumber, oneto
+import InfiniteArrays: OrientedInfinity, SignedInfinity, InfUnitRange, InfStepRange, OneToInf, NotANumber, oneto, unitrange
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport, DualLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
 import Base.Broadcast: broadcasted, Broadcasted, instantiate
@@ -190,6 +190,8 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
         @test exp(im*π/4)*∞ == Inf+im*Inf
         @test exp(im*π/4)+∞ == ∞
+
+        @test_throws ArgumentError oneto(exp(im*π/4)*∞)
     end
 end
 
@@ -501,6 +503,8 @@ end
 
         @test AbstractArray{Float64}(1:2:∞) ≡ AbstractVector{Float64}(1:2:∞) ≡ 
                 convert(AbstractVector{Float64}, 1:2:∞) ≡ convert(AbstractArray{Float64}, 1:2:∞)
+
+        unitrange(oneto(∞)) ≡ InfUnitRange(oneto(∞)) ≡ InfUnitRange{Int}(oneto(∞)) ≡ InfUnitRange(1)
     end
 
     @testset "inf-range[inf-range]" begin
