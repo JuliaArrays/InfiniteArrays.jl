@@ -1,6 +1,7 @@
 # InfiniteArrays.jl
 
-[![Travis](https://travis-ci.org/JuliaArrays/InfiniteArrays.jl.svg?branch=master)](https://travis-ci.org/JuliaArrays/InfiniteArrays.jl)
+
+[![Build Status](https://github.com/JuliaArrays/InfiniteArrays.jl/workflows/CI/badge.svg)](https://github.com/JuliaArrays/InfiniteArrays.jl/actions)
 [![codecov](https://codecov.io/gh/JuliaArrays/InfiniteArrays.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaArrays/InfiniteArrays.jl)
 
 
