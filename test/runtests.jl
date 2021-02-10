@@ -843,12 +843,12 @@ end
         @test view(V,5,:) .+ 1 isa BroadcastVector
         
         @test view(D,2:∞,2:∞) .+ 1 isa BroadcastMatrix
-        @test view(H,2:∞,2:∞) .+ 1 isa BroadcastMatrix
+        @test view(V,2:∞,2:∞) .+ 1 isa BroadcastMatrix
 
         @test view(D,2:∞,[1,2,3]) .+ 1 isa BroadcastMatrix
         @test view(D,[1,2,3],2:∞) .+ 1 isa BroadcastMatrix
-        @test view(H,2:∞,[1,2,3]) .+ 1 isa BroadcastMatrix
-        @test view(H,[1,2,3],2:∞) .+ 1 isa BroadcastMatrix
+        @test view(V,2:∞,[1,2,3]) .+ 1 isa BroadcastMatrix
+        @test view(V,[1,2,3],2:∞) .+ 1 isa BroadcastMatrix
     end
 end
 
