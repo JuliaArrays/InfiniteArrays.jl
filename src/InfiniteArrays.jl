@@ -39,7 +39,7 @@ import Statistics: mean, median
 
 import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal
 import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
-                    ZerosLayout, AbstractArrayApplyStyle, CachedArray, CachedVector, ApplyLayout,
+                    ZerosLayout, AbstractArrayApplyStyle, CachedArray, CachedVector, ApplyLayout, LazyMatrix,
                     reshapedlayout, sub_materialize, LayoutMatrix, LayoutVector, _padded_sub_materialize, PaddedLayout
 
 import DSP: conv
