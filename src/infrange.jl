@@ -133,11 +133,11 @@ unsafe_length(r::InfRanges) = ℵ₀
 
 first(r::OneToInf{T}) where {T} = oneunit(T)
 
-last(r::AbstractInfUnitRange) = ∞
+last(r::AbstractInfUnitRange) = ℵ₀
 last(r::InfStepRange) = sign(step(r))*∞
 
 minimum(r::InfUnitRange) = first(r)
-maximum(r::InfUnitRange) = last(r)
+maximum(r::InfUnitRange) = ℵ₀
 
 
 ## iteration
@@ -179,14 +179,28 @@ end
 
 function getindex(x::AbstractUnitRange, y::PosInfinity)
     isinf(length(x)) || throw(BoundsError(x,y))
-    ∞
+    ℵ₀
 end
 
-getindex(::AbstractInfUnitRange, ::Infinity) = ∞
-getindex(::OneToInf, ::Infinity) = ∞
-getindex(v::InfUnitRange{T}, i::Infinity) where T = ∞
-getindex(v::OneToInf{T}, i::Infinity) where T = ∞
-getindex(v::InfStepRange{T}, i::Infinity) where T = ∞
+function getindex(x::OneToInf{T}, y::PosInfinity) where T
+    isinf(length(x)) || throw(BoundsError(x,y))
+    ℵ₀
+end
+
+function getindex(x::InfStepRange{T}, y::PosInfinity) where T
+    isinf(length(x)) || throw(BoundsError(x,y))
+    ℵ₀
+end
+function getindex(x::InfUnitRange{T}, y::PosInfinity) where T
+    isinf(length(x)) || throw(BoundsError(x,y))
+    ℵ₀
+end
+
+getindex(::AbstractInfUnitRange, ::Infinity) = ℵ₀
+getindex(::OneToInf, ::Infinity) = ℵ₀
+getindex(v::InfUnitRange{T}, i::Infinity) where T = ℵ₀
+getindex(v::OneToInf{T}, i::Infinity) where T = ℵ₀
+getindex(v::InfStepRange{T}, i::Infinity) where T = ℵ₀
 
 function getindex(r::AbstractInfUnitRange, s::AbstractInfUnitRange{<:Integer})
     f = first(r)

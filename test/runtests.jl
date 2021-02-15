@@ -218,8 +218,8 @@ end
     end
 
     @testset "sums of ranges" begin
-        @test sum(1:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ∞
-        @test sum(0:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ∞
+        @test sum(1:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ℵ₀
+        @test sum(0:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ℵ₀
         @test sum(0:2:∞) ≡ mean(0:2:∞) ≡ median(0:2:∞) ≡ RealInfinity(∞)
         @test sum(0:-2:-∞) ≡ mean(0:-2:-∞) ≡ median(0:-2:-∞) ≡ -∞
     end
@@ -334,7 +334,7 @@ end
             @test first(r) == 1
             @test last(r) == ∞
             @test minimum(r) == 1
-            @test maximum(r) == ∞
+            @test maximum(r) == ℵ₀
             @test r[2] == 2
             @test r[2:3] === 2:3
             @test_throws BoundsError r[0]
@@ -359,10 +359,10 @@ end
     end
 
     @testset "end" begin
-        @test oneto(∞)[end] ≡ oneto(∞)[∞] ≡ ∞
-        @test (1:∞)[end] ≡ (1:∞)[∞] ≡ ∞
-        @test (1:2:∞)[end] ≡ (1:2:∞)[∞] ≡ ∞
-        @test (1.0:2:∞)[end] ≡ (1.0:2:∞)[∞] ≡ ∞
+        @test oneto(∞)[end] ≡ oneto(∞)[∞] ≡ ℵ₀
+        @test (1:∞)[end] ≡ (1:∞)[∞] ≡ ℵ₀
+        @test (1:2:∞)[end] ≡ (1:2:∞)[∞] ≡ ℵ₀
+        @test (1.0:2:∞)[end] ≡ (1.0:2:∞)[∞] ≡ ℵ₀
     end
 
     @testset "union" begin

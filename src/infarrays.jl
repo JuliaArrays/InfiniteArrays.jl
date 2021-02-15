@@ -253,3 +253,8 @@ _vcat(a) = a
 _vcat(a, b, c...) = Vcat(a, b, c...)
 getindex(A::Vcat, r::InfUnitRange) = Base.invoke(getindex, Tuple{AbstractArray, Any}, A, r)
 _unsafe_getindex(::IndexLinear, A::Vcat, r::InfUnitRange) = _vcat(_gettail(first(r), A.args...)...)
+
+
+getindex(A::AbstractVector, r::InfRanges{<:Integer}) = layout_getindex(A, r)
+getindex(A::LayoutVector, r::InfRanges{<:Integer}) = layout_getindex(A, r)
+getindex(A::AbstractFill{<:Any,1}, r::InfRanges{<:Integer}) = FillArrays.fillsimilar(A, length(r))
