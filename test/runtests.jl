@@ -1,4 +1,4 @@
-using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, LazyBandedMatrices, Test, Base64
+using LinearAlgebra, SparseArrays, InfiniteArrays, Infinities, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, LazyBandedMatrices, Test, Base64
 import InfiniteArrays: InfUnitRange, InfStepRange, OneToInf, NotANumber, oneto, unitrange
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport, DualLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
@@ -60,16 +60,16 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
     @testset "zeros/fill/ones" begin
         a = zeros(1,∞)
-        @test length(a) === ∞
-        @test size(a) === (1,∞)
+        @test length(a) === ℵ₀
+        @test size(a) === (1,ℵ₀)
         @test a isa CachedArray{Float64}
         @test all(iszero,a[1,1:100])
         a[5] = 1
         @test a[1,1:100] == [zeros(4); 1; zeros(95)]
 
         a = fill(1,∞)
-        @test length(a) === ∞
-        @test size(a) === (∞,)
+        @test length(a) === ℵ₀
+        @test size(a) === (ℵ₀,)
         @test a isa CachedArray{Int}
         @test all(x -> x===1,a[1:100])
         a[5] = 2
@@ -87,12 +87,12 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
 end
 
 @testset "ranges" begin
-    @test size(10:1:∞) == (∞,)
+    @test size(10:1:∞) == (ℵ₀,)
     @testset "colon" begin
-        @test @inferred(10:1:∞) === @inferred(range(10; step=1, length=∞))
-        @inferred(1:0.2:∞)  === @inferred(range(1; step=0.2, length=∞))
-        @inferred(1.0:0.2:∞)  === @inferred(range(1.0; step=0.2, length=∞))
-        @inferred(1:∞) === @inferred(range(1; length=∞))
+        @test @inferred(10:1:∞) === @inferred(range(10; step=1, length=ℵ₀))
+        @inferred(1:0.2:∞)  === @inferred(range(1; step=0.2, length=ℵ₀))
+        @inferred(1.0:0.2:∞)  === @inferred(range(1.0; step=0.2, length=ℵ₀))
+        @inferred(1:∞) === @inferred(range(1; length=ℵ₀))
     end
     @test_throws ArgumentError 2:-.2:∞
     @test_throws ArgumentError 0.0:-∞
@@ -128,14 +128,14 @@ end
         @test_throws BoundsError (1:∞)[8:-1:-2]
     end
     @testset "length" begin
-        @test length(.1:.1:∞) == ∞
-        @test length(1.1:1.1:∞) == ∞
-        @test length(1.1:1.3:∞) == ∞
-        @test length(1:1:∞) == ∞
-        @test length(1:.2:∞) == ∞
-        @test length(1.:.2:∞) == ∞
-        @test length(2:-.2:-∞) == ∞
-        @test length(2.:-.2:-∞) == ∞
+        @test length(.1:.1:∞) == ℵ₀
+        @test length(1.1:1.1:∞) == ℵ₀
+        @test length(1.1:1.3:∞) == ℵ₀
+        @test length(1:1:∞) == ℵ₀
+        @test length(1:.2:∞) == ℵ₀
+        @test length(1.:.2:∞) == ℵ₀
+        @test length(2:-.2:-∞) == ℵ₀
+        @test length(2.:-.2:-∞) == ℵ₀
     end
 
     @testset "intersect" begin
@@ -328,8 +328,8 @@ end
     @testset "OneToInf" begin
         let r = OneToInf()
             @test !isempty(r)
-            @test length(r) == ∞
-            @test size(r) == (∞,)
+            @test length(r) == ℵ₀
+            @test size(r) == (ℵ₀,)
             @test step(r) == 1
             @test first(r) == 1
             @test last(r) == ∞
@@ -354,7 +354,7 @@ end
 
     @testset "show" begin
         # NOTE: Interpolating Int to ensure it's displayed properly across 32- and 64-bit
-        @test summary(1:∞) == "∞-element InfUnitRange{$Int} with indices OneToInf()"
+        @test summary(1:∞) == "ℵ₀-element InfUnitRange{$Int} with indices OneToInf()"
         @test Base.inds2string(axes(1:∞)) == "OneToInf()"
     end
 
@@ -391,21 +391,21 @@ end
                     Zeros(5,∞), Ones(5,∞), Fill(1,5,∞),
                     Zeros(∞,5), Ones(∞,5), Fill(1,∞,5),
                     Zeros(∞,∞), Ones(∞,∞), Fill(1,∞,∞))
-            @test length(A) ≡ ∞
+            @test length(A) ≡ ℵ₀
         end
-        @test size(Zeros(∞,5)) ≡ (∞,5)
-        @test size(Zeros(5,∞)) ≡ (5,∞)
+        @test size(Zeros(∞,5)) ≡ (ℵ₀,5)
+        @test size(Zeros(5,∞)) ≡ (5,ℵ₀)
     end
 
     @testset "Fill indexing" begin
         B = Ones(∞,∞)
         @test IndexStyle(B) == IndexCartesian()
         V = view(B,:,1)
-        @test_broken size(V) == (∞,1)
+        @test_broken size(V) == (ℵ₀,1)
         V = view(B,1,:)
-        @test size(V) == (∞,)
+        @test size(V) == (ℵ₀,)
         V = view(B,1:1,:)
-        @test size(V) == (1,∞)
+        @test size(V) == (1,ℵ₀)
     end
 
     @testset "Fill reindex" begin
@@ -466,26 +466,26 @@ end
 @testset "concat" begin
     @testset "concat indexing" begin
         A = Vcat(1:10, 1:∞)
-        @test @inferred(length(A)) == ∞
+        @test @inferred(length(A)) == ℵ₀
         @test @inferred(A[5]) == A[15] == 5
         @test A[end] == @inferred(A[∞]) == ∞
         @test_throws BoundsError Vcat(1:10)[∞]
 
         A = Vcat(Ones(1,∞), Zeros(2,∞))
-        @test @inferred(size(A)) == (3,∞)
+        @test @inferred(size(A)) == (3,ℵ₀)
         @test @inferred(A[1,5]) == 1
         @test @inferred(A[3,5]) == 0
         @test_throws BoundsError A[4,1]
 
         A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
-        @test @inferred(size(A)) ≡ (∞,∞)
+        @test @inferred(size(A)) ≡ (ℵ₀,ℵ₀)
         @test @inferred(A[1,5]) ≡ 1
         @test @inferred(A[5,5]) ≡ 0
         @test @inferred(A[6,5]) ≡ 5
         @test_throws BoundsError A[-1,1]
 
         A = Vcat(Ones{Float64}(1,∞), Diagonal(1:∞))
-        @test @inferred(size(A)) ≡ (∞,∞)
+        @test @inferred(size(A)) ≡ (ℵ₀,ℵ₀)
         @test @inferred(A[1,5]) ≡ 1.0
         @test @inferred(A[5,5]) ≡ 0.0
         @test @inferred(A[6,5]) ≡ 5.0
@@ -496,13 +496,13 @@ end
         @test @inferred(A[2]) ≡ 0.0
 
         A = Hcat(Ones(∞), Zeros(∞,2))
-        @test @inferred(size(A)) == (∞,3)
+        @test @inferred(size(A)) == (ℵ₀,3)
         @test @inferred(A[5,1]) == 1
         @test @inferred(A[5,3]) == 0
         @test_throws BoundsError A[1,4]
 
         A = Hcat(Ones{Int}(∞), Diagonal(1:∞))
-        @test @inferred(size(A)) ≡ (∞,∞)
+        @test @inferred(size(A)) ≡ (ℵ₀,ℵ₀)
         @test @inferred(A[5,1]) ≡ 1
         @test @inferred(A[5,5]) ≡ 0
         @test @inferred(A[5,6]) ≡ 5
@@ -522,7 +522,7 @@ end
             Vcat(1,Zeros{Int}(∞)) .+ Vcat(3,Zeros{Int}(∞)) ≡
             Vcat(4,Zeros{Int}(∞))
 
-            size(Vcat(1:∞)) ≡ (∞,)
+            size(Vcat(1:∞)) ≡ (ℵ₀,)
     end
 
     @testset "Vcat infrange getindex" begin
@@ -560,10 +560,10 @@ end
         @test Base.replace_in_print_matrix(A, 2, 1, "0") == "⋅"
         if VERSION < v"1.6-"
 			@test stringmime("text/plain", A; context=(:limit => true)) == 
-					"vcat($Int, ∞-element Zeros{Float64,1,Tuple{OneToInf{$Int}}} with indices OneToInf()) with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
+					"vcat($Int, ℵ₀-element Zeros{Float64,1,Tuple{OneToInf{$Int}}} with indices OneToInf()) with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
 		else
 			@test stringmime("text/plain", A; context=(:limit => true)) == 
-					"vcat($Int, ∞-element Zeros{Float64, 1, Tuple{OneToInf{$Int}}} with indices OneToInf()) with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
+					"vcat($Int, ℵ₀-element Zeros{Float64, 1, Tuple{OneToInf{$Int}}} with indices OneToInf()) with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
 		end
         A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
         @test Base.replace_in_print_matrix(A, 2, 2, "0") == "⋅"
@@ -608,7 +608,7 @@ end
     @testset "∞ BroadcastArray" begin
         A = 1:∞
         B = BroadcastArray(exp, A)
-        @test length(B) == ∞
+        @test length(B) == ℵ₀
         @test B[6] == exp(6)
         @test exp.(A) ≡ B
         @test B[2:∞] isa BroadcastArray
@@ -745,7 +745,7 @@ end
 
     AB = A*B
     @test AB isa BroadcastArray
-    @test size(AB) == (3,∞)
+    @test size(AB) == (3,ℵ₀)
     @test (AB)[1:3,1:10] == Fill(1,3,10)*Diagonal(1:10)
 
     @test A*B*C isa ApplyArray
@@ -761,12 +761,12 @@ end
     @test MemoryLayout(OneToInf{Int}) == LazyLayout()
     @test MemoryLayout(0:∞) == LazyLayout()
     @test MemoryLayout((0:∞)') == DualLayout{LazyLayout}()
-    A = _BandedMatrix((0:∞)', ∞, -1, 1)
+    A = _BandedMatrix((0:∞)', ℵ₀, -1, 1)
     @test MemoryLayout(A) == BandedColumns{LazyLayout}()
 end
 
 @testset "Banded" begin
-    A = _BandedMatrix((0:∞)', ∞, -1, 1)
+    A = _BandedMatrix((0:∞)', ℵ₀, -1, 1)
     @test (Eye{Int}(∞) * A).data ≡ A.data
     @test 2.0A isa BandedMatrix
     @test (2.0A)[1:10,1:10] == 2.0A[1:10,1:10]
@@ -783,8 +783,8 @@ end
 
 @testset "reshaped" begin
     @test InfiniteArrays.ReshapedArray(1:6,(2,3)) == [1 3 5; 2 4 6]
-    @test InfiniteArrays.ReshapedArray(1:∞,(1,∞))[1,1:10] == 1:10
-    @test reshape(1:∞,1,∞) === InfiniteArrays.ReshapedArray(1:∞,(1,∞))
+    @test InfiniteArrays.ReshapedArray(1:∞,(1,ℵ₀))[1,1:10] == 1:10
+    @test reshape(1:∞,1,∞) === InfiniteArrays.ReshapedArray(1:∞,(1,ℵ₀))
     @test permutedims(1:∞) isa InfiniteArrays.ReshapedArray
     @test permutedims(1:∞)[1,1:10] == (1:10)
     a = reshape(Vcat(Fill(1,1,∞),Fill(2,2,∞)),∞)
@@ -826,18 +826,6 @@ end
     @test searchsortedlast(Vcat(2,3:∞),0) == 0
 end
 
-@testset "checked" begin
-    @test Base.Checked.checked_sub(1,∞) === -∞
-    @test Base.Checked.checked_sub(∞,1) === ∞
-    @test Base.Checked.checked_add(1,∞) === ∞
-    @test Base.Checked.checked_add(∞,1) === ∞
-
-    @test Base.Checked.checked_sub(1,-∞) === RealInfinity(false)
-    @test Base.Checked.checked_sub(-∞,1) === -∞
-    @test Base.Checked.checked_add(1,-∞) === -∞
-    @test Base.Checked.checked_add(-∞,1) === -∞
-end
-
 @testset "convert infrange" begin
     @test convert(AbstractArray{Float64}, 1:∞) ≡ convert(AbstractArray{Float64}, oneto(∞)) ≡ 
         convert(AbstractVector{Float64}, 1:∞) ≡ convert(AbstractVector{Float64}, oneto(∞)) ≡
@@ -855,11 +843,4 @@ end
         AbstractMatrix{Float64}(transpose(1:∞)) ≡ AbstractMatrix{Float64}(transpose(oneto(∞))) ≡ 
         AbstractArray{Float64}(transpose(1:∞)) ≡ AbstractArray{Float64}(transpose(oneto(∞))) ≡ 
         transpose(InfUnitRange(1.0))
-end
-
-@testset "Set" begin
-    s = Set([∞,1])
-    @test 1 in s
-    @test ∞ in s
-    @test 2 ∉ s
 end

@@ -64,7 +64,7 @@ InfStepRange{T,S}(start, step) where {T,S} = InfStepRange{T,S}(convert(T,start),
 abstract type AbstractInfUnitRange{T<:Real} <: AbstractUnitRange{T} end
 
 done(r::AbstractInfUnitRange{T}, i) where {T} = false
-unitrange_last(start, stop::Infinity) = ℵ₀
+unitrange_last(start, stop::PosInfinity) = ∞
 
 struct InfUnitRange{T<:Real} <: AbstractInfUnitRange{T}
     start::T
@@ -133,7 +133,7 @@ unsafe_length(r::InfRanges) = ℵ₀
 
 first(r::OneToInf{T}) where {T} = oneunit(T)
 
-last(r::AbstractInfUnitRange) = ℵ₀
+last(r::AbstractInfUnitRange) = ∞
 last(r::InfStepRange) = sign(step(r))*∞
 
 minimum(r::InfUnitRange) = first(r)
@@ -179,14 +179,14 @@ end
 
 function getindex(x::AbstractUnitRange, y::PosInfinity)
     isinf(length(x)) || throw(BoundsError(x,y))
-    ℵ₀
+    ∞
 end
 
-getindex(::AbstractInfUnitRange, ::Infinity) = ℵ₀
-getindex(::OneToInf, ::Infinity) = ℵ₀
-getindex(v::InfUnitRange{T}, i::Infinity) where T = ℵ₀
-getindex(v::OneToInf{T}, i::Infinity) where T = ℵ₀
-getindex(v::InfStepRange{T}, i::Infinity) where T = ℵ₀
+getindex(::AbstractInfUnitRange, ::Infinity) = ∞
+getindex(::OneToInf, ::Infinity) = ∞
+getindex(v::InfUnitRange{T}, i::Infinity) where T = ∞
+getindex(v::OneToInf{T}, i::Infinity) where T = ∞
+getindex(v::InfStepRange{T}, i::Infinity) where T = ∞
 
 function getindex(r::AbstractInfUnitRange, s::AbstractInfUnitRange{<:Integer})
     f = first(r)

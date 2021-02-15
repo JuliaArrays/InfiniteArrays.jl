@@ -35,26 +35,44 @@ similar(::Type{<:AbstractArray{T}}, dims::Tuple{PosInfinity,PosInfinity}) where 
 similar(::Type{<:AbstractArray{T}}, dims::Tuple{Integer,PosInfinity}) where T = cache(Zeros{T}(dims))
 similar(::Type{<:AbstractArray{T}}, dims::Tuple{PosInfinity,Integer}) where T = cache(Zeros{T}(dims))
 
-similar(arr::AbstractArray{T}, sz::Vararg{Union{Infinity,Integer}}) where T = similar(arr, Base.to_shape(sz)...)
-similar(arr::AbstractArray, ::Type{T}, sz::Vararg{Union{Infinity,Integer}}) where T = similar(arr, T, Base.to_shape(sz)...)
+similar(arr::AbstractArray{T}, sz::Union{Infinity,Integer,AbstractUnitRange}...) where T = similar(arr, Base.to_shape(sz)...)
+similar(arr::AbstractArray, ::Type{T}, sz::Union{Infinity,Integer,AbstractUnitRange}...) where T = similar(arr, T, Base.to_shape(sz)...)
 
 for Typ in (:Zeros, :Ones)
-    @eval @inline $Typ{T, N}(sz::Tuple{Vararg{<:Union{Infinity,Integer}, N}}) where {T, N} = $Typ{T,N}(oneto.(sz))
+    @eval begin
+        @inline $Typ{T, N}(sz::Tuple{Vararg{Union{Infinity,Integer}, N}}) where {T, N} = $Typ{T,N}(oneto.(sz))
+        @inline $Typ{T, N}(sz::Vararg{Union{Infinity,Integer}, N}) where {T, N} = $Typ{T,N}(sz)
+        @inline $Typ{T}(sz::Vararg{Union{Infinity,Integer},N}) where {T, N} = $Typ{T, N}(sz)
+        @inline $Typ{T}(sz::Infinity) where T = $Typ{T,1}(sz)
+    end
 end
 
-Fill(x, n::Vararg{Union{Infinity,Integer}}) = Fill(x, Base.to_shape(n))
+Eye{T}(::Infinity) where T = Eye{T}(ℵ₀)
+Eye{T}(::Infinity, ::Infinity) where T = Eye{T}(ℵ₀, ℵ₀)
+Eye{T}(::Infinity, n::Integer) where T = Eye{T}(ℵ₀, n)
+Eye{T}(m::Integer, ::Infinity) where T = Eye{T}(m, ℵ₀)
+Eye(::Infinity) = Eye(ℵ₀)
+Eye(::Infinity, ::Infinity) = Eye(ℵ₀, ℵ₀)
+Eye(::Infinity, n::Integer) = Eye(ℵ₀, n)
+Eye(m::Integer, ::Infinity) = Eye(m, ℵ₀)
 
+@inline Fill(x, sz::Union{Infinity,Integer}...) = Fill(x, Base.to_shape(sz)...)
+@inline Fill{T}(x, sz::Union{Infinity,Integer}...) where T = Fill{T}(x, Base.to_shape(sz)...)
 
+zeros(sz::Union{Infinity, Integer, AbstractUnitRange}...) = zeros(Base.to_shape(sz)...)
+zeros(::Type{T}, sz::Union{Infinity, Integer, AbstractUnitRange}...) where T = zeros(T, Base.to_shape(sz)...)
 zeros(::Type{T}, ::Tuple{PosInfinity}) where T = cache(Zeros{T}(∞))
 zeros(::Type{T}, nm::Tuple{Integer, PosInfinity}) where T = cache(Zeros{T}(nm...))
 zeros(::Type{T}, nm::Tuple{PosInfinity, Integer}) where T = cache(Zeros{T}(nm...))
 zeros(::Type{T}, nm::Tuple{PosInfinity, PosInfinity}) where T = cache(Zeros{T}(nm...))
 
+ones(sz::Union{Infinity, Integer, AbstractUnitRange}...) = ones(Base.to_shape(sz)...)
 ones(::Type{T}, ::Tuple{PosInfinity}) where T = cache(Ones{T}(∞))
 ones(::Type{T}, nm::Tuple{Integer, PosInfinity}) where T = cache(Ones{T}(nm...))
 ones(::Type{T}, nm::Tuple{PosInfinity, Integer}) where T = cache(Ones{T}(nm...))
 ones(::Type{T}, nm::Tuple{PosInfinity, PosInfinity}) where T = cache(Ones{T}(nm...))
 
+fill(x, sz::Union{Infinity, Integer, AbstractUnitRange}...) = fill(x, Base.to_shape(sz)...)
 fill(x, ::Tuple{PosInfinity}) = cache(Fill(x,∞))
 fill(x, nm::Tuple{Integer, PosInfinity}) = cache(Fill(x,nm...))
 fill(x, nm::Tuple{PosInfinity, Integer}) = cache(Fill(x,nm...))
@@ -225,7 +243,7 @@ BroadcastStyle(::Type{<:Diagonal{<:Any,<:AbstractInfUnitRange}}) = LazyArrayStyl
 #####
 
 function getindex(f::Vcat{T,1}, k::PosInfinity) where T
-    length(f) == ∞ || throw(BoundsError(f,k))
+    length(f) == ℵ₀ || throw(BoundsError(f,k))
     ∞
 end
 

@@ -37,7 +37,7 @@ import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymm
 
 import Statistics: mean, median
 
-import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal, Fill, Ones, Zeros
+import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal, Fill, Ones, Zeros, Eye
 import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
                     ZerosLayout, AbstractArrayApplyStyle, CachedArray, CachedVector, ApplyLayout, LazyMatrix,
                     reshapedlayout, sub_materialize, LayoutMatrix, LayoutVector, _padded_sub_materialize, PaddedLayout
@@ -46,7 +46,7 @@ import DSP: conv
 import ArrayLayouts: RangeCumsum
 import Infinities: ∞, Infinity, InfiniteCardinal
 
-export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
+export ∞, ℵ₀, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 
 if VERSION ≥ v"1.6-"
    import Base: unitrange, oneto
@@ -134,16 +134,16 @@ vcat(a::AbstractVector, b::AbstractVector, c::AbstractVector, d::AbstractFill{<:
 
 vcat(a::AbstractMatrix, b::AbstractFill{<:Any,2,<:Tuple{OneToInf,OneTo}}) = Vcat(a, b)
 
-cat_similar(A, ::Type{T}, shape::Tuple{Infinity}) where T = zeros(T,∞)
+cat_similar(A, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
 if VERSION < v"1.6-"
-   cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{Infinity}) where T =
+   cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{PosInfinity}) where T =
       Base.invoke(cat_similar, Tuple{AbstractArray, Any, Any}, A, T, shape)
 else
-   cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{Infinity}) where T =
+   cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{PosInfinity}) where T =
       Base.invoke(cat_similar, Tuple{AbstractArray, Type{T}, Any}, A, T, shape)
 end
-function Base.__cat(A, shape::NTuple{N,Infinity}, catdims, X...) where N
-   offsets = zeros(Union{Int,Infinity}, N)
+function Base.__cat(A, shape::NTuple{N,PosInfinity}, catdims, X...) where N
+   offsets = zeros(Union{Int,InfiniteCardinal{0}}, N)
    inds = Vector{Union{UnitRange{Int},InfUnitRange{Int}}}(undef, N)
    concat = copyto!(zeros(Bool, N), catdims)
    for x in X
@@ -171,7 +171,7 @@ reshape(parent::AbstractArray, shp::Tuple{Union{Integer,OneTo}, OneToInf, Vararg
    reshape(parent, to_shape(shp))
 
 
-# cat_similar(A, T, ::Tuple{Infinity}) = zeros(T, ∞)
+# cat_similar(A, T, ::Tuple{PosInfinity}) = zeros(T, ∞)
 
 axistype(::OneTo{T}, ::OneToInf{V}) where {T,V} = OneToInf{promote_type(T,V)}()
 axistype(::OneToInf{V}, ::OneTo{T}) where {T,V} = OneToInf{promote_type(T,V)}()
@@ -180,7 +180,7 @@ axistype(::OneToInf{V}, ::OneTo{T}) where {T,V} = OneToInf{promote_type(T,V)}()
 # returns the range of indices of v equal to x
 # if v does not contain x, returns a 0-length range
 # indicating the insertion point of x
-function searchsorted(v::AbstractVector, x, ilo::Int, ::Infinity, o::Ordering)
+function searchsorted(v::AbstractVector, x, ilo::Int, ::PosInfinity, o::Ordering)
     lo = ilo-1
     hi = ℵ₀
     @inbounds while lo < hi-1
@@ -201,7 +201,7 @@ end
 
 # index of the first value of vector a that is greater than or equal to x;
 # returns length(v)+1 if x is greater than all values in v.
-function searchsortedfirst(v::AbstractVector, x, lo::Int, hi::Infinity, o::Ordering)
+function searchsortedfirst(v::AbstractVector, x, lo::Int, hi::PosInfinity, o::Ordering)
    u = 1
    lo = lo - u
    hi = ℵ₀
@@ -218,7 +218,7 @@ end
 
 # index of the last value of vector a that is less than or equal to x;
 # returns 0 if x is less than all values of v.
-function searchsortedlast(v::AbstractVector, x, lo::Int, hi::Infinity, o::Ordering)
+function searchsortedlast(v::AbstractVector, x, lo::Int, hi::PosInfinity, o::Ordering)
    u = 1
    lo = lo - u
    hi = ℵ₀
@@ -234,7 +234,7 @@ function searchsortedlast(v::AbstractVector, x, lo::Int, hi::Infinity, o::Orderi
 end
 
 # special case for Vcat
-@inline function LazyArrays.searchsortedlast_recursive(::Infinity, x, a, args...)
+@inline function LazyArrays.searchsortedlast_recursive(::PosInfinity, x, a, args...)
     n = sum(map(length,args))
     r = searchsortedlast(a, x)
     r > 0 && return n + r
