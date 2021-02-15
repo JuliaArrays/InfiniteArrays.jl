@@ -1,5 +1,5 @@
 module InfiniteArrays
-using Base, Statistics, LinearAlgebra, FillArrays, LazyArrays, DSP, ArrayLayouts
+using Base, Statistics, LinearAlgebra, FillArrays, Infinities, LazyArrays, DSP, ArrayLayouts
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
@@ -37,13 +37,14 @@ import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymm
 
 import Statistics: mean, median
 
-import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal
+import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal, Fill, Ones, Zeros
 import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
                     ZerosLayout, AbstractArrayApplyStyle, CachedArray, CachedVector, ApplyLayout, LazyMatrix,
                     reshapedlayout, sub_materialize, LayoutMatrix, LayoutVector, _padded_sub_materialize, PaddedLayout
 
 import DSP: conv
 import ArrayLayouts: RangeCumsum
+import Infinities: ∞, Infinity, InfiniteCardinal
 
 export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 
@@ -51,7 +52,8 @@ if VERSION ≥ v"1.6-"
    import Base: unitrange, oneto
 end
 
-include("Infinity.jl")
+
+
 include("infrange.jl")
 include("infarrays.jl")
 include("reshapedarray.jl")
@@ -61,11 +63,11 @@ if VERSION < v"1.6-"
    # Temporary hacks for base support
    ##
    Base.OneTo(::Infinity) = OneToInf()
-   function Base.OneTo(x::OrientedInfinity)
+   function Base.OneTo(x::ComplexInfinity)
       iszero(x.angle) && return oneto(∞)
       throw(ArgumentError("Cannot create infinite range with negative length"))
    end
-   function Base.OneTo(x::SignedInfinity)
+   function Base.OneTo(x::RealInfinity)
       signbit(x) || return oneto(∞)
       throw(ArgumentError("Cannot create infinite range with negative length"))
    end
@@ -75,7 +77,7 @@ if VERSION < v"1.6-"
    Base.OneTo(a::OneToInf) = a
    Base.OneTo{T}(::OneToInf) where T<:Integer = OneToInf{T}()
 
-   Base.Int(::Infinity) = ∞
+   Base.Int(::Infinity) = ℵ₀
 
    unitrange(a, b) = UnitRange(a, b)
    oneto(n) = Base.OneTo(n)
@@ -85,18 +87,18 @@ end
 # Fill FillArrays
 ##
 
-length(::Ones{<:Any,1,Tuple{OneToInf{Int}}}) = ∞
-length(::Fill{<:Any,1,Tuple{OneToInf{Int}}}) = ∞
-length(::Zeros{<:Any,1,Tuple{OneToInf{Int}}}) = ∞
-length(::Ones{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ∞
-length(::Ones{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ∞
-length(::Ones{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ∞
-length(::Fill{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ∞
-length(::Fill{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ∞
-length(::Fill{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ∞
-length(::Zeros{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ∞
-length(::Zeros{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ∞
-length(::Zeros{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ∞
+length(::Ones{<:Any,1,Tuple{OneToInf{Int}}}) = ℵ₀
+length(::Fill{<:Any,1,Tuple{OneToInf{Int}}}) = ℵ₀
+length(::Zeros{<:Any,1,Tuple{OneToInf{Int}}}) = ℵ₀
+length(::Ones{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ℵ₀
+length(::Ones{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ℵ₀
+length(::Ones{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ℵ₀
+length(::Fill{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ℵ₀
+length(::Fill{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ℵ₀
+length(::Fill{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ℵ₀
+length(::Zeros{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ℵ₀
+length(::Zeros{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ℵ₀
+length(::Zeros{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ℵ₀
 
 for op in (:norm2, :norm1)
    @eval $op(a::Zeros{T,N,NTuple{N,OneToInf{Int}}}) where {T,N} = norm(getindex_value(a))
@@ -180,7 +182,7 @@ axistype(::OneToInf{V}, ::OneTo{T}) where {T,V} = OneToInf{promote_type(T,V)}()
 # indicating the insertion point of x
 function searchsorted(v::AbstractVector, x, ilo::Int, ::Infinity, o::Ordering)
     lo = ilo-1
-    hi = ∞
+    hi = ℵ₀
     @inbounds while lo < hi-1
         m = isinf(hi) ? lo + 1000 : (lo+hi)>>>1
         if lt(o, v[m], x)
@@ -202,7 +204,7 @@ end
 function searchsortedfirst(v::AbstractVector, x, lo::Int, hi::Infinity, o::Ordering)
    u = 1
    lo = lo - u
-   hi = ∞
+   hi = ℵ₀
    @inbounds while lo < hi - u
       m = isinf(hi) ? lo + 1000 : (lo+hi)>>>1
       if lt(o, v[m], x)
@@ -219,7 +221,7 @@ end
 function searchsortedlast(v::AbstractVector, x, lo::Int, hi::Infinity, o::Ordering)
    u = 1
    lo = lo - u
-   hi = ∞
+   hi = ℵ₀
    @inbounds while lo < hi - u
        m = isinf(hi) ? lo + 1000 : (lo+hi)>>>1
        if lt(o, x, v[m])

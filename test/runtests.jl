@@ -1,199 +1,9 @@
 using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, LazyBandedMatrices, Test, Base64
-import InfiniteArrays: OrientedInfinity, SignedInfinity, InfUnitRange, InfStepRange, OneToInf, NotANumber, oneto, unitrange
+import InfiniteArrays: InfUnitRange, InfStepRange, OneToInf, NotANumber, oneto, unitrange
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport, DualLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
 import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
-@testset "∞" begin
-    @testset "∞" begin
-        @test ∞ ≠ 1
-        @test ∞ == ∞
-        @test ∞ == Inf
-
-        @test +∞ ≡ ∞
-
-        @test isless(1, ∞)
-        @test !isless(Inf, ∞)
-        @test !isless(∞, Inf)
-        @test !isless(∞, 1)
-
-        @test !isless(∞, ∞)
-        @test !(∞ < ∞)
-        @test ∞ ≤ ∞
-        @test !(∞ > ∞)
-        @test ∞ ≥ ∞
-
-        @test ∞ + ∞ ≡ ∞
-        @test ∞ + 1 ≡ ∞
-        @test *(∞) ≡ ∞
-        @test ∞*∞ ≡ ∞
-        @test ∞ - ∞ isa NotANumber
-
-        @test one(∞) === 1
-        @test zero(∞) === 0
-
-        @test !isone(∞)
-        @test !iszero(∞)
-
-        @test max(1,∞) == max(∞,1) == ∞
-        @test min(1,∞) == min(∞,1) == 1
-        @test maximum([1,∞]) == ∞
-        @test minimum([1,∞]) == 1
-
-        @test string(∞) == "∞"
-
-        @test oneto(∞) == OneToInf()
-
-        @test isinf(∞)
-        @test !isfinite(∞)
-
-        @test div(∞, 2) == ∞
-        @test fld(∞, 2) == ∞
-        @test cld(∞, 2) == ∞
-        @test div(2, ∞) == 0
-        @test fld(2, ∞) == 0
-        @test cld(2, ∞) == 1
-        @test div(-2, ∞) == 0
-        @test fld(-2, ∞) == -1
-        @test cld(-2, ∞) == 0
-        @test mod(2,∞) == 2
-        @test div(∞,∞) isa NotANumber
-        @test fld(∞,∞) isa NotANumber
-        @test cld(∞,∞) isa NotANumber
-        @test mod(∞,∞) isa NotANumber
-        @test mod(∞,2) isa NotANumber
-        @test_throws ArgumentError mod(-2,∞)
-
-        @test min(∞, ∞) == ∞
-        @test max(∞, ∞) == ∞
-        @test min(3,∞) == 3
-        @test max(3,∞) == ∞
-    end
-
-    @testset "SignedInfinity" begin
-        @test SignedInfinity(∞) ≡ convert(SignedInfinity, ∞) ≡ SignedInfinity() ≡ 
-                SignedInfinity(false) ≡ SignedInfinity(SignedInfinity())
-
-        @test -∞ ≡ SignedInfinity(true)
-        @test +∞ ≡ ∞
-
-        @test sign(-∞) == -1
-        @test angle(-∞) ≈ π
-
-        @test ∞ == +∞ == SignedInfinity(∞)
-        @test ∞ ≠  -∞
-        @test 1-∞ == -∞
-        @test 1-(-∞) ≡ SignedInfinity()
-        @test (-∞) - 5 ≡ -∞
-
-        @test (-∞)*(-∞) ≡ ∞*SignedInfinity(∞) ≡ SignedInfinity(∞)*∞
-
-        @test  isless(-∞, 1)
-        @test !isless(-∞, -Inf)
-        @test !isless(-Inf, -∞)
-        @test !isless(1, -∞)
-
-        @test -∞ ≤ ∞
-        @test SignedInfinity() ≤ ∞
-        @test ∞ ≤ SignedInfinity()
-        @test -∞ ≤ -∞
-        @test !(∞ ≤ -∞)
-        @test -∞ < ∞
-        @test !(-∞ < -∞)
-        @test !(SignedInfinity() < ∞)
-        @test SignedInfinity() ≥ ∞
-        @test ∞ ≥ SignedInfinity()
-        @test !(-∞ > ∞)
-        @test ∞ > -∞
-        @test !(5 < -∞)
-        @test -∞ < 5
-
-        @test !(SignedInfinity(false) < SignedInfinity(false))
-        @test SignedInfinity(false) ≤ SignedInfinity(false)
-        @test SignedInfinity(true) < SignedInfinity(false)
-        @test SignedInfinity(true) ≤ SignedInfinity(false)
-        @test !(SignedInfinity(false) < SignedInfinity(true))
-        @test !(SignedInfinity(false) ≤ SignedInfinity(true))
-        @test !(SignedInfinity(true) < SignedInfinity(true))
-        @test SignedInfinity(true) ≤ SignedInfinity(true)        
-
-        @test SignedInfinity(true) + SignedInfinity(true) == SignedInfinity(true)
-        @test SignedInfinity(false) + SignedInfinity(false) == SignedInfinity(false)
-        @test SignedInfinity(true)+1 == SignedInfinity(true)
-        @test SignedInfinity(false)+1 == SignedInfinity(false)
-
-        @test string(-∞) == "-∞"
-
-        @test (-∞) + (-∞) ≡ -∞
-        @test (1∞) + (1∞) ≡ 1∞
-        @test ∞ + (1∞) ≡ (1∞) + ∞ ≡ 1∞
-        
-        @test_throws ArgumentError ∞ + (-∞)
-        @test_throws ArgumentError (1∞) + (-∞)
-        @test_throws ArgumentError (-∞) + ∞
-
-        @test ∞ - (-∞) ≡ ∞
-        @test (-∞) - ∞ ≡ -∞
-        @test (1∞) - (-∞) ≡ 1∞
-        @test (-∞) - (1∞) ≡ -∞
-
-        @test_throws ArgumentError ∞ - (1∞)
-        @test_throws ArgumentError (1∞) - ∞
-        @test_throws ArgumentError (1∞) - (1∞)
-        @test_throws ArgumentError (-∞) - (-∞)
-        @test_throws ArgumentError 0*∞
-        @test_throws ArgumentError 0*(-∞)
-
-        @test (-∞)*2 ≡ 2*(-∞) ≡ -2 * ∞ ≡ ∞ * (-2) ≡ (-2) * SignedInfinity() ≡ -∞
-        @test (-∞)*2.3 ≡ 2.3*(-∞) ≡ -2.3 * ∞ ≡ ∞ * (-2.3) ≡ (-2.3) * SignedInfinity() ≡ -∞
-
-        @test oneto(1*∞) == OneToInf()
-        @test_throws ArgumentError oneto(-∞)
-
-        @test isinf(-∞)
-        @test !isfinite(-∞)
-
-        @test [∞, -∞] isa Vector{SignedInfinity}
-
-        @test mod(-∞, 5) isa NotANumber
-        @test mod(-∞, -∞) isa NotANumber
-        @test mod(5, SignedInfinity()) == 5
-        @test_throws ArgumentError mod(5,-∞)
-
-        @test min(-∞, ∞) ≡ min(∞, -∞) ≡ min(-∞, SignedInfinity()) ≡ -∞
-        @test max(-∞, SignedInfinity()) ≡ SignedInfinity()
-        @test max(∞, -∞) ≡ max(-∞,∞) ≡ ∞
-    end
-
-    @testset "OrientedInfinity" begin
-        @test OrientedInfinity(∞) ≡ convert(OrientedInfinity, ∞) ≡ OrientedInfinity() ≡
-            OrientedInfinity(false)
-
-        @test OrientedInfinity(∞) == ∞
-        @test ∞ == OrientedInfinity(∞)
-        @test OrientedInfinity(∞) == SignedInfinity()
-        @test SignedInfinity() == OrientedInfinity(∞)
-        @test OrientedInfinity(-∞) == -∞
-        @test  -∞ == OrientedInfinity(-∞)
-
-        @test OrientedInfinity() + ∞ ≡ OrientedInfinity() + SignedInfinity() ≡ 
-                ∞ + OrientedInfinity() ≡ SignedInfinity() + OrientedInfinity() ≡ OrientedInfinity()
-        @test OrientedInfinity(true) + OrientedInfinity(true) == OrientedInfinity(true)
-        @test OrientedInfinity(false) + OrientedInfinity(false) == OrientedInfinity(false)
-        @test OrientedInfinity(true)+1 == OrientedInfinity(true)
-        @test OrientedInfinity(false)+1 == OrientedInfinity(false)
-
-        @test ∞ * OrientedInfinity() ≡ SignedInfinity() * OrientedInfinity() ≡ 
-             OrientedInfinity() * ∞ ≡ OrientedInfinity() * SignedInfinity() ≡ OrientedInfinity()
-
-        @test  2.0im*∞ ≡ ∞*2.0im ≡ 2.0im * SignedInfinity() ≡ SignedInfinity() * 2.0im ≡ OrientedInfinity(1/2)
-
-        @test exp(im*π/4)*∞ == Inf+im*Inf
-        @test exp(im*π/4)+∞ == ∞
-
-        @test_throws ArgumentError oneto(exp(im*π/4)*∞)
-    end
-end
 
 @testset "construction" begin
     @testset "Array constructor errors" begin
@@ -410,7 +220,7 @@ end
     @testset "sums of ranges" begin
         @test sum(1:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ∞
         @test sum(0:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ∞
-        @test sum(0:2:∞) ≡ mean(0:2:∞) ≡ median(0:2:∞) ≡ SignedInfinity(∞)
+        @test sum(0:2:∞) ≡ mean(0:2:∞) ≡ median(0:2:∞) ≡ RealInfinity(∞)
         @test sum(0:-2:-∞) ≡ mean(0:-2:-∞) ≡ median(0:-2:-∞) ≡ -∞
     end
 
@@ -1022,7 +832,7 @@ end
     @test Base.Checked.checked_add(1,∞) === ∞
     @test Base.Checked.checked_add(∞,1) === ∞
 
-    @test Base.Checked.checked_sub(1,-∞) === SignedInfinity(false)
+    @test Base.Checked.checked_sub(1,-∞) === RealInfinity(false)
     @test Base.Checked.checked_sub(-∞,1) === -∞
     @test Base.Checked.checked_add(1,-∞) === -∞
     @test Base.Checked.checked_add(-∞,1) === -∞

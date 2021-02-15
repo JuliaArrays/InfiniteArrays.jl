@@ -1,61 +1,70 @@
-Array{T}(::UndefInitializer, ::Tuple{Infinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
-Array{T}(::UndefInitializer, ::Tuple{Integer, Infinity}) where {T,N} = throw(ArgumentError("Cannot create infinite Array"))
-Array{T}(::UndefInitializer, ::Tuple{Infinity, Integer}) where {T,N} = throw(ArgumentError("Cannot create infinite Array"))
-Matrix{T}(::UndefInitializer, ::Tuple{Integer, Infinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
-Matrix{T}(::UndefInitializer, ::Tuple{Infinity, Integer}) where T = throw(ArgumentError("Cannot create infinite Array"))
-Array{T}(::UndefInitializer, ::Tuple{Infinity, Infinity}) where {T,N} = throw(ArgumentError("Cannot create infinite Array"))
-Matrix{T}(::UndefInitializer, ::Tuple{Infinity, Infinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
+Array{T}(::UndefInitializer, ::Tuple{PosInfinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
+Array{T}(::UndefInitializer, ::Tuple{Integer, PosInfinity}) where {T,N} = throw(ArgumentError("Cannot create infinite Array"))
+Array{T}(::UndefInitializer, ::Tuple{PosInfinity, Integer}) where {T,N} = throw(ArgumentError("Cannot create infinite Array"))
+Matrix{T}(::UndefInitializer, ::Tuple{Integer, PosInfinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
+Matrix{T}(::UndefInitializer, ::Tuple{PosInfinity, Integer}) where T = throw(ArgumentError("Cannot create infinite Array"))
+Array{T}(::UndefInitializer, ::Tuple{PosInfinity, PosInfinity}) where {T,N} = throw(ArgumentError("Cannot create infinite Array"))
+Matrix{T}(::UndefInitializer, ::Tuple{PosInfinity, PosInfinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
 
-Array{T}(::UndefInitializer, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
+Array{T}(::UndefInitializer, ::PosInfinity) where T = throw(ArgumentError("Cannot create infinite Array"))
 
-Array{T}(::UndefInitializer, ::Infinity, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
-Array{T}(::UndefInitializer, ::Infinity, ::Integer) where T = throw(ArgumentError("Cannot create infinite Array"))
-Array{T}(::UndefInitializer, ::Integer, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
+Array{T}(::UndefInitializer, ::PosInfinity, ::PosInfinity) where T = throw(ArgumentError("Cannot create infinite Array"))
+Array{T}(::UndefInitializer, ::PosInfinity, ::Integer) where T = throw(ArgumentError("Cannot create infinite Array"))
+Array{T}(::UndefInitializer, ::Integer, ::PosInfinity) where T = throw(ArgumentError("Cannot create infinite Array"))
 
-Matrix{T}(::UndefInitializer, ::Infinity, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
-Matrix{T}(::UndefInitializer, ::Infinity, ::Integer) where T = throw(ArgumentError("Cannot create infinite Array"))
-Matrix{T}(::UndefInitializer, ::Integer, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
+Matrix{T}(::UndefInitializer, ::PosInfinity, ::PosInfinity) where T = throw(ArgumentError("Cannot create infinite Array"))
+Matrix{T}(::UndefInitializer, ::PosInfinity, ::Integer) where T = throw(ArgumentError("Cannot create infinite Array"))
+Matrix{T}(::UndefInitializer, ::Integer, ::PosInfinity) where T = throw(ArgumentError("Cannot create infinite Array"))
 
-Vector{T}(::UndefInitializer, ::Tuple{Infinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
-Vector{T}(::UndefInitializer, ::Infinity) where T = throw(ArgumentError("Cannot create infinite Array"))
+Vector{T}(::UndefInitializer, ::Tuple{PosInfinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
+Vector{T}(::UndefInitializer, ::PosInfinity) where T = throw(ArgumentError("Cannot create infinite Array"))
 
 similar(A::AbstractArray, ::Type{T}, axes::Tuple{OneToInf{Int}}) where T = cache(Zeros{T}(axes))
 similar(A::AbstractArray, ::Type{T}, axes::Tuple{OneToInf{Int},OneToInf{Int}}) where T = cache(Zeros{T}(axes))
-similar(A::AbstractArray, ::Type{T}, dims::Tuple{Infinity}) where T = cache(Zeros{T}(dims))
-similar(A::AbstractArray, ::Type{T}, dims::Tuple{Infinity,Infinity}) where T = cache(Zeros{T}(dims))
-similar(A::AbstractArray, ::Type{T}, dims::Tuple{Integer,Infinity}) where T = cache(Zeros{T}(dims))
-similar(A::AbstractArray, ::Type{T}, dims::Tuple{Infinity,Integer}) where T = cache(Zeros{T}(dims))
+similar(A::AbstractArray, ::Type{T}, dims::Tuple{PosInfinity}) where T = cache(Zeros{T}(dims))
+similar(A::AbstractArray, ::Type{T}, dims::Tuple{PosInfinity,PosInfinity}) where T = cache(Zeros{T}(dims))
+similar(A::AbstractArray, ::Type{T}, dims::Tuple{Integer,PosInfinity}) where T = cache(Zeros{T}(dims))
+similar(A::AbstractArray, ::Type{T}, dims::Tuple{PosInfinity,Integer}) where T = cache(Zeros{T}(dims))
 
 similar(::Type{<:AbstractArray{T}}, axes::Tuple{OneToInf{Int}}) where T = cache(Zeros{T}(axes))
 similar(::Type{<:AbstractArray{T}}, axes::Tuple{OneToInf{Int},OneToInf{Int}}) where T = cache(Zeros{T}(axes))
 similar(::Type{<:AbstractArray{T}}, axes::Tuple{OneToInf{Int},OneTo{Int}}) where T = cache(Zeros{T}(axes))
 similar(::Type{<:AbstractArray{T}}, axes::Tuple{OneTo{Int},OneToInf{Int}}) where T = cache(Zeros{T}(axes))
-similar(::Type{<:AbstractArray{T}}, dims::Tuple{Infinity}) where T = cache(Zeros{T}(dims))
-similar(::Type{<:AbstractArray{T}}, dims::Tuple{Infinity,Infinity}) where T = cache(Zeros{T}(dims))
-similar(::Type{<:AbstractArray{T}}, dims::Tuple{Integer,Infinity}) where T = cache(Zeros{T}(dims))
-similar(::Type{<:AbstractArray{T}}, dims::Tuple{Infinity,Integer}) where T = cache(Zeros{T}(dims))
+similar(::Type{<:AbstractArray{T}}, dims::Tuple{PosInfinity}) where T = cache(Zeros{T}(dims))
+similar(::Type{<:AbstractArray{T}}, dims::Tuple{PosInfinity,PosInfinity}) where T = cache(Zeros{T}(dims))
+similar(::Type{<:AbstractArray{T}}, dims::Tuple{Integer,PosInfinity}) where T = cache(Zeros{T}(dims))
+similar(::Type{<:AbstractArray{T}}, dims::Tuple{PosInfinity,Integer}) where T = cache(Zeros{T}(dims))
+
+similar(arr::AbstractArray{T}, sz::Vararg{Union{Infinity,Integer}}) where T = similar(arr, Base.to_shape(sz)...)
+similar(arr::AbstractArray, ::Type{T}, sz::Vararg{Union{Infinity,Integer}}) where T = similar(arr, T, Base.to_shape(sz)...)
+
+for Typ in (:Zeros, :Ones)
+    @eval @inline $Typ{T, N}(sz::Tuple{Vararg{<:Union{Infinity,Integer}, N}}) where {T, N} = $Typ{T,N}(oneto.(sz))
+end
+
+Fill(x, n::Vararg{Union{Infinity,Integer}}) = Fill(x, Base.to_shape(n))
 
 
-zeros(::Type{T}, ::Tuple{Infinity}) where T = cache(Zeros{T}(∞))
-zeros(::Type{T}, nm::Tuple{Integer, Infinity}) where T = cache(Zeros{T}(nm...))
-zeros(::Type{T}, nm::Tuple{Infinity, Integer}) where T = cache(Zeros{T}(nm...))
-zeros(::Type{T}, nm::Tuple{Infinity, Infinity}) where T = cache(Zeros{T}(nm...))
+zeros(::Type{T}, ::Tuple{PosInfinity}) where T = cache(Zeros{T}(∞))
+zeros(::Type{T}, nm::Tuple{Integer, PosInfinity}) where T = cache(Zeros{T}(nm...))
+zeros(::Type{T}, nm::Tuple{PosInfinity, Integer}) where T = cache(Zeros{T}(nm...))
+zeros(::Type{T}, nm::Tuple{PosInfinity, PosInfinity}) where T = cache(Zeros{T}(nm...))
 
-ones(::Type{T}, ::Tuple{Infinity}) where T = cache(Ones{T}(∞))
-ones(::Type{T}, nm::Tuple{Integer, Infinity}) where T = cache(Ones{T}(nm...))
-ones(::Type{T}, nm::Tuple{Infinity, Integer}) where T = cache(Ones{T}(nm...))
-ones(::Type{T}, nm::Tuple{Infinity, Infinity}) where T = cache(Ones{T}(nm...))
+ones(::Type{T}, ::Tuple{PosInfinity}) where T = cache(Ones{T}(∞))
+ones(::Type{T}, nm::Tuple{Integer, PosInfinity}) where T = cache(Ones{T}(nm...))
+ones(::Type{T}, nm::Tuple{PosInfinity, Integer}) where T = cache(Ones{T}(nm...))
+ones(::Type{T}, nm::Tuple{PosInfinity, PosInfinity}) where T = cache(Ones{T}(nm...))
 
-fill(x, ::Tuple{Infinity}) = cache(Fill(x,∞))
-fill(x, nm::Tuple{Integer, Infinity}) = cache(Fill(x,nm...))
-fill(x, nm::Tuple{Infinity, Integer}) = cache(Fill(x,nm...))
-fill(x, nm::Tuple{Infinity, Infinity}) = cache(Fill(x,nm...))
+fill(x, ::Tuple{PosInfinity}) = cache(Fill(x,∞))
+fill(x, nm::Tuple{Integer, PosInfinity}) = cache(Fill(x,nm...))
+fill(x, nm::Tuple{PosInfinity, Integer}) = cache(Fill(x,nm...))
+fill(x, nm::Tuple{PosInfinity, PosInfinity}) = cache(Fill(x,nm...))
 
 
 
 # This gets called when infinit number of columns
-axes_print_matrix_row(_, io, X, A, i, ::AbstractVector{<:Infinity}, sep) = nothing
-print_matrix_row(io::IO, X::AbstractVecOrMat, A::Vector, i::Integer, cols::AbstractVector{<:Infinity}, sep::AbstractString) = nothing
+axes_print_matrix_row(_, io, X, A, i, ::AbstractVector{<:PosInfinity}, sep) = nothing
+print_matrix_row(io::IO, X::AbstractVecOrMat, A::Vector, i::Integer, cols::AbstractVector{<:PosInfinity}, sep::AbstractString) = nothing
 Base.print_matrix_row(io::IO,
         X::Union{LayoutMatrix,
         LayoutVector,
@@ -65,7 +74,7 @@ Base.print_matrix_row(io::IO,
         HermOrSym{<:Any,<:LayoutMatrix},
         SubArray{<:Any,2,<:LayoutMatrix},
         Diagonal{<:Any,<:LayoutVector}}, A::Vector,
-        i::Integer, cols::AbstractVector{<:Infinity}, sep::AbstractString) =
+        i::Integer, cols::AbstractVector{<:PosInfinity}, sep::AbstractString) =
     axes_print_matrix_row(axes(X), io, X, A, i, cols, sep)
 Base.print_matrix_row(io::IO,
         X::Union{AbstractFill{<:Any,1},
@@ -74,7 +83,7 @@ Base.print_matrix_row(io::IO,
                  RectDiagonal,
                  AbstractTriangular{<:Any,<:AbstractFill{<:Any,2}}
                  }, A::Vector,
-        i::Integer, cols::AbstractVector{<:Infinity}, sep::AbstractString) =
+        i::Integer, cols::AbstractVector{<:PosInfinity}, sep::AbstractString) =
     axes_print_matrix_row(axes(X), io, X, A, i, cols, sep)
 
 
@@ -82,11 +91,11 @@ print_matrix_vdots(io::IO, vdots::AbstractString,
         A::Vector, sep::AbstractString, M::Integer, ::NotANumber, pad_right::Bool = true) = nothing
 
 # Avoid infinite loops on maximum
-Base.mapreduce_impl(f, op, A::AbstractArray, ifirst::Integer, ::Infinity) =
+Base.mapreduce_impl(f, op, A::AbstractArray, ifirst::Integer, ::PosInfinity) =
     throw(ArgumentError("Cannot call mapreduce on an infinite length $(typeof(A))"))
 
 function show_delim_array(io::IO, itr::AbstractArray, op, delim, cl,
-                          delim_one, i1, ::Infinity)
+                          delim_one, i1, ::PosInfinity)
     print(io, op)
     l = 20
     if !show_circular(io, itr)
@@ -215,7 +224,7 @@ BroadcastStyle(::Type{<:Diagonal{<:Any,<:AbstractInfUnitRange}}) = LazyArrayStyl
 # Vcat length
 #####
 
-function getindex(f::Vcat{T,1}, k::Infinity) where T
+function getindex(f::Vcat{T,1}, k::PosInfinity) where T
     length(f) == ∞ || throw(BoundsError(f,k))
     ∞
 end
