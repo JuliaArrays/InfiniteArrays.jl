@@ -63,6 +63,7 @@ if VERSION < v"1.6-"
    # Temporary hacks for base support
    ##
    Base.OneTo(::Infinity) = OneToInf()
+   Base.OneTo(::InfiniteCardinal{0}) = OneToInf()
    function Base.OneTo(x::ComplexInfinity)
       iszero(x.angle) && return oneto(∞)
       throw(ArgumentError("Cannot create infinite range with negative length"))
@@ -74,10 +75,14 @@ if VERSION < v"1.6-"
    Base.OneTo{T}(::Infinity) where T<:Integer = OneToInf{T}()
    Base.UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
    Base.UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
+   Base.OneTo{T}(::InfiniteCardinal{0}) where T<:Integer = OneToInf{T}()
+   Base.UnitRange(start::Integer, ::InfiniteCardinal{0}) = InfUnitRange(start)
+   Base.UnitRange{T}(start::Integer, ::InfiniteCardinal{0}) where T<:Real = InfUnitRange{T}(start)
    Base.OneTo(a::OneToInf) = a
    Base.OneTo{T}(::OneToInf) where T<:Integer = OneToInf{T}()
 
    Base.Int(::Infinity) = ℵ₀
+   Base.Int(::InfiniteCardinal{0}) = ℵ₀
 
    unitrange(a, b) = UnitRange(a, b)
    oneto(n) = Base.OneTo(n)
