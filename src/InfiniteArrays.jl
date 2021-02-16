@@ -1,5 +1,5 @@
 module InfiniteArrays
-using Base, Statistics, LinearAlgebra, FillArrays, LazyArrays, DSP, ArrayLayouts
+using Base, Statistics, LinearAlgebra, FillArrays, Infinities, LazyArrays, DSP, ArrayLayouts
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
@@ -37,21 +37,23 @@ import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymm
 
 import Statistics: mean, median
 
-import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal
+import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal, Fill, Ones, Zeros, Eye
 import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
                     ZerosLayout, AbstractArrayApplyStyle, CachedArray, CachedVector, ApplyLayout, LazyMatrix,
                     reshapedlayout, sub_materialize, LayoutMatrix, LayoutVector, _padded_sub_materialize, PaddedLayout
 
 import DSP: conv
 import ArrayLayouts: RangeCumsum
+import Infinities: ∞, Infinity, InfiniteCardinal
 
-export ∞, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
+export ∞, ℵ₀, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 
 if VERSION ≥ v"1.6-"
    import Base: unitrange, oneto
 end
 
-include("Infinity.jl")
+
+
 include("infrange.jl")
 include("infarrays.jl")
 include("reshapedarray.jl")
@@ -61,21 +63,26 @@ if VERSION < v"1.6-"
    # Temporary hacks for base support
    ##
    Base.OneTo(::Infinity) = OneToInf()
-   function Base.OneTo(x::OrientedInfinity)
+   Base.OneTo(::InfiniteCardinal{0}) = OneToInf()
+   function Base.OneTo(x::ComplexInfinity)
       iszero(x.angle) && return oneto(∞)
       throw(ArgumentError("Cannot create infinite range with negative length"))
    end
-   function Base.OneTo(x::SignedInfinity)
+   function Base.OneTo(x::RealInfinity)
       signbit(x) || return oneto(∞)
       throw(ArgumentError("Cannot create infinite range with negative length"))
    end
    Base.OneTo{T}(::Infinity) where T<:Integer = OneToInf{T}()
    Base.UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
    Base.UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
+   Base.OneTo{T}(::InfiniteCardinal{0}) where T<:Integer = OneToInf{T}()
+   Base.UnitRange(start::Integer, ::InfiniteCardinal{0}) = InfUnitRange(start)
+   Base.UnitRange{T}(start::Integer, ::InfiniteCardinal{0}) where T<:Real = InfUnitRange{T}(start)
    Base.OneTo(a::OneToInf) = a
    Base.OneTo{T}(::OneToInf) where T<:Integer = OneToInf{T}()
 
-   Base.Int(::Infinity) = ∞
+   Base.Int(::Infinity) = ℵ₀
+   Base.Int(::InfiniteCardinal{0}) = ℵ₀
 
    unitrange(a, b) = UnitRange(a, b)
    oneto(n) = Base.OneTo(n)
@@ -85,18 +92,18 @@ end
 # Fill FillArrays
 ##
 
-length(::Ones{<:Any,1,Tuple{OneToInf{Int}}}) = ∞
-length(::Fill{<:Any,1,Tuple{OneToInf{Int}}}) = ∞
-length(::Zeros{<:Any,1,Tuple{OneToInf{Int}}}) = ∞
-length(::Ones{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ∞
-length(::Ones{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ∞
-length(::Ones{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ∞
-length(::Fill{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ∞
-length(::Fill{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ∞
-length(::Fill{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ∞
-length(::Zeros{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ∞
-length(::Zeros{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ∞
-length(::Zeros{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ∞
+length(::Ones{<:Any,1,Tuple{OneToInf{Int}}}) = ℵ₀
+length(::Fill{<:Any,1,Tuple{OneToInf{Int}}}) = ℵ₀
+length(::Zeros{<:Any,1,Tuple{OneToInf{Int}}}) = ℵ₀
+length(::Ones{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ℵ₀
+length(::Ones{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ℵ₀
+length(::Ones{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ℵ₀
+length(::Fill{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ℵ₀
+length(::Fill{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ℵ₀
+length(::Fill{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ℵ₀
+length(::Zeros{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ℵ₀
+length(::Zeros{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ℵ₀
+length(::Zeros{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ℵ₀
 
 for op in (:norm2, :norm1)
    @eval $op(a::Zeros{T,N,NTuple{N,OneToInf{Int}}}) where {T,N} = norm(getindex_value(a))
@@ -132,16 +139,16 @@ vcat(a::AbstractVector, b::AbstractVector, c::AbstractVector, d::AbstractFill{<:
 
 vcat(a::AbstractMatrix, b::AbstractFill{<:Any,2,<:Tuple{OneToInf,OneTo}}) = Vcat(a, b)
 
-cat_similar(A, ::Type{T}, shape::Tuple{Infinity}) where T = zeros(T,∞)
+cat_similar(A, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
 if VERSION < v"1.6-"
-   cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{Infinity}) where T =
+   cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{PosInfinity}) where T =
       Base.invoke(cat_similar, Tuple{AbstractArray, Any, Any}, A, T, shape)
 else
-   cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{Infinity}) where T =
+   cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{PosInfinity}) where T =
       Base.invoke(cat_similar, Tuple{AbstractArray, Type{T}, Any}, A, T, shape)
 end
-function Base.__cat(A, shape::NTuple{N,Infinity}, catdims, X...) where N
-   offsets = zeros(Union{Int,Infinity}, N)
+function Base.__cat(A, shape::NTuple{N,PosInfinity}, catdims, X...) where N
+   offsets = zeros(Union{Int,InfiniteCardinal{0}}, N)
    inds = Vector{Union{UnitRange{Int},InfUnitRange{Int}}}(undef, N)
    concat = copyto!(zeros(Bool, N), catdims)
    for x in X
@@ -169,7 +176,7 @@ reshape(parent::AbstractArray, shp::Tuple{Union{Integer,OneTo}, OneToInf, Vararg
    reshape(parent, to_shape(shp))
 
 
-# cat_similar(A, T, ::Tuple{Infinity}) = zeros(T, ∞)
+# cat_similar(A, T, ::Tuple{PosInfinity}) = zeros(T, ∞)
 
 axistype(::OneTo{T}, ::OneToInf{V}) where {T,V} = OneToInf{promote_type(T,V)}()
 axistype(::OneToInf{V}, ::OneTo{T}) where {T,V} = OneToInf{promote_type(T,V)}()
@@ -178,9 +185,9 @@ axistype(::OneToInf{V}, ::OneTo{T}) where {T,V} = OneToInf{promote_type(T,V)}()
 # returns the range of indices of v equal to x
 # if v does not contain x, returns a 0-length range
 # indicating the insertion point of x
-function searchsorted(v::AbstractVector, x, ilo::Int, ::Infinity, o::Ordering)
+function searchsorted(v::AbstractVector, x, ilo::Int, ::PosInfinity, o::Ordering)
     lo = ilo-1
-    hi = ∞
+    hi = ℵ₀
     @inbounds while lo < hi-1
         m = isinf(hi) ? lo + 1000 : (lo+hi)>>>1
         if lt(o, v[m], x)
@@ -199,10 +206,10 @@ end
 
 # index of the first value of vector a that is greater than or equal to x;
 # returns length(v)+1 if x is greater than all values in v.
-function searchsortedfirst(v::AbstractVector, x, lo::Int, hi::Infinity, o::Ordering)
+function searchsortedfirst(v::AbstractVector, x, lo::Int, hi::PosInfinity, o::Ordering)
    u = 1
    lo = lo - u
-   hi = ∞
+   hi = ℵ₀
    @inbounds while lo < hi - u
       m = isinf(hi) ? lo + 1000 : (lo+hi)>>>1
       if lt(o, v[m], x)
@@ -216,10 +223,10 @@ end
 
 # index of the last value of vector a that is less than or equal to x;
 # returns 0 if x is less than all values of v.
-function searchsortedlast(v::AbstractVector, x, lo::Int, hi::Infinity, o::Ordering)
+function searchsortedlast(v::AbstractVector, x, lo::Int, hi::PosInfinity, o::Ordering)
    u = 1
    lo = lo - u
-   hi = ∞
+   hi = ℵ₀
    @inbounds while lo < hi - u
        m = isinf(hi) ? lo + 1000 : (lo+hi)>>>1
        if lt(o, x, v[m])
@@ -232,7 +239,7 @@ function searchsortedlast(v::AbstractVector, x, lo::Int, hi::Infinity, o::Orderi
 end
 
 # special case for Vcat
-@inline function LazyArrays.searchsortedlast_recursive(::Infinity, x, a, args...)
+@inline function LazyArrays.searchsortedlast_recursive(::PosInfinity, x, a, args...)
     n = sum(map(length,args))
     r = searchsortedlast(a, x)
     r > 0 && return n + r

@@ -100,7 +100,7 @@ Diagonal{Int64,InfiniteArrays.InfUnitRange{Int64}} with indices OneToInf()×OneT
  ⋮              ⋮                ⋮                  ⋱
 
  julia> C = cache(Ones(∞)); C[1] = 3; C # Use cache to make mutable
-LazyArrays.CachedArray{Float64,1,Array{Float64,1},Ones{Float64,1,Tuple{InfiniteArrays.Infinity}}} with indices OneToInf():
+LazyArrays.CachedArray{Float64,1,Array{Float64,1},Ones{Float64,1,Tuple{InfiniteArrays.InfiniteCardinal{0}}}} with indices OneToInf():
  3.0
  1.0
  1.0
