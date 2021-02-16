@@ -25,15 +25,15 @@ end
 
 
 # Range of a given length: range(a, [step=s,] length=l), no stop
-_range(a::Real,          ::Nothing,         ::Nothing, len::PosInfinity) = InfUnitRange{typeof(a)}(a)
-_range(a::AbstractFloat, ::Nothing,         ::Nothing, len::PosInfinity) = _range(a, oftype(a, 1),   nothing, len)
-_rangestyle(::Ordered, ::ArithmeticWraps, a::T, step::S, len::PosInfinity) where {T,S} =
+_range(a::Real,          ::Nothing,         ::Nothing, len::InfiniteCardinal{0}) = InfUnitRange{typeof(a)}(a)
+_range(a::AbstractFloat, ::Nothing,         ::Nothing, len::InfiniteCardinal{0}) = _range(a, oftype(a, 1),   nothing, len)
+_rangestyle(::Ordered, ::ArithmeticWraps, a::T, step::S, len::InfiniteCardinal{0}) where {T,S} =
     InfStepRange{T,S}(a, step)
-_rangestyle(::Ordered, ::ArithmeticUnknown, a::T, step::S, len::PosInfinity) where {T,S} =
+_rangestyle(::Ordered, ::ArithmeticUnknown, a::T, step::S, len::InfiniteCardinal{0}) where {T,S} =
     InfStepRange{T,S}(a, step)
-_range(a::T, st::T, ::Nothing, ::PosInfinity) where T<:Union{Float16,Float32,Float64} =
+_range(a::T, st::T, ::Nothing, ::InfiniteCardinal{0}) where T<:Union{Float16,Float32,Float64} =
     InfStepRange{T,T}(a, st)
-_range(a::T, st::T, ::Nothing, ::PosInfinity) where T<:AbstractFloat =
+_range(a::T, st::T, ::Nothing, ::InfiniteCardinal{0}) where T<:AbstractFloat =
     InfStepRange{T,T}(a, st)
 
 
@@ -104,7 +104,7 @@ struct OneToInf{T<:Integer} <: AbstractInfUnitRange{T} end
 OneToInf() = OneToInf{Int}()
 oneto(::PosInfinity) = OneToInf()
 function oneto(x::ComplexInfinity)
-    iszero(x.angle) && return oneto(∞)
+    iszero(angle(x)) && return oneto(∞)
     throw(ArgumentError("Cannot create infinite range with negative length"))
  end
  function oneto(x::RealInfinity)

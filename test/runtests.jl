@@ -100,7 +100,9 @@ end
 
     @test_throws ArgumentError (2:.2:-∞)
     @test_throws ArgumentError (2.:.2:-∞)
-    @test_throws ArgumentError (1:-∞)    
+    @test_throws ArgumentError (1:-∞)
+
+    @test ∞:1 ≡ 1:0
 
     @testset "indexing" begin
         L32 = @inferred(Int32(1):∞)
@@ -311,10 +313,14 @@ end
 
         @test promote(0:1/3:∞, 0:∞) === (0:1/3:∞, 0.:1.:∞)
 
-        @test AbstractArray{Float64}(1:2:∞) ≡ AbstractVector{Float64}(1:2:∞) ≡ 
+        @test AbstractArray{Float64}(1:2:∞) ≡ AbstractVector{Float64}(1:2:∞) ≡
                 convert(AbstractVector{Float64}, 1:2:∞) ≡ convert(AbstractArray{Float64}, 1:2:∞)
 
         @test unitrange(oneto(∞)) ≡ InfUnitRange(oneto(∞)) ≡ InfUnitRange{Int}(oneto(∞)) ≡ InfUnitRange(1)
+
+        @test oneto(RealInfinity()) ≡ oneto(ComplexInfinity()) ≡ OneToInf()
+        @test_throws ArgumentError oneto(-ComplexInfinity())
+        @test_throws ArgumentError oneto(-∞)
     end
 
     @testset "inf-range[inf-range]" begin
@@ -326,30 +332,29 @@ end
     end
 
     @testset "OneToInf" begin
-        let r = OneToInf()
-            @test !isempty(r)
-            @test length(r) == ℵ₀
-            @test size(r) == (ℵ₀,)
-            @test step(r) == 1
-            @test first(r) == 1
-            @test last(r) == ∞
-            @test minimum(r) == 1
-            @test maximum(r) == ℵ₀
-            @test r[2] == 2
-            @test r[2:3] === 2:3
-            @test_throws BoundsError r[0]
-            @test broadcast(+, r, 1) === 2:∞
-            @test 2*r === 2:2:∞
-            @test r + r === 2:2:∞
+        r = OneToInf()
+        @test !isempty(r)
+        @test length(r) == ℵ₀
+        @test size(r) == (ℵ₀,)
+        @test step(r) == 1
+        @test first(r) == 1
+        @test last(r) == ∞
+        @test minimum(r) == 1
+        @test maximum(r) == ℵ₀
+        @test r[2] == 2
+        @test r[2:3] === 2:3
+        @test_throws BoundsError r[0]
+        @test broadcast(+, r, 1) === 2:∞
+        @test 2*r === 2:2:∞
+        @test r + r === 2:2:∞
 
-            @test r - r === Zeros{Int}(∞)
+        @test r - r === Zeros{Int}(∞)
 
-            @test intersect(r, Base.OneTo(2)) == Base.OneTo(2)
-            @test intersect(r, 0:5) == 1:5
-            @test intersect(r, 2) === intersect(2, r) === 2:2
+        @test intersect(r, Base.OneTo(2)) == Base.OneTo(2)
+        @test intersect(r, 0:5) == 1:5
+        @test intersect(r, 2) === intersect(2, r) === 2:2
 
-            @test Base.unsafe_indices(Base.Slice(r)) == (r,)
-        end
+        @test Base.unsafe_indices(Base.Slice(r)) == (r,)
     end
 
     @testset "show" begin
@@ -383,11 +388,37 @@ end
         @test a[1,:] ≡ 1:∞
         @test a[1,2:2:end] ≡ 2:2:∞
     end
+
+    @testset "big" begin
+        @test (big(1):∞)[5] isa BigInt
+        @test range(big(1), ∞; step=1) == big(1):1:∞
+        @test range(big(1.0), ∞; step=2.5) == range(big(1.0); step=big(2.5), length=ℵ₀) == range(big(1.0), ∞; step=big(2.5)) == big(1.0):2.5:∞
+    end
+
+    @testset "maximum/minimum" begin
+        @test maximum(2:∞) ≡ ℵ₀
+        @test minimum(2:∞) ≡ 2
+    end 
+
+    @testset "getindex[∞]" begin
+        @test_throws BoundsError (2:6)[∞]
+        @test (2:∞)[∞] ≡ ℵ₀
+        @test oneto(∞)[∞] ≡ ℵ₀
+    end
+
+    @testset "show" begin
+        @test stringmime("text/plain", 2:∞) ≡ "2:∞"
+        @test stringmime("text/plain", OneToInf{BigInt}()) ≡ "OneToInf{BigInt}()"
+    end
+
+    @testset "in" begin
+        @test ∞ ∉ (1:∞)
+    end
 end
 
 @testset "fill" begin
     @testset "fill sizes" begin
-        for A in (Zeros(∞), Fill(1,∞), Ones(∞), 
+        for A in (Zeros(∞), Fill(1,∞), Ones(∞),
                     Zeros(5,∞), Ones(5,∞), Fill(1,5,∞),
                     Zeros(∞,5), Ones(∞,5), Fill(1,∞,5),
                     Zeros(∞,∞), Ones(∞,∞), Fill(1,∞,∞))
@@ -559,10 +590,10 @@ end
         @test colsupport(A,1) == 1:1
         @test Base.replace_in_print_matrix(A, 2, 1, "0") == "⋅"
         if VERSION < v"1.6-"
-			@test stringmime("text/plain", A; context=(:limit => true)) == 
+			@test stringmime("text/plain", A; context=(:limit => true)) ==
 					"vcat($Int, ℵ₀-element Zeros{Float64,1,Tuple{OneToInf{$Int}}} with indices OneToInf()) with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
 		else
-			@test stringmime("text/plain", A; context=(:limit => true)) == 
+			@test stringmime("text/plain", A; context=(:limit => true)) ==
 					"vcat($Int, ℵ₀-element Zeros{Float64, 1, Tuple{OneToInf{$Int}}} with indices OneToInf()) with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
 		end
         A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
@@ -651,7 +682,7 @@ end
         @test view(D,5,:) .+ 1 isa BroadcastVector
         @test view(V,:,5) .+ 1 isa BroadcastVector
         @test view(V,5,:) .+ 1 isa BroadcastVector
-        
+
         @test view(D,2:∞,2:∞) .+ 1 isa BroadcastMatrix
         @test view(V,2:∞,2:∞) .+ 1 isa BroadcastMatrix
 
@@ -710,12 +741,12 @@ end
     @test conv(Ones(∞), Ones(∞)) ≡ 1.0:1.0:∞
     @test conv(Ones{Int}(∞), Ones{Int}(∞)) ≡ oneto(∞)
     @test conv(Ones{Bool}(∞), Ones{Bool}(∞)) ≡ oneto(∞)
-    @test conv(Fill{Int}(2,∞), Fill{Int}(1,∞)) ≡ conv(Fill{Int}(2,∞), Ones{Int}(∞)) ≡ 
+    @test conv(Fill{Int}(2,∞), Fill{Int}(1,∞)) ≡ conv(Fill{Int}(2,∞), Ones{Int}(∞)) ≡
                 conv(Ones{Int}(∞), Fill{Int}(2,∞)) ≡ 2:2:∞
-    @test conv(Ones{Int}(∞), [1,5,8])[1:10] == conv([1,5,8], Ones{Int}(∞))[1:10] == 
+    @test conv(Ones{Int}(∞), [1,5,8])[1:10] == conv([1,5,8], Ones{Int}(∞))[1:10] ==
                     conv(fill(1,100),[1,5,8])[1:10] == conv([1,5,8], fill(1,100))[1:10]
-    @test conv(Ones{Int}(∞), 1:4)[1:10] == conv(1:4, Ones{Int}(∞))[1:10] == 
-                    conv(fill(1,100),collect(1:4))[1:10] == conv(collect(1:4), fill(1,100))[1:10]                    
+    @test conv(Ones{Int}(∞), 1:4)[1:10] == conv(1:4, Ones{Int}(∞))[1:10] ==
+                    conv(fill(1,100),collect(1:4))[1:10] == conv(collect(1:4), fill(1,100))[1:10]
 end
 
 @testset "Taylor ODE" begin
@@ -824,23 +855,27 @@ end
     @test searchsortedfirst(Vcat(2,3:∞),10) == 9
     @test searchsortedlast(Vcat(2,3:∞),10) == 9
     @test searchsortedlast(Vcat(2,3:∞),0) == 0
+
+    @test searchsorted(factorial.(big(1):∞), 6) == 3:3
+    @test searchsortedfirst(factorial.(big(1):∞), 7) == 4
+    @test searchsortedlast(factorial.(big(1):∞), 7) == 3
 end
 
 @testset "convert infrange" begin
-    @test convert(AbstractArray{Float64}, 1:∞) ≡ convert(AbstractArray{Float64}, oneto(∞)) ≡ 
+    @test convert(AbstractArray{Float64}, 1:∞) ≡ convert(AbstractArray{Float64}, oneto(∞)) ≡
         convert(AbstractVector{Float64}, 1:∞) ≡ convert(AbstractVector{Float64}, oneto(∞)) ≡
         AbstractVector{Float64}(1:∞) ≡ AbstractVector{Float64}(oneto(∞)) ≡
         AbstractArray{Float64}(1:∞) ≡ AbstractArray{Float64}(oneto(∞)) ≡ InfUnitRange(1.0)
 
-    @test convert(AbstractArray{Float64}, (1:∞)') ≡ convert(AbstractArray{Float64}, oneto(∞)') ≡ 
+    @test convert(AbstractArray{Float64}, (1:∞)') ≡ convert(AbstractArray{Float64}, oneto(∞)') ≡
         convert(AbstractMatrix{Float64}, (1:∞)') ≡ convert(AbstractMatrix{Float64}, oneto(∞)') ≡
-        AbstractMatrix{Float64}((1:∞)') ≡ AbstractMatrix{Float64}(oneto(∞)') ≡ 
-        AbstractArray{Float64}((1:∞)') ≡ AbstractArray{Float64}(oneto(∞)') ≡ 
+        AbstractMatrix{Float64}((1:∞)') ≡ AbstractMatrix{Float64}(oneto(∞)') ≡
+        AbstractArray{Float64}((1:∞)') ≡ AbstractArray{Float64}(oneto(∞)') ≡
         InfUnitRange(1.0)'
 
-    @test convert(AbstractArray{Float64}, transpose(1:∞)) ≡ convert(AbstractArray{Float64}, transpose(oneto(∞))) ≡ 
+    @test convert(AbstractArray{Float64}, transpose(1:∞)) ≡ convert(AbstractArray{Float64}, transpose(oneto(∞))) ≡
         convert(AbstractMatrix{Float64}, transpose(1:∞)) ≡ convert(AbstractMatrix{Float64}, transpose(oneto(∞))) ≡
-        AbstractMatrix{Float64}(transpose(1:∞)) ≡ AbstractMatrix{Float64}(transpose(oneto(∞))) ≡ 
-        AbstractArray{Float64}(transpose(1:∞)) ≡ AbstractArray{Float64}(transpose(oneto(∞))) ≡ 
+        AbstractMatrix{Float64}(transpose(1:∞)) ≡ AbstractMatrix{Float64}(transpose(oneto(∞))) ≡
+        AbstractArray{Float64}(transpose(1:∞)) ≡ AbstractArray{Float64}(transpose(oneto(∞))) ≡
         transpose(InfUnitRange(1.0))
 end
