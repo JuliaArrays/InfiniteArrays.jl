@@ -691,6 +691,17 @@ end
         @test view(V,2:∞,[1,2,3]) .+ 1 isa BroadcastMatrix
         @test view(V,[1,2,3],2:∞) .+ 1 isa BroadcastMatrix
     end
+
+    @testset "inf broadcast views" begin
+        a = BroadcastArray(cos, 1:∞)
+        r = div.(1:∞, 2) .+ 1
+        b = SubArray(a, (r,))
+        @test b[1:6] == a[r[1:6]]
+        @test_broken Base.BroadcastStyle(typeof(b)) isa LazyArrayStyle
+        c = SubArray(a, (view(r,2:∞),))
+        @test c[1:6] == a[r[2:7]]
+        @test Base.BroadcastStyle(typeof(c)) isa LazyArrayStyle
+    end
 end
 
 @testset "Cumsum and diff" begin
