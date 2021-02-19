@@ -258,4 +258,5 @@ _unsafe_getindex(::IndexLinear, A::Vcat, r::InfUnitRange) = _vcat(_gettail(first
 getindex(A::AbstractVector, r::InfRanges{<:Integer}) = layout_getindex(A, r)
 getindex(A::LayoutVector, r::InfRanges{<:Integer}) = layout_getindex(A, r)
 getindex(A::AbstractCachedVector, r::InfRanges{<:Integer}) = layout_getindex(A, r)
+getindex(A::CachedVector{<:Any,<:AbstractVector,<:AbstractFill{<:Any,1}}, r::InfRanges{<:Integer}) = layout_getindex(A, r)
 getindex(A::AbstractFill{<:Any,1}, r::InfRanges{<:Integer}) = FillArrays.fillsimilar(A, length(r))
