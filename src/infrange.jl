@@ -428,7 +428,9 @@ end
 BroadcastStyle(::Type{<:InfRanges}) = LazyArrayStyle{1}()
 BroadcastStyle(::Type{<:Adjoint{<:Any,<:InfRanges}}) = LazyArrayStyle{2}()
 BroadcastStyle(::Type{<:Transpose{<:Any,<:InfRanges}}) = LazyArrayStyle{2}()
-BroadcastStyle(::Type{<:SubArray{<:Any,1,<:Any,<:Tuple{InfRanges}}}) = LazyArrayStyle{1}()
+const InfSubVector = SubArray{<:Any,1,<:Any,<:Tuple{InfRanges}}
+BroadcastStyle(::Type{<:InfSubVector}) = LazyArrayStyle{1}()
+BroadcastStyle(::Type{<:SubArray{<:Any,1,<:Any,<:Tuple{InfSubVector}}}) = LazyArrayStyle{1}()
 
 BroadcastStyle(::Type{<:Base.Slice{<:InfRanges}}) = LazyArrayStyle{1}()
 
