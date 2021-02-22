@@ -583,6 +583,10 @@ end
         @test [[1,2]; [3,4]; [5,6]; Zeros(∞)] isa Vcat{<:Any,1,<:Tuple{Array,Zeros}}
 
         @test [randn(2,2); Zeros(∞,2)] isa Vcat{<:Any,2,<:Tuple{Array,Zeros}}
+
+        a = [[1,2,3]; zeros(Int,∞)]
+        @test a[3:∞][1:5] == a[3:7]
+        @test cache(1:∞)[2:∞][1:5] == 2:6
     end
 
     @testset "sparse print" begin
