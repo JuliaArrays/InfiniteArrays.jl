@@ -894,3 +894,7 @@ end
         AbstractArray{Float64}(transpose(1:∞)) ≡ AbstractArray{Float64}(transpose(oneto(∞))) ≡
         transpose(InfUnitRange(1.0))
 end
+
+@testset "cached indexing" begin
+    @test cache(1:∞)[Fill(2,∞)][1:10] == fill(2,10)
+end
