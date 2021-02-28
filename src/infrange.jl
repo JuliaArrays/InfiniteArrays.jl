@@ -584,3 +584,6 @@ for op in (:isequal, :(==))
             isinteger(p.x) ? findfirst($op(convert(V, p.x)), r) : nothing
     end
 end
+
+
+FillArrays._range_convert(::Type{AbstractVector{T}}, r::InfRanges) where T = convert(AbstractVector{T}, r)

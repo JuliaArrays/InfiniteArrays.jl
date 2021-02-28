@@ -54,8 +54,16 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
         @test similar(a, Float64, (2,∞)) isa CachedArray{Float64}
         @test similar(a, Float64, (∞,2)) isa CachedArray{Float64}
+
+        @test similar(Array{Float64}, (∞,)) isa CachedArray{Float64}
+        @test similar(Array{Float64}, (∞,∞)) isa CachedArray{Float64}
         @test similar(Array{Float64}, (2,∞)) isa CachedArray{Float64}
         @test similar(Array{Float64}, (∞,2)) isa CachedArray{Float64}
+
+        @test similar(Array{Float64}, (oneto(∞),)) isa CachedArray{Float64}
+        @test similar(Array{Float64}, (oneto(∞),oneto(∞))) isa CachedArray{Float64}
+        @test similar(Array{Float64}, (oneto(∞),oneto(5))) isa CachedArray{Float64}
+        @test similar(Array{Float64}, (oneto(5),oneto(∞))) isa CachedArray{Float64}
     end
 
     @testset "zeros/fill/ones" begin
@@ -83,6 +91,10 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
         @test ones(5,∞)[:,1:10] == ones(5,10)
         @test ones(∞,5)[1:10,:] == ones(10,5)
         @test ones(∞,∞)[1:5,1:5] == ones(5,5)
+
+        @test zeros(∞, 5)[1:10,:] == zeros(10,5)
+        @test zeros(Int, ∞, 5)[1:10,:] == zeros(10,5)
+        @test zeros(Int, 5, ∞)[:,1:10] == zeros(5, 10)
     end
 end
 
@@ -490,6 +502,13 @@ end
     @test @inferred(broadcast(*,Ones(∞)',D)) == @inferred(broadcast(*,D,Ones(∞)')) == Diagonal(1.0:∞)
     @test @inferred(broadcast(*,Fill(2,∞)',D)) ≡ @inferred(broadcast(*,D,Fill(2,∞)')) ≡ 2D
 
+    @test Eye{Int}(∞, ∞) isa Eye{Int}
+    @test Eye{Int}(∞, 5) isa Eye{Int}
+    @test Eye{Int}(5, ∞) isa Eye{Int}
+    @test Eye(∞, ∞) isa Eye{Float64}
+    @test Eye(∞, 5) isa Eye{Float64}
+    @test Eye(5, ∞) isa Eye{Float64}
+
     @test Eye{Int}(∞) * D ≡ Eye{Int}(∞) * D ≡ D
     @test Eye(∞) * D == Eye(∞) * D == D
 end
@@ -893,4 +912,8 @@ end
         AbstractMatrix{Float64}(transpose(1:∞)) ≡ AbstractMatrix{Float64}(transpose(oneto(∞))) ≡
         AbstractArray{Float64}(transpose(1:∞)) ≡ AbstractArray{Float64}(transpose(oneto(∞))) ≡
         transpose(InfUnitRange(1.0))
+end
+
+@testset "cached indexing" begin
+    @test cache(1:∞)[Fill(2,∞)][1:10] == fill(2,10)
 end

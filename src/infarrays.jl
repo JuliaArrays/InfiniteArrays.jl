@@ -257,6 +257,10 @@ _unsafe_getindex(::IndexLinear, A::Vcat, r::InfUnitRange) = _vcat(_gettail(first
 
 getindex(A::AbstractVector, r::InfRanges{<:Integer}) = layout_getindex(A, r)
 getindex(A::LayoutVector, r::InfRanges{<:Integer}) = layout_getindex(A, r)
-getindex(A::AbstractCachedVector, r::InfRanges{<:Integer}) = layout_getindex(A, r)
-getindex(A::CachedVector{<:Any,<:AbstractVector,<:AbstractFill{<:Any,1}}, r::InfRanges{<:Integer}) = layout_getindex(A, r)
+getindex(A::CachedVector, r::InfRanges{<:Integer}) = layout_getindex(A, r)
 getindex(A::AbstractFill{<:Any,1}, r::InfRanges{<:Integer}) = FillArrays.fillsimilar(A, length(r))
+
+
+Base.checkindex(::Type{Bool}, inds::AbstractUnitRange, I::AbstractFill) = Base.checkindex(Bool, inds, getindex_value(I))
+LazyArrays.cache_getindex(::InfiniteCardinal{0}, A::AbstractVector, I, J...) = layout_getindex(A, I, J...)
+
