@@ -151,11 +151,17 @@ done(r::InfStepRange{T}, i) where {T} = false
 
 ## iteration with zip + finite iterator
 #  allows axes(zip(...)) and size(zip(...))
-
-Base.Iterators._zip_promote_shape((a,)::Tuple{OneToInf}, (b,)::Tuple{OneTo}) =
-    (intersect(a, b),)
-Base.Iterators._zip_promote_shape((a,)::Tuple{OneTo}, (b,)::Tuple{OneToInf}) =
-    (intersect(a, b),)
+if VERSION < v"1.6-" 
+    Base.Iterators._zip_promote_shape((a,)::Tuple{OneToInf}, (b,)::Tuple{OneTo}) =
+        (intersect(a, b),)
+    Base.Iterators._zip_promote_shape((a,)::Tuple{OneTo}, (b,)::Tuple{OneToInf}) =
+        (intersect(a, b),)
+else
+    Base.Iterators._promote_tuple_shape((a,)::Tuple{OneToInf}, (b,)::Tuple{OneTo}) =
+        (intersect(a, b),)
+    Base.Iterators._promote_tuple_shape((a,)::Tuple{OneTo}, (b,)::Tuple{OneToInf}) =
+        (intersect(a, b),)
+end
 
 ## indexing
 
