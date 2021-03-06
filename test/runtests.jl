@@ -367,6 +367,12 @@ end
         @test intersect(r, 2) === intersect(2, r) === 2:2
 
         @test Base.unsafe_indices(Base.Slice(r)) == (r,)
+
+        @testset "iteration with zip + finite iterator" begin
+            z = zip(OneToInf(), 1:100)
+            @test axes(z) == (Base.OneTo(100),)
+            @test size(z) == (100,)
+        end
     end
 
     @testset "show" begin
