@@ -1,197 +1,9 @@
-using LinearAlgebra, SparseArrays, InfiniteArrays, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, LazyBandedMatrices, Test, Base64
-import InfiniteArrays: OrientedInfinity, SignedInfinity, InfUnitRange, InfStepRange, OneToInf, NotANumber
+using LinearAlgebra, SparseArrays, InfiniteArrays, Infinities, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, LazyBandedMatrices, Test, Base64
+import InfiniteArrays: InfUnitRange, InfStepRange, OneToInf, NotANumber, oneto, unitrange
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport, DualLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
 import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
-@testset "∞" begin
-    @testset "∞" begin
-        @test ∞ ≠ 1
-        @test ∞ == ∞
-        @test ∞ == Inf
-
-        @test +∞ ≡ ∞
-
-        @test isless(1, ∞)
-        @test !isless(Inf, ∞)
-        @test !isless(∞, Inf)
-        @test !isless(∞, 1)
-
-        @test !isless(∞, ∞)
-        @test !(∞ < ∞)
-        @test ∞ ≤ ∞
-        @test !(∞ > ∞)
-        @test ∞ ≥ ∞
-
-        @test ∞ + ∞ ≡ ∞
-        @test ∞ + 1 ≡ ∞
-        @test *(∞) ≡ ∞
-        @test ∞*∞ ≡ ∞
-        @test ∞ - ∞ isa NotANumber
-
-        @test one(∞) === 1
-        @test zero(∞) === 0
-
-        @test !isone(∞)
-        @test !iszero(∞)
-
-        @test max(1,∞) == max(∞,1) == ∞
-        @test min(1,∞) == min(∞,1) == 1
-        @test maximum([1,∞]) == ∞
-        @test minimum([1,∞]) == 1
-
-        @test string(∞) == "∞"
-
-        @test Base.OneTo(∞) == OneToInf()
-
-        @test isinf(∞)
-        @test !isfinite(∞)
-
-        @test div(∞, 2) == ∞
-        @test fld(∞, 2) == ∞
-        @test cld(∞, 2) == ∞
-        @test div(2, ∞) == 0
-        @test fld(2, ∞) == 0
-        @test cld(2, ∞) == 1
-        @test div(-2, ∞) == 0
-        @test fld(-2, ∞) == -1
-        @test cld(-2, ∞) == 0
-        @test mod(2,∞) == 2
-        @test div(∞,∞) isa NotANumber
-        @test fld(∞,∞) isa NotANumber
-        @test cld(∞,∞) isa NotANumber
-        @test mod(∞,∞) isa NotANumber
-        @test mod(∞,2) isa NotANumber
-        @test_throws ArgumentError mod(-2,∞)
-
-        @test min(∞, ∞) == ∞
-        @test max(∞, ∞) == ∞
-        @test min(3,∞) == 3
-        @test max(3,∞) == ∞
-    end
-
-    @testset "SignedInfinity" begin
-        @test SignedInfinity(∞) ≡ convert(SignedInfinity, ∞) ≡ SignedInfinity() ≡ 
-                SignedInfinity(false) ≡ SignedInfinity(SignedInfinity())
-
-        @test -∞ ≡ SignedInfinity(true)
-        @test +∞ ≡ ∞
-
-        @test sign(-∞) == -1
-        @test angle(-∞) ≈ π
-
-        @test ∞ == +∞ == SignedInfinity(∞)
-        @test ∞ ≠  -∞
-        @test 1-∞ == -∞
-        @test 1-(-∞) ≡ SignedInfinity()
-        @test (-∞) - 5 ≡ -∞
-
-        @test (-∞)*(-∞) ≡ ∞*SignedInfinity(∞) ≡ SignedInfinity(∞)*∞
-
-        @test  isless(-∞, 1)
-        @test !isless(-∞, -Inf)
-        @test !isless(-Inf, -∞)
-        @test !isless(1, -∞)
-
-        @test -∞ ≤ ∞
-        @test SignedInfinity() ≤ ∞
-        @test ∞ ≤ SignedInfinity()
-        @test -∞ ≤ -∞
-        @test !(∞ ≤ -∞)
-        @test -∞ < ∞
-        @test !(-∞ < -∞)
-        @test !(SignedInfinity() < ∞)
-        @test SignedInfinity() ≥ ∞
-        @test ∞ ≥ SignedInfinity()
-        @test !(-∞ > ∞)
-        @test ∞ > -∞
-        @test !(5 < -∞)
-        @test -∞ < 5
-
-        @test !(SignedInfinity(false) < SignedInfinity(false))
-        @test SignedInfinity(false) ≤ SignedInfinity(false)
-        @test SignedInfinity(true) < SignedInfinity(false)
-        @test SignedInfinity(true) ≤ SignedInfinity(false)
-        @test !(SignedInfinity(false) < SignedInfinity(true))
-        @test !(SignedInfinity(false) ≤ SignedInfinity(true))
-        @test !(SignedInfinity(true) < SignedInfinity(true))
-        @test SignedInfinity(true) ≤ SignedInfinity(true)        
-
-        @test SignedInfinity(true) + SignedInfinity(true) == SignedInfinity(true)
-        @test SignedInfinity(false) + SignedInfinity(false) == SignedInfinity(false)
-        @test SignedInfinity(true)+1 == SignedInfinity(true)
-        @test SignedInfinity(false)+1 == SignedInfinity(false)
-
-        @test string(-∞) == "-∞"
-
-        @test (-∞) + (-∞) ≡ -∞
-        @test (1∞) + (1∞) ≡ 1∞
-        @test ∞ + (1∞) ≡ (1∞) + ∞ ≡ 1∞
-        
-        @test_throws ArgumentError ∞ + (-∞)
-        @test_throws ArgumentError (1∞) + (-∞)
-        @test_throws ArgumentError (-∞) + ∞
-
-        @test ∞ - (-∞) ≡ ∞
-        @test (-∞) - ∞ ≡ -∞
-        @test (1∞) - (-∞) ≡ 1∞
-        @test (-∞) - (1∞) ≡ -∞
-
-        @test_throws ArgumentError ∞ - (1∞)
-        @test_throws ArgumentError (1∞) - ∞
-        @test_throws ArgumentError (1∞) - (1∞)
-        @test_throws ArgumentError (-∞) - (-∞)
-        @test_throws ArgumentError 0*∞
-        @test_throws ArgumentError 0*(-∞)
-
-        @test (-∞)*2 ≡ 2*(-∞) ≡ -2 * ∞ ≡ ∞ * (-2) ≡ (-2) * SignedInfinity() ≡ -∞
-        @test (-∞)*2.3 ≡ 2.3*(-∞) ≡ -2.3 * ∞ ≡ ∞ * (-2.3) ≡ (-2.3) * SignedInfinity() ≡ -∞
-
-        @test Base.OneTo(1*∞) == OneToInf()
-        @test_throws ArgumentError Base.OneTo(-∞)
-
-        @test isinf(-∞)
-        @test !isfinite(-∞)
-
-        @test [∞, -∞] isa Vector{SignedInfinity}
-
-        @test mod(-∞, 5) isa NotANumber
-        @test mod(-∞, -∞) isa NotANumber
-        @test mod(5, SignedInfinity()) == 5
-        @test_throws ArgumentError mod(5,-∞)
-
-        @test min(-∞, ∞) ≡ min(∞, -∞) ≡ min(-∞, SignedInfinity()) ≡ -∞
-        @test max(-∞, SignedInfinity()) ≡ SignedInfinity()
-        @test max(∞, -∞) ≡ max(-∞,∞) ≡ ∞
-    end
-
-    @testset "OrientedInfinity" begin
-        @test OrientedInfinity(∞) ≡ convert(OrientedInfinity, ∞) ≡ OrientedInfinity() ≡
-            OrientedInfinity(false)
-
-        @test OrientedInfinity(∞) == ∞
-        @test ∞ == OrientedInfinity(∞)
-        @test OrientedInfinity(∞) == SignedInfinity()
-        @test SignedInfinity() == OrientedInfinity(∞)
-        @test OrientedInfinity(-∞) == -∞
-        @test  -∞ == OrientedInfinity(-∞)
-
-        @test OrientedInfinity() + ∞ ≡ OrientedInfinity() + SignedInfinity() ≡ 
-                ∞ + OrientedInfinity() ≡ SignedInfinity() + OrientedInfinity() ≡ OrientedInfinity()
-        @test OrientedInfinity(true) + OrientedInfinity(true) == OrientedInfinity(true)
-        @test OrientedInfinity(false) + OrientedInfinity(false) == OrientedInfinity(false)
-        @test OrientedInfinity(true)+1 == OrientedInfinity(true)
-        @test OrientedInfinity(false)+1 == OrientedInfinity(false)
-
-        @test ∞ * OrientedInfinity() ≡ SignedInfinity() * OrientedInfinity() ≡ 
-             OrientedInfinity() * ∞ ≡ OrientedInfinity() * SignedInfinity() ≡ OrientedInfinity()
-
-        @test  2.0im*∞ ≡ ∞*2.0im ≡ 2.0im * SignedInfinity() ≡ SignedInfinity() * 2.0im ≡ OrientedInfinity(1/2)
-
-        @test exp(im*π/4)*∞ == Inf+im*Inf
-        @test exp(im*π/4)+∞ == ∞
-    end
-end
 
 @testset "construction" begin
     @testset "Array constructor errors" begin
@@ -234,44 +46,65 @@ end
         @test similar(a, Float64, ∞) isa CachedArray{Float64}
         @test similar(a, Float64, (∞,)) isa CachedArray{Float64}
         @test similar(a, Float64, (∞,∞)) isa CachedArray{Float64}
-        @test similar(a, Float64, Base.OneTo(∞)) isa CachedArray{Float64}
-        @test similar(a, Float64, (Base.OneTo(∞),)) isa CachedArray{Float64}
-        @test similar(a, Float64, (Base.OneTo(∞),Base.OneTo(∞))) isa CachedArray{Float64}
+        @test similar(a, Float64, oneto(∞)) isa CachedArray{Float64}
+        @test similar(a, Float64, (oneto(∞),)) isa CachedArray{Float64}
+        @test similar(a, Float64, (oneto(∞),oneto(∞))) isa CachedArray{Float64}
 
         @test similar([1,2,3],Float64,()) isa Array{Float64,0}
 
         @test similar(a, Float64, (2,∞)) isa CachedArray{Float64}
         @test similar(a, Float64, (∞,2)) isa CachedArray{Float64}
+
+        @test similar(Array{Float64}, (∞,)) isa CachedArray{Float64}
+        @test similar(Array{Float64}, (∞,∞)) isa CachedArray{Float64}
         @test similar(Array{Float64}, (2,∞)) isa CachedArray{Float64}
         @test similar(Array{Float64}, (∞,2)) isa CachedArray{Float64}
+
+        @test similar(Array{Float64}, (oneto(∞),)) isa CachedArray{Float64}
+        @test similar(Array{Float64}, (oneto(∞),oneto(∞))) isa CachedArray{Float64}
+        @test similar(Array{Float64}, (oneto(∞),oneto(5))) isa CachedArray{Float64}
+        @test similar(Array{Float64}, (oneto(5),oneto(∞))) isa CachedArray{Float64}
     end
 
-    @testset "zeros/fill" begin
+    @testset "zeros/fill/ones" begin
         a = zeros(1,∞)
-        @test length(a) === ∞
-        @test size(a) === (1,∞)
+        @test length(a) === ℵ₀
+        @test size(a) === (1,ℵ₀)
         @test a isa CachedArray{Float64}
         @test all(iszero,a[1,1:100])
         a[5] = 1
         @test a[1,1:100] == [zeros(4); 1; zeros(95)]
 
         a = fill(1,∞)
-        @test length(a) === ∞
-        @test size(a) === (∞,)
+        @test length(a) === ℵ₀
+        @test size(a) === (ℵ₀,)
         @test a isa CachedArray{Int}
         @test all(x -> x===1,a[1:100])
         a[5] = 2
         @test a[1:100] == [fill(1,4); 2; fill(1,95)]
+
+        a = ones(∞)
+        @test a isa CachedArray{Float64}
+        a[5] = 2
+        @test a[1:100] == [fill(1,4); 2; fill(1,95)]
+
+        @test ones(5,∞)[:,1:10] == ones(5,10)
+        @test ones(∞,5)[1:10,:] == ones(10,5)
+        @test ones(∞,∞)[1:5,1:5] == ones(5,5)
+
+        @test zeros(∞, 5)[1:10,:] == zeros(10,5)
+        @test zeros(Int, ∞, 5)[1:10,:] == zeros(10,5)
+        @test zeros(Int, 5, ∞)[:,1:10] == zeros(5, 10)
     end
 end
 
 @testset "ranges" begin
-    @test size(10:1:∞) == (∞,)
+    @test size(10:1:∞) == (ℵ₀,)
     @testset "colon" begin
-        @test @inferred(10:1:∞) === @inferred(range(10; step=1, length=∞))
-        @inferred(1:0.2:∞)  === @inferred(range(1; step=0.2, length=∞))
-        @inferred(1.0:0.2:∞)  === @inferred(range(1.0; step=0.2, length=∞))
-        @inferred(1:∞) === @inferred(range(1; length=∞))
+        @test @inferred(10:1:∞) === @inferred(range(10; step=1, length=ℵ₀))
+        @inferred(1:0.2:∞)  === @inferred(range(1; step=0.2, length=ℵ₀))
+        @inferred(1.0:0.2:∞)  === @inferred(range(1.0; step=0.2, length=ℵ₀))
+        @inferred(1:∞) === @inferred(range(1; length=ℵ₀))
     end
     @test_throws ArgumentError 2:-.2:∞
     @test_throws ArgumentError 0.0:-∞
@@ -279,7 +112,9 @@ end
 
     @test_throws ArgumentError (2:.2:-∞)
     @test_throws ArgumentError (2.:.2:-∞)
-    @test_throws ArgumentError (1:-∞)    
+    @test_throws ArgumentError (1:-∞)
+
+    @test ∞:1 ≡ 1:0
 
     @testset "indexing" begin
         L32 = @inferred(Int32(1):∞)
@@ -307,14 +142,14 @@ end
         @test_throws BoundsError (1:∞)[8:-1:-2]
     end
     @testset "length" begin
-        @test length(.1:.1:∞) == ∞
-        @test length(1.1:1.1:∞) == ∞
-        @test length(1.1:1.3:∞) == ∞
-        @test length(1:1:∞) == ∞
-        @test length(1:.2:∞) == ∞
-        @test length(1.:.2:∞) == ∞
-        @test length(2:-.2:-∞) == ∞
-        @test length(2.:-.2:-∞) == ∞
+        @test length(.1:.1:∞) == ℵ₀
+        @test length(1.1:1.1:∞) == ℵ₀
+        @test length(1.1:1.3:∞) == ℵ₀
+        @test length(1:1:∞) == ℵ₀
+        @test length(1:.2:∞) == ℵ₀
+        @test length(1.:.2:∞) == ℵ₀
+        @test length(2:-.2:-∞) == ℵ₀
+        @test length(2.:-.2:-∞) == ℵ₀
     end
 
     @testset "intersect" begin
@@ -397,9 +232,9 @@ end
     end
 
     @testset "sums of ranges" begin
-        @test sum(1:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ∞
-        @test sum(0:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ∞
-        @test sum(0:2:∞) ≡ mean(0:2:∞) ≡ median(0:2:∞) ≡ SignedInfinity(∞)
+        @test sum(1:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ℵ₀
+        @test sum(0:∞) ≡ mean(1:∞) ≡ median(1:∞) ≡ ℵ₀
+        @test sum(0:2:∞) ≡ mean(0:2:∞) ≡ median(0:2:∞) ≡ RealInfinity(∞)
         @test sum(0:-2:-∞) ≡ mean(0:-2:-∞) ≡ median(0:-2:-∞) ≡ -∞
     end
 
@@ -434,8 +269,8 @@ end
     end
 
     @testset "Base.OneTo (misleading) overrides" begin
-        @test Base.OneTo{BigInt}(∞) isa OneToInf{BigInt}
-        @test Base.OneTo(∞) isa OneToInf{Int}
+        @test_skip Base.OneTo{BigInt}(∞) isa OneToInf{BigInt}
+        @test oneto(∞) isa OneToInf{Int}
     end
 
     @testset "issue #6973" begin
@@ -490,8 +325,14 @@ end
 
         @test promote(0:1/3:∞, 0:∞) === (0:1/3:∞, 0.:1.:∞)
 
-        @test AbstractArray{Float64}(1:2:∞) ≡ AbstractVector{Float64}(1:2:∞) ≡ 
+        @test AbstractArray{Float64}(1:2:∞) ≡ AbstractVector{Float64}(1:2:∞) ≡
                 convert(AbstractVector{Float64}, 1:2:∞) ≡ convert(AbstractArray{Float64}, 1:2:∞)
+
+        @test unitrange(oneto(∞)) ≡ InfUnitRange(oneto(∞)) ≡ InfUnitRange{Int}(oneto(∞)) ≡ InfUnitRange(1)
+
+        @test oneto(RealInfinity()) ≡ oneto(ComplexInfinity()) ≡ OneToInf()
+        @test_throws ArgumentError oneto(-ComplexInfinity())
+        @test_throws ArgumentError oneto(-∞)
     end
 
     @testset "inf-range[inf-range]" begin
@@ -503,43 +344,42 @@ end
     end
 
     @testset "OneToInf" begin
-        let r = OneToInf()
-            @test !isempty(r)
-            @test length(r) == ∞
-            @test size(r) == (∞,)
-            @test step(r) == 1
-            @test first(r) == 1
-            @test last(r) == ∞
-            @test minimum(r) == 1
-            @test maximum(r) == ∞
-            @test r[2] == 2
-            @test r[2:3] === 2:3
-            @test_throws BoundsError r[0]
-            @test broadcast(+, r, 1) === 2:∞
-            @test 2*r === 2:2:∞
-            @test r + r === 2:2:∞
+        r = OneToInf()
+        @test !isempty(r)
+        @test length(r) == ℵ₀
+        @test size(r) == (ℵ₀,)
+        @test step(r) == 1
+        @test first(r) == 1
+        @test last(r) == ∞
+        @test minimum(r) == 1
+        @test maximum(r) == ℵ₀
+        @test r[2] == 2
+        @test r[2:3] === 2:3
+        @test_throws BoundsError r[0]
+        @test broadcast(+, r, 1) === 2:∞
+        @test 2*r === 2:2:∞
+        @test r + r === 2:2:∞
 
-            @test r - r === Zeros{Int}(∞)
+        @test r - r === Zeros{Int}(∞)
 
-            @test intersect(r, Base.OneTo(2)) == Base.OneTo(2)
-            @test intersect(r, 0:5) == 1:5
-            @test intersect(r, 2) === intersect(2, r) === 2:2
+        @test intersect(r, Base.OneTo(2)) == Base.OneTo(2)
+        @test intersect(r, 0:5) == 1:5
+        @test intersect(r, 2) === intersect(2, r) === 2:2
 
-            @test Base.unsafe_indices(Base.Slice(r)) == (r,)
-        end
+        @test Base.unsafe_indices(Base.Slice(r)) == (r,)
     end
 
     @testset "show" begin
         # NOTE: Interpolating Int to ensure it's displayed properly across 32- and 64-bit
-        @test summary(1:∞) == "∞-element InfUnitRange{$Int} with indices OneToInf()"
+        @test summary(1:∞) == "ℵ₀-element InfUnitRange{$Int} with indices OneToInf()"
         @test Base.inds2string(axes(1:∞)) == "OneToInf()"
     end
 
     @testset "end" begin
-        @test Base.OneTo(∞)[end] ≡ Base.OneTo(∞)[∞] ≡ ∞
-        @test (1:∞)[end] ≡ (1:∞)[∞] ≡ ∞
-        @test (1:2:∞)[end] ≡ (1:2:∞)[∞] ≡ ∞
-        @test (1.0:2:∞)[end] ≡ (1.0:2:∞)[∞] ≡ ∞
+        @test oneto(∞)[end] ≡ oneto(∞)[∞] ≡ ℵ₀
+        @test (1:∞)[end] ≡ (1:∞)[∞] ≡ ℵ₀
+        @test (1:2:∞)[end] ≡ (1:2:∞)[∞] ≡ ℵ₀
+        @test (1.0:2:∞)[end] ≡ (1.0:2:∞)[∞] ≡ ℵ₀
     end
 
     @testset "union" begin
@@ -560,29 +400,55 @@ end
         @test a[1,:] ≡ 1:∞
         @test a[1,2:2:end] ≡ 2:2:∞
     end
+
+    @testset "big" begin
+        @test (big(1):∞)[5] isa BigInt
+        @test range(big(1), ∞; step=1) == big(1):1:∞
+        @test range(big(1.0), ∞; step=2.5) == range(big(1.0); step=big(2.5), length=ℵ₀) == range(big(1.0), ∞; step=big(2.5)) == big(1.0):2.5:∞
+    end
+
+    @testset "maximum/minimum" begin
+        @test maximum(2:∞) ≡ ℵ₀
+        @test minimum(2:∞) ≡ 2
+    end 
+
+    @testset "getindex[∞]" begin
+        @test_throws BoundsError (2:6)[∞]
+        @test (2:∞)[∞] ≡ ℵ₀
+        @test oneto(∞)[∞] ≡ ℵ₀
+    end
+
+    @testset "show" begin
+        @test stringmime("text/plain", 2:∞) ≡ "2:∞"
+        @test stringmime("text/plain", OneToInf{BigInt}()) ≡ "OneToInf{BigInt}()"
+    end
+
+    @testset "in" begin
+        @test ∞ ∉ (1:∞)
+    end
 end
 
 @testset "fill" begin
     @testset "fill sizes" begin
-        for A in (Zeros(∞), Fill(1,∞), Ones(∞), 
+        for A in (Zeros(∞), Fill(1,∞), Ones(∞),
                     Zeros(5,∞), Ones(5,∞), Fill(1,5,∞),
                     Zeros(∞,5), Ones(∞,5), Fill(1,∞,5),
                     Zeros(∞,∞), Ones(∞,∞), Fill(1,∞,∞))
-            @test length(A) ≡ ∞
+            @test length(A) ≡ ℵ₀
         end
-        @test size(Zeros(∞,5)) ≡ (∞,5)
-        @test size(Zeros(5,∞)) ≡ (5,∞)
+        @test size(Zeros(∞,5)) ≡ (ℵ₀,5)
+        @test size(Zeros(5,∞)) ≡ (5,ℵ₀)
     end
 
     @testset "Fill indexing" begin
         B = Ones(∞,∞)
         @test IndexStyle(B) == IndexCartesian()
         V = view(B,:,1)
-        @test_broken size(V) == (∞,1)
+        @test_broken size(V) == (ℵ₀,1)
         V = view(B,1,:)
-        @test size(V) == (∞,)
+        @test size(V) == (ℵ₀,)
         V = view(B,1:1,:)
-        @test size(V) == (1,∞)
+        @test size(V) == (1,ℵ₀)
     end
 
     @testset "Fill reindex" begin
@@ -600,6 +466,17 @@ end
         Z = Zeros(∞,∞)
         @test A[:,1] ≡ A[1,:] ≡ A[1:∞,1] ≡ Fill(2,∞)
         @test Z[:,1] ≡ Z[1,:] ≡ Z[1:∞,1] ≡ Zeros(∞)
+    end
+
+    @testset "maximum/minimum/sum" begin
+        c = cache(Fill(2,∞));
+        c[1] = 1;
+        @test maximum(c) == maximum(Vcat([1], Fill(2,∞))) == 2
+        c[1:3] = 1:3;
+        @test maximum(c) == maximum(Vcat([1,2,3], Fill(2,∞))) == 3
+        @test minimum(c) == minimum(Vcat([1,2,3], Fill(2,∞))) == 1
+        @test sum([1; zeros(∞)]) ≡ 1.0
+        @test sum([1; ones(∞)]) ≡ 1.0∞
     end
 end
 
@@ -625,6 +502,13 @@ end
     @test @inferred(broadcast(*,Ones(∞)',D)) == @inferred(broadcast(*,D,Ones(∞)')) == Diagonal(1.0:∞)
     @test @inferred(broadcast(*,Fill(2,∞)',D)) ≡ @inferred(broadcast(*,D,Fill(2,∞)')) ≡ 2D
 
+    @test Eye{Int}(∞, ∞) isa Eye{Int}
+    @test Eye{Int}(∞, 5) isa Eye{Int}
+    @test Eye{Int}(5, ∞) isa Eye{Int}
+    @test Eye(∞, ∞) isa Eye{Float64}
+    @test Eye(∞, 5) isa Eye{Float64}
+    @test Eye(5, ∞) isa Eye{Float64}
+
     @test Eye{Int}(∞) * D ≡ Eye{Int}(∞) * D ≡ D
     @test Eye(∞) * D == Eye(∞) * D == D
     @test Eye(∞) == Eye(∞)^0 == Eye(∞)^1 == Eye(∞)^2 == one(Eye(∞)) == copy(Eye(∞)) == one(Diagonal(Fill(2,∞)))
@@ -634,26 +518,26 @@ end
 @testset "concat" begin
     @testset "concat indexing" begin
         A = Vcat(1:10, 1:∞)
-        @test @inferred(length(A)) == ∞
+        @test @inferred(length(A)) == ℵ₀
         @test @inferred(A[5]) == A[15] == 5
         @test A[end] == @inferred(A[∞]) == ∞
         @test_throws BoundsError Vcat(1:10)[∞]
 
         A = Vcat(Ones(1,∞), Zeros(2,∞))
-        @test @inferred(size(A)) == (3,∞)
+        @test @inferred(size(A)) == (3,ℵ₀)
         @test @inferred(A[1,5]) == 1
         @test @inferred(A[3,5]) == 0
         @test_throws BoundsError A[4,1]
 
         A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
-        @test @inferred(size(A)) ≡ (∞,∞)
+        @test @inferred(size(A)) ≡ (ℵ₀,ℵ₀)
         @test @inferred(A[1,5]) ≡ 1
         @test @inferred(A[5,5]) ≡ 0
         @test @inferred(A[6,5]) ≡ 5
         @test_throws BoundsError A[-1,1]
 
         A = Vcat(Ones{Float64}(1,∞), Diagonal(1:∞))
-        @test @inferred(size(A)) ≡ (∞,∞)
+        @test @inferred(size(A)) ≡ (ℵ₀,ℵ₀)
         @test @inferred(A[1,5]) ≡ 1.0
         @test @inferred(A[5,5]) ≡ 0.0
         @test @inferred(A[6,5]) ≡ 5.0
@@ -664,13 +548,13 @@ end
         @test @inferred(A[2]) ≡ 0.0
 
         A = Hcat(Ones(∞), Zeros(∞,2))
-        @test @inferred(size(A)) == (∞,3)
+        @test @inferred(size(A)) == (ℵ₀,3)
         @test @inferred(A[5,1]) == 1
         @test @inferred(A[5,3]) == 0
         @test_throws BoundsError A[1,4]
 
         A = Hcat(Ones{Int}(∞), Diagonal(1:∞))
-        @test @inferred(size(A)) ≡ (∞,∞)
+        @test @inferred(size(A)) ≡ (ℵ₀,ℵ₀)
         @test @inferred(A[5,1]) ≡ 1
         @test @inferred(A[5,5]) ≡ 0
         @test @inferred(A[5,6]) ≡ 5
@@ -690,7 +574,7 @@ end
             Vcat(1,Zeros{Int}(∞)) .+ Vcat(3,Zeros{Int}(∞)) ≡
             Vcat(4,Zeros{Int}(∞))
 
-            size(Vcat(1:∞)) ≡ (∞,)
+            size(Vcat(1:∞)) ≡ (ℵ₀,)
     end
 
     @testset "Vcat infrange getindex" begin
@@ -715,18 +599,27 @@ end
         @test [1; 2; 3; zeros(Int,∞)] isa CachedArray
         @test [[1,2]; 3; zeros(Int,∞)] isa CachedArray
         @test [2; [1,2]; 3; zeros(Int,∞)] isa CachedArray
+
+        @test [[1,2]; [3,4]; Zeros(∞)] isa Vcat{<:Any,1,<:Tuple{Array,Zeros}}
+        @test [[1,2]; [3,4]; [5,6]; Zeros(∞)] isa Vcat{<:Any,1,<:Tuple{Array,Zeros}}
+
+        @test [randn(2,2); Zeros(∞,2)] isa Vcat{<:Any,2,<:Tuple{Array,Zeros}}
+
+        a = [[1,2,3]; zeros(Int,∞)]
+        @test a[3:∞][1:5] == a[3:7]
+        @test cache(1:∞)[2:∞][1:5] == 2:6
     end
 
     @testset "sparse print" begin
         A = Vcat(1, Zeros(∞))
         @test colsupport(A,1) == 1:1
         @test Base.replace_in_print_matrix(A, 2, 1, "0") == "⋅"
-        if VERSION ≤ v"1.5"
-			@test stringmime("text/plain", A; context=(:limit => true)) == 
-					"vcat($Int, ∞-element Zeros{Float64,1,Tuple{OneToInf{$Int}}} with indices OneToInf()) with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
+        if VERSION < v"1.6-"
+			@test stringmime("text/plain", A; context=(:limit => true)) ==
+					"vcat($Int, ℵ₀-element Zeros{Float64,1,Tuple{OneToInf{$Int}}} with indices OneToInf()) with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
 		else
-			@test stringmime("text/plain", A; context=(:limit => true)) == 
-					"vcat($Int, ∞-element Zeros{Float64, 1, Tuple{OneToInf{$Int}}} with indices OneToInf()) with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
+			@test stringmime("text/plain", A; context=(:limit => true)) ==
+					"vcat($Int, ℵ₀-element Zeros{Float64, 1, Tuple{OneToInf{$Int}}} with indices OneToInf()) with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
 		end
         A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
         @test Base.replace_in_print_matrix(A, 2, 2, "0") == "⋅"
@@ -758,13 +651,20 @@ end
         @test A[2:∞,2:∞] isa Vcat
         @test A[2:∞,2:∞][1:10,1:10] == fill(2,10,10)
     end
+
+    @testset "adjoint copy"  begin
+        a = Vcat(1,(1:∞))'
+        b = transpose(Vcat(1,(1:∞)))
+        @test copy(a) ≡ a
+        @test copy(b) ≡ b
+    end
 end
 
 @testset "broadcasting" begin
     @testset "∞ BroadcastArray" begin
         A = 1:∞
         B = BroadcastArray(exp, A)
-        @test length(B) == ∞
+        @test length(B) == ℵ₀
         @test B[6] == exp(6)
         @test exp.(A) ≡ B
         @test B[2:∞] isa BroadcastArray
@@ -799,15 +699,43 @@ end
         @test v isa BroadcastArray
         @test b[3:10] .+ 1 == v[1:8]
     end
+
+    @testset "views of matrices" begin
+        D = Diagonal(1:∞)
+        V = Vcat(Ones(2,∞), D)
+        @test view(D,:,5) .+ 1 isa BroadcastVector
+        @test view(D,5,:) .+ 1 isa BroadcastVector
+        @test view(V,:,5) .+ 1 isa BroadcastVector
+        @test view(V,5,:) .+ 1 isa BroadcastVector
+
+        @test view(D,2:∞,2:∞) .+ 1 isa BroadcastMatrix
+        @test view(V,2:∞,2:∞) .+ 1 isa BroadcastMatrix
+
+        @test view(D,2:∞,[1,2,3]) .+ 1 isa BroadcastMatrix
+        @test view(D,[1,2,3],2:∞) .+ 1 isa BroadcastMatrix
+        @test view(V,2:∞,[1,2,3]) .+ 1 isa BroadcastMatrix
+        @test view(V,[1,2,3],2:∞) .+ 1 isa BroadcastMatrix
+    end
+
+    @testset "inf broadcast views" begin
+        a = BroadcastArray(cos, 1:∞)
+        r = div.(1:∞, 2) .+ 1
+        b = SubArray(a, (r,))
+        @test b[1:6] == a[r[1:6]]
+        @test_broken Base.BroadcastStyle(typeof(b)) isa LazyArrayStyle
+        c = SubArray(a, (view(r,2:∞),))
+        @test c[1:6] == a[r[2:7]]
+        @test Base.BroadcastStyle(typeof(c)) isa LazyArrayStyle
+    end
 end
 
 @testset "Cumsum and diff" begin
     @test cumsum(Ones(∞)) ≡ 1.0:1.0:∞
     @test cumsum(Fill(2,∞)) ≡ 2:2:∞
-    @test cumsum(Ones{Int}(∞)) ≡ Base.OneTo(∞)
-    @test cumsum(Ones{BigInt}(∞)) ≡ Base.OneTo{BigInt}(∞)
+    @test cumsum(Ones{Int}(∞)) ≡ oneto(∞)
+    @test cumsum(Ones{BigInt}(∞)) ≡ OneToInf{BigInt}()
 
-    @test diff(Base.OneTo(∞)) ≡ Ones{Int}(∞)
+    @test diff(oneto(∞)) ≡ Ones{Int}(∞)
     @test diff(1:∞) ≡ Fill(1,∞)
     @test diff(1:2:∞) ≡ Fill(2,∞)
     @test diff(1:2.0:∞) ≡ Fill(2.0,∞)
@@ -823,11 +751,14 @@ end
     @test cumsum(x).args[2] ≡ 8:12
     @test last(y.args) == sum(x[1:9]):2:∞
 
-    for r in (3:4:∞, 2:∞, Base.OneTo(∞))
+    for r in (3:4:∞, 2:∞, oneto(∞))
         c = cumsum(r)
-        @test c isa Cumsum
-        @test c[1:20] == [c[k] for k=1:20] == cumsum(r[1:20])
+        @test c isa InfiniteArrays.RangeCumsum
+        @test c[Base.OneTo(20)] == c[1:20] == [c[k] for k=1:20] == cumsum(r[1:20])
+        @test c[2:20] == [c[k] for k=2:20] == cumsum(r[1:20])[2:end]
         @test c == c
+        @test c[Base.OneTo(20)] isa InfiniteArrays.RangeCumsum
+        @test exp.(c)[1:20] == exp.(c[1:20])
     end
 
     @test cumsum(1:∞)[2:∞][1:5] == cumsum(1:6)[2:end]
@@ -844,14 +775,14 @@ end
     @test conv(1:2:∞, [2]) ≡ conv([2], 1:2:∞) ≡ 2:4:∞
     @test conv(1:∞, Ones(∞))[1:5] == conv(Ones(∞),1:∞)[1:5] == [1,3,6,10,15]
     @test conv(Ones(∞), Ones(∞)) ≡ 1.0:1.0:∞
-    @test conv(Ones{Int}(∞), Ones{Int}(∞)) ≡ Base.OneTo(∞)
-    @test conv(Ones{Bool}(∞), Ones{Bool}(∞)) ≡ Base.OneTo(∞)
-    @test conv(Fill{Int}(2,∞), Fill{Int}(1,∞)) ≡ conv(Fill{Int}(2,∞), Ones{Int}(∞)) ≡ 
+    @test conv(Ones{Int}(∞), Ones{Int}(∞)) ≡ oneto(∞)
+    @test conv(Ones{Bool}(∞), Ones{Bool}(∞)) ≡ oneto(∞)
+    @test conv(Fill{Int}(2,∞), Fill{Int}(1,∞)) ≡ conv(Fill{Int}(2,∞), Ones{Int}(∞)) ≡
                 conv(Ones{Int}(∞), Fill{Int}(2,∞)) ≡ 2:2:∞
-    @test conv(Ones{Int}(∞), [1,5,8])[1:10] == conv([1,5,8], Ones{Int}(∞))[1:10] == 
+    @test conv(Ones{Int}(∞), [1,5,8])[1:10] == conv([1,5,8], Ones{Int}(∞))[1:10] ==
                     conv(fill(1,100),[1,5,8])[1:10] == conv([1,5,8], fill(1,100))[1:10]
-    @test conv(Ones{Int}(∞), 1:4)[1:10] == conv(1:4, Ones{Int}(∞))[1:10] == 
-                    conv(fill(1,100),collect(1:4))[1:10] == conv(collect(1:4), fill(1,100))[1:10]                    
+    @test conv(Ones{Int}(∞), 1:4)[1:10] == conv(1:4, Ones{Int}(∞))[1:10] ==
+                    conv(fill(1,100),collect(1:4))[1:10] == conv(collect(1:4), fill(1,100))[1:10]
 end
 
 @testset "Taylor ODE" begin
@@ -881,7 +812,7 @@ end
 
     AB = A*B
     @test AB isa BroadcastArray
-    @test size(AB) == (3,∞)
+    @test size(AB) == (3,ℵ₀)
     @test (AB)[1:3,1:10] == Fill(1,3,10)*Diagonal(1:10)
 
     @test A*B*C isa ApplyArray
@@ -897,12 +828,12 @@ end
     @test MemoryLayout(OneToInf{Int}) == LazyLayout()
     @test MemoryLayout(0:∞) == LazyLayout()
     @test MemoryLayout((0:∞)') == DualLayout{LazyLayout}()
-    A = _BandedMatrix((0:∞)', ∞, -1, 1)
+    A = _BandedMatrix((0:∞)', ℵ₀, -1, 1)
     @test MemoryLayout(A) == BandedColumns{LazyLayout}()
 end
 
 @testset "Banded" begin
-    A = _BandedMatrix((0:∞)', ∞, -1, 1)
+    A = _BandedMatrix((0:∞)', ℵ₀, -1, 1)
     @test (Eye{Int}(∞) * A).data ≡ A.data
     @test 2.0A isa BandedMatrix
     @test (2.0A)[1:10,1:10] == 2.0A[1:10,1:10]
@@ -919,12 +850,13 @@ end
 
 @testset "reshaped" begin
     @test InfiniteArrays.ReshapedArray(1:6,(2,3)) == [1 3 5; 2 4 6]
-    @test InfiniteArrays.ReshapedArray(1:∞,(1,∞))[1,1:10] == 1:10
-    @test reshape(1:∞,1,∞) === InfiniteArrays.ReshapedArray(1:∞,(1,∞))
+    @test InfiniteArrays.ReshapedArray(1:∞,(1,ℵ₀))[1,1:10] == 1:10
+    @test reshape(1:∞,1,∞) === InfiniteArrays.ReshapedArray(1:∞,(1,ℵ₀))
     @test permutedims(1:∞) isa InfiniteArrays.ReshapedArray
     @test permutedims(1:∞)[1,1:10] == (1:10)
     a = reshape(Vcat(Fill(1,1,∞),Fill(2,2,∞)),∞)
     @test a[1:7] == [1, 2, 2, 1, 2, 2, 1]
+    @test permutedims(permutedims(1:∞)) ≡ 1:∞
 end
 
 @testset "norm/dot" begin
@@ -959,35 +891,31 @@ end
     @test searchsortedfirst(Vcat(2,3:∞),10) == 9
     @test searchsortedlast(Vcat(2,3:∞),10) == 9
     @test searchsortedlast(Vcat(2,3:∞),0) == 0
-end
 
-@testset "checked" begin
-    @test Base.Checked.checked_sub(1,∞) === -∞
-    @test Base.Checked.checked_sub(∞,1) === ∞
-    @test Base.Checked.checked_add(1,∞) === ∞
-    @test Base.Checked.checked_add(∞,1) === ∞
-
-    @test Base.Checked.checked_sub(1,-∞) === SignedInfinity(false)
-    @test Base.Checked.checked_sub(-∞,1) === -∞
-    @test Base.Checked.checked_add(1,-∞) === -∞
-    @test Base.Checked.checked_add(-∞,1) === -∞
+    @test searchsorted(factorial.(big(1):∞), 6) == 3:3
+    @test searchsortedfirst(factorial.(big(1):∞), 7) == 4
+    @test searchsortedlast(factorial.(big(1):∞), 7) == 3
 end
 
 @testset "convert infrange" begin
-    @test convert(AbstractArray{Float64}, 1:∞) ≡ convert(AbstractArray{Float64}, Base.OneTo(∞)) ≡ 
-        convert(AbstractVector{Float64}, 1:∞) ≡ convert(AbstractVector{Float64}, Base.OneTo(∞)) ≡
-        AbstractVector{Float64}(1:∞) ≡ AbstractVector{Float64}(Base.OneTo(∞)) ≡
-        AbstractArray{Float64}(1:∞) ≡ AbstractArray{Float64}(Base.OneTo(∞)) ≡ InfUnitRange(1.0)
+    @test convert(AbstractArray{Float64}, 1:∞) ≡ convert(AbstractArray{Float64}, oneto(∞)) ≡
+        convert(AbstractVector{Float64}, 1:∞) ≡ convert(AbstractVector{Float64}, oneto(∞)) ≡
+        AbstractVector{Float64}(1:∞) ≡ AbstractVector{Float64}(oneto(∞)) ≡
+        AbstractArray{Float64}(1:∞) ≡ AbstractArray{Float64}(oneto(∞)) ≡ InfUnitRange(1.0)
 
-    @test convert(AbstractArray{Float64}, (1:∞)') ≡ convert(AbstractArray{Float64}, Base.OneTo(∞)') ≡ 
-        convert(AbstractMatrix{Float64}, (1:∞)') ≡ convert(AbstractMatrix{Float64}, Base.OneTo(∞)') ≡
-        AbstractMatrix{Float64}((1:∞)') ≡ AbstractMatrix{Float64}(Base.OneTo(∞)') ≡ 
-        AbstractArray{Float64}((1:∞)') ≡ AbstractArray{Float64}(Base.OneTo(∞)') ≡ 
+    @test convert(AbstractArray{Float64}, (1:∞)') ≡ convert(AbstractArray{Float64}, oneto(∞)') ≡
+        convert(AbstractMatrix{Float64}, (1:∞)') ≡ convert(AbstractMatrix{Float64}, oneto(∞)') ≡
+        AbstractMatrix{Float64}((1:∞)') ≡ AbstractMatrix{Float64}(oneto(∞)') ≡
+        AbstractArray{Float64}((1:∞)') ≡ AbstractArray{Float64}(oneto(∞)') ≡
         InfUnitRange(1.0)'
 
-    @test convert(AbstractArray{Float64}, transpose(1:∞)) ≡ convert(AbstractArray{Float64}, transpose(Base.OneTo(∞))) ≡ 
-        convert(AbstractMatrix{Float64}, transpose(1:∞)) ≡ convert(AbstractMatrix{Float64}, transpose(Base.OneTo(∞))) ≡
-        AbstractMatrix{Float64}(transpose(1:∞)) ≡ AbstractMatrix{Float64}(transpose(Base.OneTo(∞))) ≡ 
-        AbstractArray{Float64}(transpose(1:∞)) ≡ AbstractArray{Float64}(transpose(Base.OneTo(∞))) ≡ 
+    @test convert(AbstractArray{Float64}, transpose(1:∞)) ≡ convert(AbstractArray{Float64}, transpose(oneto(∞))) ≡
+        convert(AbstractMatrix{Float64}, transpose(1:∞)) ≡ convert(AbstractMatrix{Float64}, transpose(oneto(∞))) ≡
+        AbstractMatrix{Float64}(transpose(1:∞)) ≡ AbstractMatrix{Float64}(transpose(oneto(∞))) ≡
+        AbstractArray{Float64}(transpose(1:∞)) ≡ AbstractArray{Float64}(transpose(oneto(∞))) ≡
         transpose(InfUnitRange(1.0))
+end
+
+@testset "cached indexing" begin
+    @test cache(1:∞)[Fill(2,∞)][1:10] == fill(2,10)
 end

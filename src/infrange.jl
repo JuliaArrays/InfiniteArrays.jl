@@ -1,45 +1,47 @@
 # This file is mmodified from Julia. License is MIT: https://julialang.org/license
 
-(:)(start::T, stop::Infinity) where {T<:Integer} = InfUnitRange{T}(start)
-(:)(start::Infinity, stop::Integer) = start+1:start
-function (:)(start::T, step::T, stop::SignedInfinity) where {T<:Real}
+const PosInfinity = Union{Infinity, InfiniteCardinal{0}}
+
+(:)(start::T, stop::PosInfinity) where {T<:Integer} = InfUnitRange{T}(start)
+(:)(start::PosInfinity, stop::Integer) = start+1:start
+function (:)(start::T, step::T, stop::RealInfinity) where {T<:Real}
     signbit(step) == signbit(stop) || throw(ArgumentError("InfStepRange must have infinite length"))
     InfStepRange(start, step)
 end
-(:)(start::T, step::Real, stop::SignedInfinity) where {T<:Real} = (:)(promote(start, step)..., stop)
-(:)(start::Real, step, stop::Infinity)= (:)(start, step, SignedInfinity(stop))
-(:)(::Infinity, _, ::Real) = throw(ArgumentError("Cannot create range starting at infinity"))
+(:)(start::T, step::Real, stop::RealInfinity) where {T<:Real} = (:)(promote(start, step)..., stop)
+(:)(start::Real, step, stop::PosInfinity)= (:)(start, step, RealInfinity(stop))
+(:)(::PosInfinity, _, ::Real) = throw(ArgumentError("Cannot create range starting at infinity"))
 
 # AbstractFloat specializations
-(:)(a::T, b::Union{Infinity,SignedInfinity}) where {T<:Real} = (:)(a, T(1), b)
+(:)(a::T, b::Union{PosInfinity,RealInfinity}) where {T<:Real} = (:)(a, T(1), b)
 
-function (:)(start::T, step::T, stop::Infinity) where {T<:Real}
+function (:)(start::T, step::T, stop::PosInfinity) where {T<:Real}
     sign(step) == sign(stop) || throw(ArgumentError("InfStepRange must have infinite length"))
     InfStepRange(start,step)
 end
 
 # this is needed for showarray
-(:)(::Infinity, ::Infinity) = 1:0
+(:)(::PosInfinity, ::PosInfinity) = 1:0
 
 
 # Range of a given length: range(a, [step=s,] length=l), no stop
-_range(a::Real,          ::Nothing,         ::Nothing, len::Infinity) = InfUnitRange{typeof(a)}(a)
-_range(a::AbstractFloat, ::Nothing,         ::Nothing, len::Infinity) = _range(a, oftype(a, 1),   nothing, len)
-_rangestyle(::Ordered, ::ArithmeticWraps, a::T, step::S, len::Infinity) where {T,S} =
+_range(a::Real,          ::Nothing,         ::Nothing, len::InfiniteCardinal{0}) = InfUnitRange{typeof(a)}(a)
+_range(a::AbstractFloat, ::Nothing,         ::Nothing, len::InfiniteCardinal{0}) = _range(a, oftype(a, 1),   nothing, len)
+_rangestyle(::Ordered, ::ArithmeticWraps, a::T, step::S, len::InfiniteCardinal{0}) where {T,S} =
     InfStepRange{T,S}(a, step)
-_rangestyle(::Ordered, ::ArithmeticUnknown, a::T, step::S, len::Infinity) where {T,S} =
+_rangestyle(::Ordered, ::ArithmeticUnknown, a::T, step::S, len::InfiniteCardinal{0}) where {T,S} =
     InfStepRange{T,S}(a, step)
-_range(a::T, st::T, ::Nothing, ::Infinity) where T<:Union{Float16,Float32,Float64} =
+_range(a::T, st::T, ::Nothing, ::InfiniteCardinal{0}) where T<:Union{Float16,Float32,Float64} =
     InfStepRange{T,T}(a, st)
-_range(a::T, st::T, ::Nothing, ::Infinity) where T<:AbstractFloat =
+_range(a::T, st::T, ::Nothing, ::InfiniteCardinal{0}) where T<:AbstractFloat =
     InfStepRange{T,T}(a, st)
 
 
 # Construct range for rational start=start_n/den, step=step_n/den
-floatrange(::Type{T}, start_n::Integer, step_n::Integer, ::Infinity, den::Integer) where T =
+floatrange(::Type{T}, start_n::Integer, step_n::Integer, ::PosInfinity, den::Integer) where T =
     InfStepRange(T(start_n)/den,T(step_n)/den)
 
-floatrange(a::AbstractFloat, st::AbstractFloat, ::Infinity, divisor::AbstractFloat) =
+floatrange(a::AbstractFloat, st::AbstractFloat, ::PosInfinity, divisor::AbstractFloat) =
     InfStepRange(a/divisor,st/divisor)
 
 
@@ -62,7 +64,7 @@ InfStepRange{T,S}(start, step) where {T,S} = InfStepRange{T,S}(convert(T,start),
 abstract type AbstractInfUnitRange{T<:Real} <: AbstractUnitRange{T} end
 
 done(r::AbstractInfUnitRange{T}, i) where {T} = false
-unitrange_last(start, stop::Infinity) = ∞
+unitrange_last(start, stop::PosInfinity) = ∞
 
 struct InfUnitRange{T<:Real} <: AbstractInfUnitRange{T}
     start::T
@@ -71,6 +73,9 @@ end
 
 InfUnitRange(a::InfUnitRange) = a
 InfUnitRange{T}(a::AbstractInfUnitRange) where T<:Real = InfUnitRange{T}(first(a))
+InfUnitRange(a::AbstractInfUnitRange{T}) where T<:Real = InfUnitRange{T}(first(a))
+unitrange(a::AbstractInfUnitRange) = InfUnitRange(a)
+
 AbstractArray{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
 AbstractVector{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
 AbstractArray{T}(a::InfStepRange) where T<:Real = InfStepRange(convert(T,a.start), convert(T,a.step))
@@ -97,6 +102,15 @@ be 1 and ∞.
 struct OneToInf{T<:Integer} <: AbstractInfUnitRange{T} end
 
 OneToInf() = OneToInf{Int}()
+oneto(::PosInfinity) = OneToInf()
+function oneto(x::ComplexInfinity)
+    iszero(angle(x)) && return oneto(∞)
+    throw(ArgumentError("Cannot create infinite range with negative length"))
+ end
+ function oneto(x::RealInfinity)
+    signbit(x) || return oneto(∞)
+    throw(ArgumentError("Cannot create infinite range with negative length"))
+ end
 
 AbstractArray{T}(a::OneToInf) where T<:Integer = OneToInf{T}()
 AbstractVector{T}(a::OneToInf) where T<:Integer = OneToInf{T}()
@@ -108,22 +122,22 @@ AbstractVector{T}(a::OneToInf) where T<:Real = InfUnitRange{T}(a)
 
 ## interface implementations
 
-size(r::InfRanges) = (∞,)
+size(r::InfRanges) = (ℵ₀,)
 
 isempty(r::InfRanges) = false
 
 step(r::InfStepRange) = r.step
 
-length(r::InfRanges) = ∞
-unsafe_length(r::InfRanges) = ∞
+length(r::InfRanges) = ℵ₀
+unsafe_length(r::InfRanges) = ℵ₀
 
 first(r::OneToInf{T}) where {T} = oneunit(T)
 
-last(r::AbstractInfUnitRange) = ∞
+last(r::AbstractInfUnitRange) = ℵ₀
 last(r::InfStepRange) = sign(step(r))*∞
 
 minimum(r::InfUnitRange) = first(r)
-maximum(r::InfUnitRange) = last(r)
+maximum(r::InfUnitRange) = ℵ₀
 
 
 ## iteration
@@ -141,7 +155,7 @@ unsafe_indices(S::Slice{<:OneToInf}) = (S.indices,)
 axes(S::Slice{<:OneToInf}) = (S.indices,)
 _sub2ind(inds::Tuple{OneToInf}, i::Integer)    = i
 
-to_shape(::OneToInf) = ∞
+to_shape(::OneToInf) = ℵ₀
 
 # used for linear indexing
 function _ind2sub_recurse(inds::Tuple{OneToInf{Int},Vararg{Any}}, ind::Integer)
@@ -163,22 +177,36 @@ function getindex(v::InfStepRange{T}, i::Integer) where T
     convert(T, first(v) + (i - 1)*step(v))
 end
 
-function getindex(x::AbstractUnitRange, ::Infinity)
-    isinf(length(x)) || throw(BoundsError(x,∞))
-    ∞
+function getindex(x::AbstractUnitRange, y::PosInfinity)
+    isinf(length(x)) || throw(BoundsError(x,y))
+    ℵ₀
 end
 
-getindex(::AbstractInfUnitRange, ::Infinity) = ∞
-getindex(::OneToInf, ::Infinity) = ∞
-getindex(v::InfUnitRange{T}, i::Infinity) where T = ∞
-getindex(v::OneToInf{T}, i::Infinity) where T = ∞
-getindex(v::InfStepRange{T}, i::Infinity) where T = ∞
+function getindex(x::OneToInf{T}, y::PosInfinity) where T
+    isinf(length(x)) || throw(BoundsError(x,y))
+    ℵ₀
+end
+
+function getindex(x::InfStepRange{T}, y::PosInfinity) where T
+    isinf(length(x)) || throw(BoundsError(x,y))
+    ℵ₀
+end
+function getindex(x::InfUnitRange{T}, y::PosInfinity) where T
+    isinf(length(x)) || throw(BoundsError(x,y))
+    ℵ₀
+end
+
+getindex(::AbstractInfUnitRange, ::Infinity) = ℵ₀
+getindex(::OneToInf, ::Infinity) = ℵ₀
+getindex(v::InfUnitRange{T}, i::Infinity) where T = ℵ₀
+getindex(v::OneToInf{T}, i::Infinity) where T = ℵ₀
+getindex(v::InfStepRange{T}, i::Infinity) where T = ℵ₀
 
 function getindex(r::AbstractInfUnitRange, s::AbstractInfUnitRange{<:Integer})
     f = first(r)
     @boundscheck first(s) ≥ 1 || Base.throw_boundserror(r, first(s))
     st = oftype(f, f + first(s)-1)
-    st:∞
+    st:ℵ₀
 end
 
 function getindex(r::AbstractInfUnitRange, s::AbstractUnitRange{<:Integer})
@@ -225,7 +253,7 @@ function getindex(Ac::AdjOrTrans{<:Any,<:InfRanges}, k::Integer, j)
     parent(Ac)[j]
 end
 
-show(io::IO, r::InfUnitRange) = print(io, repr(first(r)), ':', repr(last(r)))
+show(io::IO, r::InfUnitRange) = print(io, repr(first(r)), ':', repr(∞))
 show(io::IO, r::OneToInf{Int}) = print(io, "OneToInf()")
 show(io::IO, r::OneToInf{T}) where T = print(io, "OneToInf{$T}()")
 
@@ -372,7 +400,7 @@ sum(r::InfRanges{<:Real}) = last(r)
 mean(r::InfRanges{<:Real}) = last(r)
 median(r::InfRanges{<:Real}) = last(r)
 
-in(x::Union{Infinity,SignedInfinity}, r::InfRanges) = false # never reach it...
+in(x::Union{Infinity,RealInfinity}, r::InfRanges) = false # never reach it...
 in(x::Infinity, r::InfRanges{<:Integer}) = false # never reach it...
 in(x::Real, r::InfRanges{<:Real}) = _in_range(x, r)
 # This method needs to be defined separately since -(::T, ::T) can be implemented
@@ -400,7 +428,9 @@ end
 BroadcastStyle(::Type{<:InfRanges}) = LazyArrayStyle{1}()
 BroadcastStyle(::Type{<:Adjoint{<:Any,<:InfRanges}}) = LazyArrayStyle{2}()
 BroadcastStyle(::Type{<:Transpose{<:Any,<:InfRanges}}) = LazyArrayStyle{2}()
-BroadcastStyle(::Type{<:SubArray{<:Any,1,<:Any,<:Tuple{InfRanges}}}) = LazyArrayStyle{1}()
+const InfSubVector = SubArray{<:Any,1,<:Any,<:Tuple{InfRanges}}
+BroadcastStyle(::Type{<:InfSubVector}) = LazyArrayStyle{1}()
+BroadcastStyle(::Type{<:SubArray{<:Any,1,<:Any,<:Tuple{InfSubVector}}}) = LazyArrayStyle{1}()
 
 BroadcastStyle(::Type{<:Base.Slice{<:InfRanges}}) = LazyArrayStyle{1}()
 
@@ -408,9 +438,16 @@ BroadcastStyle(::Type{<:Base.Slice{<:InfRanges}}) = LazyArrayStyle{1}()
 const InfIndexRanges{T<:Integer} = Union{InfStepRange{T},AbstractInfUnitRange{T},Slice{OneToInf{T}}}
 
 BroadcastStyle(::Type{<:SubArray{<:Any,1,<:Any,Tuple{<:InfIndexRanges}}})= LazyArrayStyle{1}()
-BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:InfIndexRanges,<:InfIndexRanges}}})= LazyArrayStyle{1}()
-BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:InfIndexRanges,<:Any}}})= LazyArrayStyle{1}()
-BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:Any,<:InfIndexRanges}}})= LazyArrayStyle{1}()
+BroadcastStyle(::Type{<:SubArray{<:Any,1,<:Any,<:Tuple{<:InfIndexRanges,<:Any}}})= LazyArrayStyle{1}()
+BroadcastStyle(::Type{<:SubArray{<:Any,1,<:Any,<:Tuple{<:Any,<:InfIndexRanges}}})= LazyArrayStyle{1}()
+BroadcastStyle(::Type{<:SubArray{<:Any,1,<:LazyMatrix,<:Tuple{<:InfIndexRanges,<:Any}}})= LazyArrayStyle{1}()
+BroadcastStyle(::Type{<:SubArray{<:Any,1,<:LazyMatrix,<:Tuple{<:Any,<:InfIndexRanges}}})= LazyArrayStyle{1}()
+BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:InfIndexRanges,<:InfIndexRanges}}})= LazyArrayStyle{2}()
+BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:InfIndexRanges,<:Any}}})= LazyArrayStyle{2}()
+BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:Any,<:InfIndexRanges}}})= LazyArrayStyle{2}()
+
+
+
 
 broadcasted(::BroadcastStyle, f, r::Adjoint{<:Any,<:InfRanges}) = broadcast(f,parent(r))'
 broadcasted(::BroadcastStyle, f, r::Transpose{<:Any,<:InfRanges}) = transpose(broadcast(f,parent(r)))
@@ -428,22 +465,11 @@ broadcast(f, r::Transpose{<:Any,<:InfRanges}, a::Number) = transpose(broadcast(f
 
 
 # cumsum(r::InfRanges) = OneToInf() .* (first(r) .+ r) .÷ 2
-
-cumsum(r::InfRanges) = Cumsum(r)
-function getindex(c::Cumsum{<:Integer,1,<:InfStepRange}, k::Integer)
-    r = c.v
-    k * (first(r) + r[k]) ÷ 2
-end
-function getindex(c::Cumsum{<:Integer,1,<:AbstractInfUnitRange}, k::Integer)
-    r = c.v
-    k * (2first(r) + k - 1) ÷ 2
-end
-getindex(c::Cumsum{<:Integer,1,<:OneToInf}, k::Integer) = k * (k+1) ÷ 2
-
-
+cumsum(r::InfRanges) = RangeCumsum(r)
 diff(r::InfRanges) = Fill(step(r),∞)
 diff(r::OneToInf{T}) where T = Ones{T}(∞)
-
+Base.@propagate_inbounds getindex(c::RangeCumsum, kr::OneToInf) = RangeCumsum(c.range[kr])
+getindex(c::RangeCumsum{<:Any,<:OneToInf}, k::Integer) = k * (k+1) ÷ 2
 
 ##
 # conv
@@ -521,7 +547,7 @@ end
 ####
 
 MemoryLayout(::Type{<:AbstractInfUnitRange}) = LazyLayout()
-MemoryLayout(::Type{<:InfStepRange}) = LazyLayout()
+@inline MemoryLayout(::Type{<:InfStepRange}) = LazyLayout()
 
 
 ##
@@ -558,3 +584,6 @@ for op in (:isequal, :(==))
             isinteger(p.x) ? findfirst($op(convert(V, p.x)), r) : nothing
     end
 end
+
+
+FillArrays._range_convert(::Type{AbstractVector{T}}, r::InfRanges) where T = convert(AbstractVector{T}, r)
