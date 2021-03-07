@@ -367,6 +367,12 @@ end
         @test intersect(r, 2) === intersect(2, r) === 2:2
 
         @test Base.unsafe_indices(Base.Slice(r)) == (r,)
+
+        @testset "iteration with zip + finite iterator" begin
+            z = zip(OneToInf(), 1:100)
+            @test axes(z) == (Base.OneTo(100),)
+            @test size(z) == (100,)
+        end
     end
 
     @testset "show" begin
@@ -513,6 +519,10 @@ end
     @test Eye(∞) * D == Eye(∞) * D == D
     @test Eye(∞) == Eye(∞)^0 == Eye(∞)^1 == Eye(∞)^2 == one(Eye(∞)) == copy(Eye(∞)) == one(Diagonal(Fill(2,∞)))
     @test Diagonal(Fill(2,∞)) == copy(Diagonal(Fill(2,∞)))
+
+
+    @test permutedims(D) ≡ D
+
 end
 
 @testset "concat" begin

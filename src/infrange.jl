@@ -149,6 +149,20 @@ start(r::OneToInf{T}) where {T} = oneunit(T)
 
 done(r::InfStepRange{T}, i) where {T} = false
 
+## iteration with zip + finite iterator
+#  allows axes(zip(...)) and size(zip(...))
+if VERSION < v"1.6-" 
+    Base.Iterators._zip_promote_shape((a,)::Tuple{OneToInf}, (b,)::Tuple{OneTo}) =
+        (intersect(a, b),)
+    Base.Iterators._zip_promote_shape((a,)::Tuple{OneTo}, (b,)::Tuple{OneToInf}) =
+        (intersect(a, b),)
+else
+    Base.Iterators._promote_tuple_shape((a,)::Tuple{OneToInf}, (b,)::Tuple{OneTo}) =
+        (intersect(a, b),)
+    Base.Iterators._promote_tuple_shape((a,)::Tuple{OneTo}, (b,)::Tuple{OneToInf}) =
+        (intersect(a, b),)
+end
+
 ## indexing
 
 unsafe_indices(S::Slice{<:OneToInf}) = (S.indices,)
@@ -587,3 +601,6 @@ end
 
 
 FillArrays._range_convert(::Type{AbstractVector{T}}, r::InfRanges) where T = convert(AbstractVector{T}, r)
+
+
+permutedims(D::Diagonal{<:Any,<:InfRanges}) = D
