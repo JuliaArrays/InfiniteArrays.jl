@@ -517,6 +517,8 @@ end
 
     @test Eye{Int}(∞) * D ≡ Eye{Int}(∞) * D ≡ D
     @test Eye(∞) * D == Eye(∞) * D == D
+
+    @test permutedims(D) ≡ D
 end
 
 @testset "concat" begin
