@@ -82,6 +82,7 @@ AbstractArray{T}(a::InfStepRange) where T<:Real = InfStepRange(convert(T,a.start
 AbstractVector{T}(a::InfStepRange) where T<:Real = InfStepRange(convert(T,a.start), convert(T,a.step))
 
 const InfRanges{T} = Union{InfStepRange{T},AbstractInfUnitRange{T}}
+const InfAxes = Union{InfRanges{<:Integer},Slice{<:AbstractInfUnitRange{<:Integer}},IdentityUnitRange{<:AbstractInfUnitRange{<:Integer}}}
 
 AbstractArray{T}(ac::Adjoint{<:Any,<:InfRanges}) where T<:Real = AbstractArray{T}(parent(ac))'
 AbstractMatrix{T}(ac::Adjoint{<:Any,<:InfRanges}) where T<:Real = AbstractVector{T}(parent(ac))'
@@ -230,6 +231,8 @@ function getindex(r::AbstractInfUnitRange, s::AbstractUnitRange{<:Integer})
     range(st; length=length(s))
 end
 
+getindex(r::AbstractInfUnitRange, s::Slice{<:AbstractInfUnitRange{<:Integer}}) = r
+
 getindex(r::OneToInf{T}, s::OneTo) where T = OneTo(T(s.stop))
 
 function getindex(r::AbstractInfUnitRange, s::InfStepRange{<:Integer})
@@ -247,7 +250,7 @@ function getindex(r::AbstractInfUnitRange, s::StepRange{<:Integer})
     range(st; step=step(s), length=length(s))
 end
 
-function getindex(r::InfStepRange, s::InfRanges{<:Integer})
+function getindex(r::InfStepRange, s::InfAxes)
     @_inline_meta
     @boundscheck (step(s) > 0 && first(s) ≥ 1) || throw(BoundsError(r, minimum(s)))
     st = oftype(r.start, r.start + (first(s)-1)*step(r))
@@ -266,6 +269,12 @@ function getindex(Ac::AdjOrTrans{<:Any,<:InfRanges}, k::Integer, j)
     @boundscheck k == 1 || throw(BoundsError(Ac, k))
     parent(Ac)[j]
 end
+
+function getindex(Ac::AdjOrTrans{<:Any,<:InfRanges}, k::Integer, j::InfAxes)
+    @boundscheck k == 1 || throw(BoundsError(Ac, k))
+    parent(Ac)[j]
+end
+
 
 show(io::IO, r::InfUnitRange) = print(io, repr(first(r)), ':', repr(∞))
 show(io::IO, r::OneToInf{Int}) = print(io, "OneToInf()")

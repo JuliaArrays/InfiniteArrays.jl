@@ -140,6 +140,8 @@ end
 
         @test isempty((1:∞)[5:4])
         @test_throws BoundsError (1:∞)[8:-1:-2]
+
+        @test (1:∞)[Base.Slice(1:∞)] ≡ 1:∞
     end
     @testset "length" begin
         @test length(.1:.1:∞) == ℵ₀
@@ -405,6 +407,7 @@ end
         @test a[:,:] ≡ a
         @test a[1,:] ≡ 1:∞
         @test a[1,2:2:end] ≡ 2:2:∞
+        @test a[:,2:∞][1,1:10] == a[2:11]
     end
 
     @testset "big" begin
@@ -472,6 +475,9 @@ end
         Z = Zeros(∞,∞)
         @test A[:,1] ≡ A[1,:] ≡ A[1:∞,1] ≡ Fill(2,∞)
         @test Z[:,1] ≡ Z[1,:] ≡ Z[1:∞,1] ≡ Zeros(∞)
+
+        @test A[2:∞,1:∞] ≡ A[2:∞,:] ≡ A[:,1:∞] ≡  A
+        @test A[5,2:∞] ≡ A[2:∞,5] ≡ Fill(2,∞)
     end
 
     @testset "maximum/minimum/sum" begin
@@ -660,6 +666,14 @@ end
         @test A[:,:] == A
         @test A[2:∞,2:∞] isa Vcat
         @test A[2:∞,2:∞][1:10,1:10] == fill(2,10,10)
+
+        B = Hcat(Ones(∞), Diagonal(1:∞))
+        @test B[2:∞,1:∞][1:10,1:10] == B[2:11,1:10]
+        @test B[2:5,1:∞][:,1:10] == B[2:5,1:10]
+        @test B[2:∞,2:5][1:10,:] == B[2:11,2:5]
+
+        @test B[3,1:∞][1:10] == B[3,1:10]
+        @test B[1:∞,3][1:10] == B[1:10,3]
     end
 
     @testset "adjoint copy"  begin
@@ -840,6 +854,14 @@ end
     @test MemoryLayout((0:∞)') == DualLayout{LazyLayout}()
     A = _BandedMatrix((0:∞)', ℵ₀, -1, 1)
     @test MemoryLayout(A) == BandedColumns{LazyLayout}()
+
+    @test A[2:∞,1:∞][1:10,1:10] == A[2:11,1:10]
+
+    @test A[2,1:∞][1:10] == A[2,1:10]
+    @test A[1:∞,2][1:10] == A[1:10,2]
+
+    @test A[[2,3],1:∞][:,1:10] == A[[2,3],1:10]
+    @test A[1:∞,[2,3]][1:10,:] == A[1:10,[2,3]]
 end
 
 @testset "Banded" begin
@@ -928,4 +950,26 @@ end
 
 @testset "cached indexing" begin
     @test cache(1:∞)[Fill(2,∞)][1:10] == fill(2,10)
+    C = cache(Fill(2.0,∞,∞))
+    C[1:5,1:5] .= randn.()
+    @test C[1:∞,2:∞][1:10,1:10] == C[1:10,2:11]
+    @test C[1:∞,2:11][1:10,1:10] == C[1:10,2:11]
+    @test C[1:10,2:∞][1:10,1:10] == C[1:10,2:11]
+end
+
+struct MyInfVector <: AbstractVector{Int} end
+Base.size(::MyInfVector) = (ℵ₀,)
+Base.getindex(::MyInfVector, k::Int) = k
+
+struct MyInfMatrix <: AbstractMatrix{Int} end
+Base.size(::MyInfMatrix) = (ℵ₀,ℵ₀)
+Base.getindex(::MyInfMatrix, k::Int, j::Int) = k+j
+
+
+@testset "MyInfArray" begin
+    @test MyInfVector()[2:∞][1:10] == 2:11
+
+    @test MyInfMatrix()[2:∞,3:∞][1:10,1:10] == MyInfMatrix()[2:11,3:12]
+    @test MyInfMatrix()[2:11,3:∞][1:10,1:10] == MyInfMatrix()[2:11,3:12]
+    @test MyInfMatrix()[2:∞,3:12][1:10,1:10] == MyInfMatrix()[2:11,3:12]
 end
