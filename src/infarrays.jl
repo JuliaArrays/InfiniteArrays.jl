@@ -283,6 +283,8 @@ getindex(A::AbstractMatrix, kr::InfAxes, jr::InfAxes) = layout_getindex(A, kr, j
 getindex(A::AbstractMatrix, kr::Any, jr::InfAxes) = layout_getindex(A, kr, jr)
 getindex(A::AbstractMatrix, kr::InfAxes, jr::Any) = layout_getindex(A, kr, jr)
 
+getindex(A::LinearAlgebra.AdjOrTransAbsVec, kr::Colon, jr::InfAxes) = layout_getindex(A, kr, jr)
+
 getindex(A::LayoutMatrix, kr::InfAxes, jr::InfAxes) = layout_getindex(A, kr, jr)
 getindex(A::LayoutMatrix, kr::Colon, jr::InfAxes) = layout_getindex(A, kr, jr)
 getindex(A::LayoutMatrix, kr::InfAxes, jr::Colon) = layout_getindex(A, kr, jr)

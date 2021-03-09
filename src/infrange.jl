@@ -231,6 +231,8 @@ function getindex(r::AbstractInfUnitRange, s::AbstractUnitRange{<:Integer})
     range(st; length=length(s))
 end
 
+getindex(r::AbstractInfUnitRange, s::Slice{<:AbstractInfUnitRange{<:Integer}}) = r
+
 getindex(r::OneToInf{T}, s::OneTo) where T = OneTo(T(s.stop))
 
 function getindex(r::AbstractInfUnitRange, s::InfStepRange{<:Integer})
