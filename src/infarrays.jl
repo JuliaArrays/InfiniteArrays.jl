@@ -265,14 +265,21 @@ sub_materialize(_, V, ::Tuple{InfAxes,InfAxes}) = V
 sub_materialize(_, V, ::Tuple{<:Any,InfAxes}) = V
 sub_materialize(_, V, ::Tuple{InfAxes,Any}) = V
 
+
 sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractVector, ::Tuple{InfAxes}) = ApplyArray(V)
 sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{InfAxes,InfAxes}) = ApplyArray(V)
 sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{<:Any,InfAxes}) = ApplyArray(V)
 sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{InfAxes,Any}) = ApplyArray(V)
 
+sub_materialize(::ApplyLayout{typeof(hcat)}, V, ::Tuple{InfAxes}) = V
+sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{InfAxes,InfAxes}) = ApplyArray(V)
+sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{<:Any,InfAxes}) = ApplyArray(V)
+sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{InfAxes,Any}) = ApplyArray(V)
+
+
 sub_materialize(::PaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T =
     _padded_sub_materialize(v)
-
+    
 
 getindex(A::AbstractVector, r::InfAxes) = layout_getindex(A, r)
 getindex(A::LayoutVector, r::InfAxes) = layout_getindex(A, r)
@@ -290,9 +297,16 @@ getindex(A::LayoutMatrix, kr::Colon, jr::InfAxes) = layout_getindex(A, kr, jr)
 getindex(A::LayoutMatrix, kr::InfAxes, jr::Colon) = layout_getindex(A, kr, jr)
 getindex(A::LayoutMatrix, kr::Integer, jr::InfAxes) = layout_getindex(A, kr, jr)
 getindex(A::LayoutMatrix, kr::InfAxes, jr::Integer) = layout_getindex(A, kr, jr)
+getindex(A::LayoutMatrix, kr::AbstractUnitRange, jr::InfAxes) = layout_getindex(A, kr, jr)
+getindex(A::LayoutMatrix, kr::InfAxes, jr::AbstractUnitRange) = layout_getindex(A, kr, jr)
 getindex(A::LayoutMatrix, kr::Any, jr::InfAxes) = layout_getindex(A, kr, jr)
 getindex(A::LayoutMatrix, kr::InfAxes, jr::Any) = layout_getindex(A, kr, jr)
 
+@inline getindex(A::AbstractCachedMatrix, kr::InfAxes, jr::InfAxes) = layout_getindex(A, kr, jr)
+@inline getindex(A::AbstractCachedMatrix, kr::InfAxes, jr::AbstractUnitRange) = layout_getindex(A, kr, jr)
+@inline getindex(A::AbstractCachedMatrix, kr::AbstractUnitRange, jr::InfAxes) = layout_getindex(A, kr, jr)
+
+@inline getindex(A::ApplyMatrix{<:Any,typeof(hcat)}, kr::InfAxes, j::Integer) = layout_getindex(A, kr, j)
 
 function getindex(A::AbstractFill{<:Any,1}, r::InfAxes)
     @boundscheck checkbounds(A, r)
