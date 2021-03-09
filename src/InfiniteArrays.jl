@@ -247,24 +247,6 @@ end
 end
 
 
-##
-# lazy sub_materialize
-##
-
-const InfAxes = Union{AbstractInfUnitRange,Slice{<:AbstractInfUnitRange},IdentityUnitRange{<:AbstractInfUnitRange}}
-
-sub_materialize(_, V, ::Tuple{InfAxes}) = V
-sub_materialize(_, V, ::Tuple{InfAxes,InfAxes}) = V
-sub_materialize(_, V, ::Tuple{<:Any,InfAxes}) = V
-sub_materialize(_, V, ::Tuple{InfAxes,Any}) = V
-
-sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractVector, ::Tuple{InfAxes}) = ApplyArray(V)
-sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{InfAxes,InfAxes}) = ApplyArray(V)
-sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{<:Any,InfAxes}) = ApplyArray(V)
-sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{InfAxes,Any}) = ApplyArray(V)
-
-sub_materialize(::PaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T =
-    _padded_sub_materialize(v)
 
 
 end # module
