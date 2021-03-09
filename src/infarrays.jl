@@ -299,6 +299,8 @@ getindex(A::LayoutMatrix, kr::Integer, jr::InfAxes) = layout_getindex(A, kr, jr)
 getindex(A::LayoutMatrix, kr::InfAxes, jr::Integer) = layout_getindex(A, kr, jr)
 getindex(A::LayoutMatrix, kr::AbstractUnitRange, jr::InfAxes) = layout_getindex(A, kr, jr)
 getindex(A::LayoutMatrix, kr::InfAxes, jr::AbstractUnitRange) = layout_getindex(A, kr, jr)
+getindex(A::LayoutMatrix, kr::AbstractVector, jr::InfAxes) = layout_getindex(A, kr, jr)
+getindex(A::LayoutMatrix, kr::InfAxes, jr::AbstractVector) = layout_getindex(A, kr, jr)
 getindex(A::LayoutMatrix, kr::Any, jr::InfAxes) = layout_getindex(A, kr, jr)
 getindex(A::LayoutMatrix, kr::InfAxes, jr::Any) = layout_getindex(A, kr, jr)
 

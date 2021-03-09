@@ -407,6 +407,7 @@ end
         @test a[:,:] ≡ a
         @test a[1,:] ≡ 1:∞
         @test a[1,2:2:end] ≡ 2:2:∞
+        @test a[:,2:∞][1,1:10] == a[2:11]
     end
 
     @testset "big" begin
@@ -475,7 +476,7 @@ end
         @test A[:,1] ≡ A[1,:] ≡ A[1:∞,1] ≡ Fill(2,∞)
         @test Z[:,1] ≡ Z[1,:] ≡ Z[1:∞,1] ≡ Zeros(∞)
 
-        @test A[2:∞,1:∞] ≡ A
+        @test A[2:∞,1:∞] ≡ A[2:∞,:] ≡ A[:,1:∞] ≡  A
         @test A[5,2:∞] ≡ A[2:∞,5] ≡ Fill(2,∞)
     end
 
@@ -855,6 +856,12 @@ end
     @test MemoryLayout(A) == BandedColumns{LazyLayout}()
 
     @test A[2:∞,1:∞][1:10,1:10] == A[2:11,1:10]
+
+    @test A[2,1:∞][1:10] == A[2,1:10]
+    @test A[1:∞,2][1:10] == A[1:10,2]
+
+    @test A[[2,3],1:∞][:,1:10] == A[[2,3],1:10]
+    @test A[1:∞,[2,3]][1:10,:] == A[1:10,[2,3]]
 end
 
 @testset "Banded" begin
@@ -943,6 +950,11 @@ end
 
 @testset "cached indexing" begin
     @test cache(1:∞)[Fill(2,∞)][1:10] == fill(2,10)
+    C = cache(Fill(2.0,∞,∞))
+    C[1:5,1:5] .= randn.()
+    @test C[1:∞,2:∞][1:10,1:10] == C[1:10,2:11]
+    @test C[1:∞,2:11][1:10,1:10] == C[1:10,2:11]
+    @test C[1:10,2:∞][1:10,1:10] == C[1:10,2:11]
 end
 
 struct MyInfVector <: AbstractVector{Int} end
