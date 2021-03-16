@@ -142,6 +142,7 @@ end
         @test_throws BoundsError (1:∞)[8:-1:-2]
 
         @test (1:∞)[Base.Slice(1:∞)] ≡ 1:∞
+        @test Base.Slice(1:∞)[2:∞] ≡ 2:∞
     end
     @testset "length" begin
         @test length(.1:.1:∞) == ℵ₀
