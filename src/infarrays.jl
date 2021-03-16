@@ -283,7 +283,7 @@ sub_materialize(::PaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T 
 
 getindex(A::AbstractVector, r::InfAxes) = layout_getindex(A, r)
 getindex(A::LayoutVector, r::InfAxes) = layout_getindex(A, r)
-getindex(A::CachedVector, r::InfAxes) = layout_getindex(A, r)
+getindex(A::AbstractCachedVector, r::InfAxes) = layout_getindex(A, r)
 getindex(s::Slice, r::InfAxes) = invoke(getindex, Tuple{Slice,AbstractUnitRange{Int}}, s, r)
 
 
