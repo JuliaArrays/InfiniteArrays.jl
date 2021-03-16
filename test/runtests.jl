@@ -528,7 +528,7 @@ end
 
 
     @test permutedims(D) ≡ D
-
+    @test copy(D) ≡ D
 end
 
 @testset "concat" begin

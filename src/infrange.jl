@@ -613,3 +613,4 @@ FillArrays._range_convert(::Type{AbstractVector{T}}, r::InfRanges) where T = con
 
 
 permutedims(D::Diagonal{<:Any,<:InfRanges}) = D
+copy(D::Diagonal{<:Any,<:InfRanges}) = D
