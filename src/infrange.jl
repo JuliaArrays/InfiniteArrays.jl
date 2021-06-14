@@ -614,3 +614,5 @@ FillArrays._range_convert(::Type{AbstractVector{T}}, r::InfRanges) where T = con
 
 permutedims(D::Diagonal{<:Any,<:InfRanges}) = D
 copy(D::Diagonal{<:Any,<:InfRanges}) = D
+broadcasted(::LazyArrayStyle{2}, ::typeof(*), a::Number, D::Diagonal{<:Any,<:InfRanges}) = a*D
+broadcasted(::LazyArrayStyle{2}, ::typeof(*), D::Diagonal{<:Any,<:InfRanges}, a::Number) = D*a
