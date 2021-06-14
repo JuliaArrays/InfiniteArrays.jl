@@ -19,7 +19,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isl
          	_in_range, _range, _rangestyle, Ordered,
          	ArithmeticWraps, ArithmeticUnknown, floatrange, reverse, unitrange_last,
          	AbstractArray, AbstractVector, Array, Vector, Matrix,
-         	axes, (:), _sub2ind_recurse, broadcast, promote_eltypeof,
+         	axes, (:), _sub2ind_recurse, promote_eltypeof,
          	diff, cumsum, show_delim_array, show_circular, Int,
          	similar, _unsafe_getindex, string, zeros, ones, fill, permutedims,
          	cat_similar, vcat, one, zero,

@@ -530,6 +530,8 @@ end
 
     @test permutedims(D) ≡ D
     @test copy(D) ≡ D
+
+    @test 2D ≡ D*2 ≡ 2 .* D ≡ D .* 2
 end
 
 @testset "concat" begin
@@ -682,6 +684,13 @@ end
         b = transpose(Vcat(1,(1:∞)))
         @test copy(a) ≡ a
         @test copy(b) ≡ b
+    end
+
+    @testset "hcat" begin
+        @test [Zeros(∞) Diagonal(1:∞)][1:10,1:11] == [zeros(10) Diagonal(1:10)]
+        @test [Zeros(∞,3) Diagonal(1:∞)][1:10,1:13] == [zeros(10,3) Diagonal(1:10)]
+        @test [Fill(2,∞) Diagonal(1:∞)][1:10,1:11] == [fill(2,10) Diagonal(1:10)]
+        @test [Fill(2,∞,3) Diagonal(1:∞)][1:10,1:13] == [fill(2,10,3) Diagonal(1:10)]
     end
 end
 

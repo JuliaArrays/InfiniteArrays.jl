@@ -256,6 +256,9 @@ _vcat(a, b, c...) = Vcat(a, b, c...)
 getindex(A::Vcat, r::InfUnitRange) = Base.invoke(getindex, Tuple{AbstractArray, Any}, A, r)
 _unsafe_getindex(::IndexLinear, A::Vcat, r::InfUnitRange) = _vcat(_gettail(first(r), A.args...)...)
 
+Base.typed_hcat(::Type{T}, A::AbstractFill{<:Any,1,Tuple{OneToInf{Int}}}, B::AbstractVecOrMat...) where T = Hcat{T}(A, B...)
+Base.typed_hcat(::Type{T}, A::AbstractFill{<:Any,2,Tuple{OneToInf{Int},OneTo{Int}}}, B::AbstractVecOrMat...) where T = Hcat{T}(A, B...)
+
 ##
 # lazy sub_materialize
 ##
