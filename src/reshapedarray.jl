@@ -76,3 +76,13 @@ MemoryLayout(::Type{<:ReshapedArray{T,N,A,DIMS}}) where {T,N,A,DIMS} = reshapedl
 ###
 
 permutedims(R::ReshapedArray{<:Any,2,<:AbstractVector}) = parent(R)
+
+
+
+###
+# support Reshaping infinite-vector to matrix
+function Base._sub2ind_recurse(inds, L::InfiniteCardinal{0}, ind, i::Integer, I::Integer...)
+    r1 = inds[1]
+    @assert iszero(Base.offsetin(i, r1))
+    _sub2ind_recurse(tail(inds), Base.nextL(L, r1), ind, I...)
+end

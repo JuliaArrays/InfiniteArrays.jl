@@ -22,7 +22,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isl
          	axes, (:), _sub2ind_recurse, promote_eltypeof,
          	diff, cumsum, show_delim_array, show_circular, Int,
          	similar, _unsafe_getindex, string, zeros, ones, fill, permutedims,
-         	cat_similar, vcat, one, zero,
+         	cat_similar, vcat, hcat, one, zero,
 		 	reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs,
             searchsorted, searchsortedfirst, searchsortedlast, Ordering, lt, Fix2, findfirst,
             cat_indices, cat_size, cat_similar, __cat, _ind2sub_recurse, union, intersect
@@ -39,7 +39,7 @@ import Statistics: mean, median
 
 import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal, Fill, Ones, Zeros, Eye
 import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
-                    ZerosLayout, AbstractArrayApplyStyle, AbstractCachedVector, CachedArray, CachedVector, ApplyLayout, LazyMatrix,
+                    ZerosLayout, AbstractCachedVector, CachedArray, CachedVector, ApplyLayout, LazyMatrix,
                     reshapedlayout, sub_materialize, LayoutMatrix, LayoutVector, _padded_sub_materialize, PaddedLayout,
                     AbstractCachedMatrix
 

@@ -627,6 +627,10 @@ end
         a = [[1,2,3]; zeros(Int,∞)]
         @test a[3:∞][1:5] == a[3:7]
         @test cache(1:∞)[2:∞][1:5] == 2:6
+
+        D = Diagonal(1:∞)
+        @test [D[2:5,:]; D][1:10,1:10] == [D[2:5,1:10]; D[1:6,1:10]]
+        @test [D[3,:] D][1:10,1:10] == [D[3,1:10] D[1:10,1:9]]
     end
 
     @testset "sparse print" begin
