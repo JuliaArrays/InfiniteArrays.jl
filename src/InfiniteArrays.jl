@@ -1,5 +1,5 @@
 module InfiniteArrays
-using Base, Statistics, LinearAlgebra, FillArrays, Infinities, LazyArrays, DSP, ArrayLayouts
+using Base, Statistics, LinearAlgebra, FillArrays, Infinities, LazyArrays, ArrayLayouts
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
@@ -43,7 +43,6 @@ import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayou
                     reshapedlayout, sub_materialize, LayoutMatrix, LayoutVector, _padded_sub_materialize, PaddedLayout,
                     AbstractCachedMatrix
 
-import DSP: conv
 import ArrayLayouts: RangeCumsum
 import Infinities: ∞, Infinity, InfiniteCardinal
 
