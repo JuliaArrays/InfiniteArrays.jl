@@ -982,6 +982,7 @@ Base.getindex(::MyInfMatrix, k::Int, j::Int) = k+j
 
 @testset "MyInfArray" begin
     @test MyInfVector()[2:∞][1:10] == 2:11
+    @test MyInfVector()[:][2:10] == MyInfVector()[2:10]
 
     @test MyInfMatrix()[2:∞,3:∞][1:10,1:10] == MyInfMatrix()[2:11,3:12]
     @test MyInfMatrix()[2:11,3:∞][1:10,1:10] == MyInfMatrix()[2:11,3:12]

@@ -238,7 +238,9 @@ one(D::Diagonal{T,<:AbstractFill{T,1,Tuple{OneToInf{Int}}}}) where T = Eye{T}(si
 copy(D::Diagonal{T,<:AbstractFill{T,1,Tuple{OneToInf{Int}}}}) where T = D
 
 BroadcastStyle(::Type{<:Diagonal{<:Any,<:AbstractInfUnitRange}}) = LazyArrayStyle{2}()
-
+sub_materialize(::AbstractBandedLayout, V, ::Tuple{InfAxes,InfAxes}) = V
+sub_materialize(::AbstractBandedLayout, V, ::Tuple{OneTo{Int},InfAxes}) = V
+sub_materialize(::AbstractBandedLayout, V, ::Tuple{InfAxes,OneTo{Int}}) = V
 
 #####
 # Vcat
@@ -291,59 +293,20 @@ sub_materialize(::PaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T 
     _padded_sub_materialize(v)
     
 
-getindex(A::AbstractVector, r::InfAxes) = layout_getindex(A, r)
-getindex(A::LayoutVector, r::InfAxes) = layout_getindex(A, r)
+Base._unsafe_getindex(::IndexCartesian, A::AbstractVector, r::InfAxes) = layout_getindex(A, r)
+Base._unsafe_getindex(::IndexCartesian, A::AbstractFill{<:Any,1}, r::InfAxes) = FillArrays._fill_getindex(A, r)
 getindex(A::AbstractCachedVector, r::InfAxes) = layout_getindex(A, r)
-getindex(s::Slice, r::InfAxes) = invoke(getindex, Tuple{Slice,AbstractUnitRange{Int}}, s, r)
 
 
-getindex(A::AbstractMatrix, kr::InfAxes, jr::InfAxes) = layout_getindex(A, kr, jr)
-getindex(A::AbstractMatrix, kr::Any, jr::InfAxes) = layout_getindex(A, kr, jr)
-getindex(A::AbstractMatrix, kr::InfAxes, jr::Any) = layout_getindex(A, kr, jr)
+Base._unsafe_getindex(::IndexCartesian, A::AbstractMatrix, kr::InfAxes, jr::InfAxes) = layout_getindex(A, kr, jr)
+Base._unsafe_getindex(::IndexCartesian, A::AbstractMatrix, kr::Union{Real, AbstractArray}, jr::InfAxes) = layout_getindex(A, kr, jr)
+Base._unsafe_getindex(::IndexCartesian, A::AbstractMatrix, kr::InfAxes, jr::Union{Real, AbstractArray}) = layout_getindex(A, kr, jr)
 
-getindex(A::LinearAlgebra.AdjOrTransAbsVec, kr::Colon, jr::InfAxes) = layout_getindex(A, kr, jr)
-
-getindex(A::LayoutMatrix, kr::InfAxes, jr::InfAxes) = layout_getindex(A, kr, jr)
-getindex(A::LayoutMatrix, kr::Colon, jr::InfAxes) = layout_getindex(A, kr, jr)
-getindex(A::LayoutMatrix, kr::InfAxes, jr::Colon) = layout_getindex(A, kr, jr)
-getindex(A::LayoutMatrix, kr::Integer, jr::InfAxes) = layout_getindex(A, kr, jr)
-getindex(A::LayoutMatrix, kr::InfAxes, jr::Integer) = layout_getindex(A, kr, jr)
-getindex(A::LayoutMatrix, kr::AbstractUnitRange, jr::InfAxes) = layout_getindex(A, kr, jr)
-getindex(A::LayoutMatrix, kr::InfAxes, jr::AbstractUnitRange) = layout_getindex(A, kr, jr)
-getindex(A::LayoutMatrix, kr::AbstractVector, jr::InfAxes) = layout_getindex(A, kr, jr)
-getindex(A::LayoutMatrix, kr::InfAxes, jr::AbstractVector) = layout_getindex(A, kr, jr)
-getindex(A::LayoutMatrix, kr::Any, jr::InfAxes) = layout_getindex(A, kr, jr)
-getindex(A::LayoutMatrix, kr::InfAxes, jr::Any) = layout_getindex(A, kr, jr)
-
-@inline getindex(A::AbstractCachedMatrix, kr::InfAxes, jr::InfAxes) = layout_getindex(A, kr, jr)
-@inline getindex(A::AbstractCachedMatrix, kr::InfAxes, jr::AbstractUnitRange) = layout_getindex(A, kr, jr)
-@inline getindex(A::AbstractCachedMatrix, kr::AbstractUnitRange, jr::InfAxes) = layout_getindex(A, kr, jr)
+Base._unsafe_getindex(::IndexCartesian, A::AbstractFill{<:Any,2}, kr::InfAxes, jr::InfAxes) = FillArrays._fill_getindex(A, kr, jr)
+Base._unsafe_getindex(::IndexCartesian, A::AbstractFill{<:Any,2}, kr::Union{Real, AbstractArray}, jr::InfAxes) = FillArrays._fill_getindex(A, kr, jr)
+Base._unsafe_getindex(::IndexCartesian, A::AbstractFill{<:Any,2}, kr::InfAxes, jr::Union{Real, AbstractArray}) = FillArrays._fill_getindex(A, kr, jr)
 
 @inline getindex(A::ApplyMatrix{<:Any,typeof(hcat)}, kr::InfAxes, j::Integer) = layout_getindex(A, kr, j)
-
-function getindex(A::AbstractFill{<:Any,1}, r::InfAxes)
-    @boundscheck checkbounds(A, r)
-    FillArrays.fillsimilar(A, length(r))
-end
-
-function _mat_fillsimilar(A, kr, jr)
-    @boundscheck checkbounds(A, kr, jr)
-    FillArrays.fillsimilar(A, length(kr), length(jr))
-end
-
-getindex(A::AbstractFill{<:Any,2}, kr::InfAxes, jr::InfAxes) = _mat_fillsimilar(A, kr, jr)
-function getindex(A::AbstractFill{<:Any,2}, kr::Real, jr::InfAxes)
-    @boundscheck checkbounds(A, kr, jr)
-    FillArrays.fillsimilar(A, length(jr))
-end
-function getindex(A::AbstractFill{<:Any,2}, kr::InfAxes, jr::Real)
-    @boundscheck checkbounds(A, kr, jr)
-    FillArrays.fillsimilar(A, length(kr))
-end
-getindex(A::AbstractFill{<:Any,2}, kr::Colon, jr::InfAxes) = _mat_fillsimilar(A, axes(A,1), jr)
-getindex(A::AbstractFill{<:Any,2}, kr::InfAxes, jr::Colon) = _mat_fillsimilar(A, kr, axes(A,2))
-getindex(A::AbstractFill{<:Any,2}, kr::Any, jr::InfAxes) = _mat_fillsimilar(A, kr, jr)
-getindex(A::AbstractFill{<:Any,2}, kr::InfAxes, jr::Any) = _mat_fillsimilar(A, kr, jr)
 
 Base.checkindex(::Type{Bool}, inds::AbstractUnitRange, I::AbstractFill) = Base.checkindex(Bool, inds, getindex_value(I))
 LazyArrays.cache_getindex(::InfiniteCardinal{0}, A::AbstractVector, I, J...) = layout_getindex(A, I, J...)
