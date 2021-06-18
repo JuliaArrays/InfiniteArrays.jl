@@ -213,9 +213,8 @@ end
 
 getindex(::AbstractInfUnitRange, ::Infinity) = ℵ₀
 getindex(::OneToInf, ::Infinity) = ℵ₀
-getindex(v::InfUnitRange{T}, i::Infinity) where T = ℵ₀
-getindex(v::OneToInf{T}, i::Infinity) where T = ℵ₀
-getindex(v::InfStepRange{T}, i::Infinity) where T = ℵ₀
+getindex(v::InfUnitRange, i::Infinity) = ℵ₀
+getindex(v::InfStepRange, i::Infinity) = ℵ₀
 
 function getindex(r::AbstractInfUnitRange, s::AbstractInfUnitRange{<:Integer})
     f = first(r)

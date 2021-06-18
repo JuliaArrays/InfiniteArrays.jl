@@ -156,6 +156,8 @@ end
     end
 
     @testset "intersect" begin
+        @test intersect(oneto(∞), 2:3) == intersect(2:3, oneto(∞)) == 2:3
+
         @test intersect(1:∞, 2:3) == 2:3
         @test intersect(2:3, 1:∞) == 2:3
         @test intersect(1:∞, 2:∞) == 2:∞
