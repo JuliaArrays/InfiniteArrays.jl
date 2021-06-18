@@ -647,6 +647,7 @@ end
         D = Diagonal(1:∞)
         @test [D[2:5,:]; D][1:10,1:10] == [D[2:5,1:10]; D[1:6,1:10]]
         @test [D[3,:] D][1:10,1:10] == [D[3,1:10] D[1:10,1:9]]
+        @test [D[:,1:2] D][1:10,1:10] == [D[1:10,1:2] D[1:10,1:8]]
     end
 
     @testset "sparse print" begin
@@ -899,12 +900,24 @@ end
 @testset "reshaped" begin
     @test InfiniteArrays.ReshapedArray(1:6,(2,3)) == [1 3 5; 2 4 6]
     @test InfiniteArrays.ReshapedArray(1:∞,(1,ℵ₀))[1,1:10] == 1:10
-    @test reshape(1:∞,1,∞) === InfiniteArrays.ReshapedArray(1:∞,(1,ℵ₀))
+    @test reshape(1:∞,1,∞) ≡ InfiniteArrays.ReshapedArray(1:∞,(1,ℵ₀))
+    @test parentindices(reshape(1:∞,1,∞)) ≡ (oneto(∞),)
     @test permutedims(1:∞) isa InfiniteArrays.ReshapedArray
     @test permutedims(1:∞)[1,1:10] == (1:10)
     a = reshape(Vcat(Fill(1,1,∞),Fill(2,2,∞)),∞)
     @test a[1:7] == [1, 2, 2, 1, 2, 2, 1]
     @test permutedims(permutedims(1:∞)) ≡ 1:∞
+    @test parentindices(a) ≡ (oneto(3),oneto(∞))
+    @test Base.unaliascopy(a) ≡ a
+    @test Base.dataids(a) == Base.dataids(parent(a))
+    @test a[Base.ReshapedIndex(5)] == a[5]
+
+    b = reshape([1; zeros(∞)],1,∞)
+    b[1,5] = 6
+    @test parent(b)[5] == 6
+
+    @test reshape(Ones(∞), 1, ∞) ≡ Ones(1,∞)
+    @test reshape(Ones(∞), (1, ∞)) ≡ Ones(1,∞)
 end
 
 @testset "norm/dot" begin
