@@ -512,6 +512,10 @@ end
     @test D[:,1:5][2:5,:] == D[2:5,1:5]
     @test D[1:5,:][:,2:5] == D[1:5,2:5]
     @test D[:,:][1:5,1:5] == D[1:5,1:5]
+
+    @test D[:,5][1:10] == D[1:10,5]
+    @test D[5,:][1:10] == D[5,1:10]
+
     @test_broken D^2 isa Diagonal
     @test D*D isa Diagonal
     @test MemoryLayout(typeof(D.diag)) == LazyLayout()

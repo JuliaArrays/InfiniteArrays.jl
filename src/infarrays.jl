@@ -242,6 +242,35 @@ sub_materialize(::AbstractBandedLayout, V, ::Tuple{InfAxes,InfAxes}) = V
 sub_materialize(::AbstractBandedLayout, V, ::Tuple{OneTo{Int},InfAxes}) = V
 sub_materialize(::AbstractBandedLayout, V, ::Tuple{InfAxes,OneTo{Int}}) = V
 
+##
+# banded columns are padded
+##
+
+sublayout(::DiagonalLayout{L}, ::Type{<:Tuple{KR,Integer}}) where {L,KR<:InfAxes} = 
+    sublayout(PaddedLayout{UnknownLayout}(), Tuple{KR})
+sublayout(::DiagonalLayout{L}, ::Type{<:Tuple{Integer,JR}}) where {L,JR<:InfAxes} = 
+    sublayout(PaddedLayout{UnknownLayout}(), Tuple{JR})
+-
+
+sublayout(::AbstractBandedLayout, ::Type{<:Tuple{KR,Integer}}) where {KR<:InfAxes} = 
+    sublayout(PaddedLayout{UnknownLayout}(), Tuple{KR})
+sublayout(::AbstractBandedLayout, ::Type{<:Tuple{Integer,JR}}) where {JR<:InfAxes} = 
+    sublayout(PaddedLayout{UnknownLayout}(), Tuple{JR})
+
+
+function sub_paddeddata(::AbstractBandedLayout, S::SubArray{T,1,<:AbstractMatrix,<:Tuple{InfAxes,Integer}}) where T
+    P = parent(S)
+    (kr,j) = parentindices(S)
+    view(P,first(kr):last(colsupport(P,j)),j)
+end
+
+function sub_paddeddata(::AbstractBandedLayout, S::SubArray{T,1,<:AbstractMatrix,<:Tuple{Integer,InfAxes}}) where T
+    P = parent(S)
+    (k,jr) = parentindices(S)
+    view(P,k,first(jr):last(rowsupport(P,k)))
+end
+
+
 #####
 # Vcat
 #####
