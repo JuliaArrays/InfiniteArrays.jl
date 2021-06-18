@@ -438,6 +438,17 @@ end
     @testset "in" begin
         @test ∞ ∉ (1:∞)
     end
+
+    @testset "iterate" begin
+        for r in (oneto(∞), 1:∞, 1:1:∞)
+            x = 0
+            for k in r
+                x += 1
+                k > 5 && break
+            end
+            @test x == 6
+        end
+    end
 end
 
 @testset "fill" begin
@@ -498,6 +509,9 @@ end
 @testset "diagonal" begin
     D = Diagonal(1:∞)
     @test D[1:10,1:10] == Diagonal(1:10)
+    @test D[:,1:5][2:5,:] == D[2:5,1:5]
+    @test D[1:5,:][:,2:5] == D[1:5,2:5]
+    @test D[:,:][1:5,1:5] == D[1:5,1:5]
     @test_broken D^2 isa Diagonal
     @test D*D isa Diagonal
     @test MemoryLayout(typeof(D.diag)) == LazyLayout()

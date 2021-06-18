@@ -293,18 +293,18 @@ sub_materialize(::PaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T 
     _padded_sub_materialize(v)
     
 
-Base._unsafe_getindex(::IndexCartesian, A::AbstractVector, r::InfAxes) = layout_getindex(A, r)
-Base._unsafe_getindex(::IndexCartesian, A::AbstractFill{<:Any,1}, r::InfAxes) = FillArrays._fill_getindex(A, r)
+Base._unsafe_getindex(::IndexStyle, A::AbstractVector, r::InfAxes) = layout_getindex(A, r)
+Base._unsafe_getindex(::IndexStyle, A::AbstractFill{<:Any,1}, r::InfAxes) = FillArrays._fill_getindex(A, r)
 getindex(A::AbstractCachedVector, r::InfAxes) = layout_getindex(A, r)
 
 
-Base._unsafe_getindex(::IndexCartesian, A::AbstractMatrix, kr::InfAxes, jr::InfAxes) = layout_getindex(A, kr, jr)
-Base._unsafe_getindex(::IndexCartesian, A::AbstractMatrix, kr::Union{Real, AbstractArray}, jr::InfAxes) = layout_getindex(A, kr, jr)
-Base._unsafe_getindex(::IndexCartesian, A::AbstractMatrix, kr::InfAxes, jr::Union{Real, AbstractArray}) = layout_getindex(A, kr, jr)
+Base._unsafe_getindex(::IndexStyle, A::AbstractMatrix, kr::InfAxes, jr::InfAxes) = layout_getindex(A, kr, jr)
+Base._unsafe_getindex(::IndexStyle, A::AbstractMatrix, kr::Union{Real, AbstractArray}, jr::InfAxes) = layout_getindex(A, kr, jr)
+Base._unsafe_getindex(::IndexStyle, A::AbstractMatrix, kr::InfAxes, jr::Union{Real, AbstractArray}) = layout_getindex(A, kr, jr)
 
-Base._unsafe_getindex(::IndexCartesian, A::AbstractFill{<:Any,2}, kr::InfAxes, jr::InfAxes) = FillArrays._fill_getindex(A, kr, jr)
-Base._unsafe_getindex(::IndexCartesian, A::AbstractFill{<:Any,2}, kr::Union{Real, AbstractArray}, jr::InfAxes) = FillArrays._fill_getindex(A, kr, jr)
-Base._unsafe_getindex(::IndexCartesian, A::AbstractFill{<:Any,2}, kr::InfAxes, jr::Union{Real, AbstractArray}) = FillArrays._fill_getindex(A, kr, jr)
+Base._unsafe_getindex(::IndexStyle, A::AbstractFill{<:Any,2}, kr::InfAxes, jr::InfAxes) = FillArrays._fill_getindex(A, kr, jr)
+Base._unsafe_getindex(::IndexStyle, A::AbstractFill{<:Any,2}, kr::Union{Real, AbstractArray}, jr::InfAxes) = FillArrays._fill_getindex(A, kr, jr)
+Base._unsafe_getindex(::IndexStyle, A::AbstractFill{<:Any,2}, kr::InfAxes, jr::Union{Real, AbstractArray}) = FillArrays._fill_getindex(A, kr, jr)
 
 @inline getindex(A::ApplyMatrix{<:Any,typeof(hcat)}, kr::InfAxes, j::Integer) = layout_getindex(A, kr, j)
 
