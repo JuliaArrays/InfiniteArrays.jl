@@ -296,6 +296,15 @@ Base.typed_hcat(::Type{T}, A::AbstractFill{<:Any,2,Tuple{OneToInf{Int},OneTo{Int
 Base.typed_hcat(::Type{T}, A::SubArray{<:Any,2,<:Any,<:Tuple{InfIndexRanges,Any}}, B::AbstractVecOrMat...) where T = Hcat{T}(A, B...)
 Base.typed_hcat(::Type{T}, A::SubArray{<:Any,1,<:Any,<:Tuple{Any,InfIndexRanges}}, B::AbstractVecOrMat...) where T = Hcat{T}(A, B...)
 
+Base.typed_hcat(::Type{T}, A::AbstractVecOrMat, B::SubArray{<:Any,2,<:Any,<:Tuple{Any, InfIndexRanges}}) where T = Hcat{T}(A, B)
+
+ArrayLayouts.typed_hcat(::Type{T}, ::Tuple{InfiniteCardinal{0},Any}, A...) where T = Hcat{T}(A...)
+ArrayLayouts.typed_hcat(::Type{T}, ::Tuple{InfiniteCardinal{0},InfiniteCardinal{0}}, A...) where T = Hcat{T}(A...)
+ArrayLayouts.typed_hcat(::Type{T}, ::Tuple{Any,InfiniteCardinal{0}}, A...) where T = Hcat{T}(A...)
+
+ArrayLayouts.typed_vcat(::Type{T}, ::Tuple{InfiniteCardinal{0},Any}, A...) where T = Vcat{T}(A...)
+ArrayLayouts.typed_vcat(::Type{T}, ::Tuple{InfiniteCardinal{0},InfiniteCardinal{0}}, A...) where T = Vcat{T}(A...)
+ArrayLayouts.typed_vcat(::Type{T}, ::Tuple{Any,InfiniteCardinal{0}}, A...) where T = Vcat{T}(A...)
 
 ##
 # lazy sub_materialize
