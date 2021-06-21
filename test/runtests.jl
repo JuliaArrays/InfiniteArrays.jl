@@ -1,4 +1,4 @@
-using LinearAlgebra, SparseArrays, InfiniteArrays, Infinities, FillArrays, LazyArrays, Statistics, DSP, BandedMatrices, LazyBandedMatrices, Test, Base64
+using LinearAlgebra, SparseArrays, InfiniteArrays, Infinities, FillArrays, LazyArrays, Statistics, BandedMatrices, LazyBandedMatrices, Test, Base64
 import InfiniteArrays: InfUnitRange, InfStepRange, OneToInf, NotANumber, oneto, unitrange
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport, DualLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
@@ -156,6 +156,8 @@ end
     end
 
     @testset "intersect" begin
+        @test intersect(oneto(∞), 2:3) == intersect(2:3, oneto(∞)) == 2:3
+
         @test intersect(1:∞, 2:3) == 2:3
         @test intersect(2:3, 1:∞) == 2:3
         @test intersect(1:∞, 2:∞) == 2:∞
@@ -436,6 +438,17 @@ end
     @testset "in" begin
         @test ∞ ∉ (1:∞)
     end
+
+    @testset "iterate" begin
+        for r in (oneto(∞), 1:∞, 1:1:∞)
+            x = 0
+            for k in r
+                x += 1
+                k > 5 && break
+            end
+            @test x == 6
+        end
+    end
 end
 
 @testset "fill" begin
@@ -496,6 +509,13 @@ end
 @testset "diagonal" begin
     D = Diagonal(1:∞)
     @test D[1:10,1:10] == Diagonal(1:10)
+    @test D[:,1:5][2:5,:] == D[2:5,1:5]
+    @test D[1:5,:][:,2:5] == D[1:5,2:5]
+    @test D[:,:][1:5,1:5] == D[1:5,1:5]
+
+    @test D[:,5][1:10] == D[1:10,5]
+    @test D[5,:][1:10] == D[5,1:10]
+
     @test_broken D^2 isa Diagonal
     @test D*D isa Diagonal
     @test MemoryLayout(typeof(D.diag)) == LazyLayout()
@@ -627,6 +647,13 @@ end
         a = [[1,2,3]; zeros(Int,∞)]
         @test a[3:∞][1:5] == a[3:7]
         @test cache(1:∞)[2:∞][1:5] == 2:6
+
+        D = Diagonal(1:∞)
+        @test [D[2:5,:]; D][1:10,1:10] == [D[2:5,1:10]; D[1:6,1:10]]
+        @test [D[3,:] D][1:10,1:10] == [D[3,1:10] D[1:10,1:9]]
+        @test [D[:,1:2] D][1:10,1:10] == [D[1:10,1:2] D[1:10,1:8]]
+
+        @test [1:5 D[1:5,:]][:,1:5] == [1:5 D[1:5,1:4]]
     end
 
     @testset "sparse print" begin
@@ -804,20 +831,6 @@ end
     @test (1:∞)[3:∞] ≡ 3:∞
 end
 
-@testset "conv" begin
-    @test conv(1:∞, [2]) ≡ conv([2], 1:∞) ≡ 2:2:∞
-    @test conv(1:2:∞, [2]) ≡ conv([2], 1:2:∞) ≡ 2:4:∞
-    @test conv(1:∞, Ones(∞))[1:5] == conv(Ones(∞),1:∞)[1:5] == [1,3,6,10,15]
-    @test conv(Ones(∞), Ones(∞)) ≡ 1.0:1.0:∞
-    @test conv(Ones{Int}(∞), Ones{Int}(∞)) ≡ oneto(∞)
-    @test conv(Ones{Bool}(∞), Ones{Bool}(∞)) ≡ oneto(∞)
-    @test conv(Fill{Int}(2,∞), Fill{Int}(1,∞)) ≡ conv(Fill{Int}(2,∞), Ones{Int}(∞)) ≡
-                conv(Ones{Int}(∞), Fill{Int}(2,∞)) ≡ 2:2:∞
-    @test conv(Ones{Int}(∞), [1,5,8])[1:10] == conv([1,5,8], Ones{Int}(∞))[1:10] ==
-                    conv(fill(1,100),[1,5,8])[1:10] == conv([1,5,8], fill(1,100))[1:10]
-    @test conv(Ones{Int}(∞), 1:4)[1:10] == conv(1:4, Ones{Int}(∞))[1:10] ==
-                    conv(fill(1,100),collect(1:4))[1:10] == conv(collect(1:4), fill(1,100))[1:10]
-end
 
 @testset "Taylor ODE" begin
     e₁ = Vcat(1, Zeros(∞))
@@ -893,12 +906,24 @@ end
 @testset "reshaped" begin
     @test InfiniteArrays.ReshapedArray(1:6,(2,3)) == [1 3 5; 2 4 6]
     @test InfiniteArrays.ReshapedArray(1:∞,(1,ℵ₀))[1,1:10] == 1:10
-    @test reshape(1:∞,1,∞) === InfiniteArrays.ReshapedArray(1:∞,(1,ℵ₀))
+    @test reshape(1:∞,1,∞) ≡ InfiniteArrays.ReshapedArray(1:∞,(1,ℵ₀))
+    @test parentindices(reshape(1:∞,1,∞)) ≡ (oneto(∞),)
     @test permutedims(1:∞) isa InfiniteArrays.ReshapedArray
     @test permutedims(1:∞)[1,1:10] == (1:10)
     a = reshape(Vcat(Fill(1,1,∞),Fill(2,2,∞)),∞)
     @test a[1:7] == [1, 2, 2, 1, 2, 2, 1]
     @test permutedims(permutedims(1:∞)) ≡ 1:∞
+    @test parentindices(a) ≡ (oneto(3),oneto(∞))
+    @test Base.unaliascopy(a) ≡ a
+    @test Base.dataids(a) == Base.dataids(parent(a))
+    @test a[Base.ReshapedIndex(5)] == a[5]
+
+    b = reshape([1; zeros(∞)],1,∞)
+    b[1,5] = 6
+    @test parent(b)[5] == 6
+
+    @test reshape(Ones(∞), 1, ∞) ≡ Ones(1,∞)
+    @test reshape(Ones(∞), (1, ∞)) ≡ Ones(1,∞)
 end
 
 @testset "norm/dot" begin
@@ -978,6 +1003,7 @@ Base.getindex(::MyInfMatrix, k::Int, j::Int) = k+j
 
 @testset "MyInfArray" begin
     @test MyInfVector()[2:∞][1:10] == 2:11
+    @test MyInfVector()[:][2:10] == MyInfVector()[2:10]
 
     @test MyInfMatrix()[2:∞,3:∞][1:10,1:10] == MyInfMatrix()[2:11,3:12]
     @test MyInfMatrix()[2:11,3:∞][1:10,1:10] == MyInfMatrix()[2:11,3:12]

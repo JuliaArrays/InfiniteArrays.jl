@@ -13,9 +13,8 @@ ReshapedArray(parent::AbstractArray{T}, dims::NTuple{N,Integer}) where {T,N} = R
 size(A::ReshapedArray) = A.dims
 similar(A::ReshapedArray, eltype::Type, dims::Dims) = similar(parent(A), eltype, dims)
 parent(A::ReshapedArray) = A.parent
-parentindices(A::ReshapedArray) = map(OneTo, size(parent(A)))
-reinterpret(::Type{T}, A::ReshapedArray, dims::Dims) where {T} = reinterpret(T, parent(A), dims)
-elsize(::Type{<:ReshapedArray{<:Any,<:Any,P}}) where {P} = elsize(P)
+parentindices(A::ReshapedArray) = map(oneto, size(parent(A)))
+# reinterpret(::Type{T}, A::ReshapedArray, dims::Dims) where {T} = reinterpret(T, parent(A), dims)
 
 unaliascopy(A::ReshapedArray) = typeof(A)(unaliascopy(A.parent), A.dims, A.mi)
 dataids(A::ReshapedArray) = dataids(A.parent)
@@ -76,3 +75,13 @@ MemoryLayout(::Type{<:ReshapedArray{T,N,A,DIMS}}) where {T,N,A,DIMS} = reshapedl
 ###
 
 permutedims(R::ReshapedArray{<:Any,2,<:AbstractVector}) = parent(R)
+
+
+
+###
+# support Reshaping infinite-vector to matrix
+function Base._sub2ind_recurse(inds, L::InfiniteCardinal{0}, ind, i::Integer, I::Integer...)
+    r1 = inds[1]
+    @assert iszero(Base.offsetin(i, r1))
+    _sub2ind_recurse(tail(inds), Base.nextL(L, r1), ind, I...)
+end

@@ -213,9 +213,8 @@ end
 
 getindex(::AbstractInfUnitRange, ::Infinity) = ℵ₀
 getindex(::OneToInf, ::Infinity) = ℵ₀
-getindex(v::InfUnitRange{T}, i::Infinity) where T = ℵ₀
-getindex(v::OneToInf{T}, i::Infinity) where T = ℵ₀
-getindex(v::InfStepRange{T}, i::Infinity) where T = ℵ₀
+getindex(v::InfUnitRange, i::Infinity) = ℵ₀
+getindex(v::InfStepRange, i::Infinity) = ℵ₀
 
 function getindex(r::AbstractInfUnitRange, s::AbstractInfUnitRange{<:Integer})
     f = first(r)
@@ -493,76 +492,6 @@ diff(r::InfRanges) = Fill(step(r),∞)
 diff(r::OneToInf{T}) where T = Ones{T}(∞)
 Base.@propagate_inbounds getindex(c::RangeCumsum, kr::OneToInf) = RangeCumsum(c.range[kr])
 getindex(c::RangeCumsum{<:Any,<:OneToInf}, k::Integer) = k * (k+1) ÷ 2
-
-##
-# conv
-# This is useful for determining polynomial dimensions
-##
-
-conv(a::AbstractFill, b::AbstractFill) = conv(collect(a), collect(b))
-conv(a::Vector, b::AbstractFill) = conv(a, collect(b))
-conv(a::AbstractFill, b::Vector) = conv(collect(a), b)
-
-
-conv(::Ones{T,1,<:Tuple{<:OneToInf}}, ::Ones{V,1,<:Tuple{<:OneToInf}}) where {T<:Integer,V<:Integer} =
-    OneToInf{promote_type(T,V)}()
-conv(::Ones{Bool,1,<:Tuple{<:OneToInf}}, ::Ones{Bool,1,<:Tuple{<:OneToInf}}) =
-    OneToInf()
-conv(::Ones{T,1,<:Tuple{<:OneToInf}}, ::Ones{V,1,<:Tuple{<:OneToInf}}) where {T,V} =
-    one(promote_type(T,V)):∞
-
-function conv(::Ones{T,1,<:Tuple{<:OneToInf}}, a::AbstractVector{V}) where {T,V}
-    cs = cumsum(convert(AbstractVector{promote_type(T,V)}, a))
-    Vcat(cs, Fill(last(cs), ∞))
-end
-
-function conv(::Ones{T,1,<:Tuple{<:OneToInf}}, a::Vector{V}) where {T,V}
-    cs = cumsum(convert(AbstractVector{promote_type(T,V)}, a))
-    Vcat(cs, Fill(last(cs), ∞))
-end
-
-function conv(a::AbstractVector{V}, ::Ones{T,1,<:Tuple{<:OneToInf}}) where {T,V}
-    cs = cumsum(convert(AbstractVector{promote_type(T,V)}, a))
-    Vcat(cs, Fill(last(cs), ∞))
-end
-
-function conv(a::Vector{V}, ::Ones{T,1,<:Tuple{<:OneToInf}}) where {T,V}
-    cs = cumsum(convert(AbstractVector{promote_type(T,V)}, a))
-    Vcat(cs, Fill(last(cs), ∞))
-end
-
-
-function conv(r::InfRanges, x::AbstractVector)
-    length(x) ≠ 1 && throw(ArgumentError("conv(::$(typeof(r)), ::$(typeof(x))) not implemented"))
-    first(x)*r
-end
-function conv(x::AbstractVector, r::InfRanges)
-    length(x) ≠ 1 && throw(ArgumentError("conv(::$(typeof(r)), ::$(typeof(x))) not implemented"))
-    first(x)*r
-end
-
-conv(r1::InfRanges, r2::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}) =
-    cumsum(r1*getindex_value(r2))
-conv(r2::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}, r1::InfRanges) =
-    cumsum(getindex_value(r2)*r1)
-
-conv(r1::InfRanges, r2::Ones{<:Any,1,<:Tuple{<:OneToInf}}) = cumsum(r1)
-conv(r2::Ones{<:Any,1,<:Tuple{<:OneToInf}}, r1::InfRanges) = cumsum(r1)
-
-conv(r1::InfRanges, r2::InfRanges) = throw(ArgumentError("conv(::$(typeof(r1)), ::$(typeof(r2))) not implemented"))
-
-function conv(r1::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}, r2::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}})
-    a = getindex_value(r1) * getindex_value(r2)
-    a:a:∞
-end
-function conv(r1::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}}, r2::Ones{<:Any,1,<:Tuple{<:OneToInf}})
-    a = getindex_value(r1) * getindex_value(r2)
-    a:a:∞
-end
-function conv(r1::Ones{<:Any,1,<:Tuple{<:OneToInf}}, r2::AbstractFill{<:Any,1,<:Tuple{<:OneToInf}})
-    a = getindex_value(r1) * getindex_value(r2)
-    a:a:∞
-end
 
 
 ###
