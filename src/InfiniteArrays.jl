@@ -1,4 +1,5 @@
 module InfiniteArrays
+using ArrayLayouts: LayoutVecOrMat
 using Base, Statistics, LinearAlgebra, FillArrays, Infinities, LazyArrays, ArrayLayouts
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isless,
@@ -43,7 +44,7 @@ import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayou
                     reshapedlayout, sub_materialize, sublayout, LayoutMatrix, LayoutVector, _padded_sub_materialize, PaddedLayout,
                     AbstractCachedMatrix, sub_paddeddata
 
-import ArrayLayouts: RangeCumsum
+import ArrayLayouts: RangeCumsum, LayoutVecOrMat, LayoutVecOrMats
 import Infinities: ∞, Infinity, InfiniteCardinal
 
 export ∞, ℵ₀, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache

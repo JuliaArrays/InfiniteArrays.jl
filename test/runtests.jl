@@ -719,6 +719,20 @@ end
         @test [Fill(2,∞) Diagonal(1:∞)][1:10,1:11] == [fill(2,10) Diagonal(1:10)]
         @test [Fill(2,∞,3) Diagonal(1:∞)][1:10,1:13] == [fill(2,10,3) Diagonal(1:10)]
     end
+
+    @testset "Banded concat" begin
+        A = _BandedMatrix((0:∞)', ℵ₀, -1, 1)
+        D = Diagonal(1:∞)
+        @test [view(D,1:1,:); A][1:10,1:10] == [D[1:1,1:10]; A[1:9,1:10]]
+        @test [view(A,1:1,:); A][1:10,1:10] == [A[1:1,1:10]; A[1:9,1:10]]
+        @test [Ones(∞) A][1:10,1:10] == [ones(10) A[1:10,1:9]]
+        @test [Ones(∞,2) A][1:10,1:10] == [ones(10,2) A[1:10,1:8]]
+        @test [view(D,1,:) A][1:10,1:10] == [D[1,1:10] A[1:10,1:9]]
+        @test [view(A,1,:) A][1:10,1:10] == [A[1,1:10] A[1:10,1:9]]
+        @test [view(D,:,1:1) A][1:10,1:10] == [D[1:10,1] A[1:10,1:9]]
+        @test [view(A,:,1:1) A][1:10,1:10] == [A[1:10,1] A[1:10,1:9]]
+        @test [view(A,1,:) A][1:10,1:10] == [A[1,1:10] A[1:10,1:9]]
+    end
 end
 
 @testset "broadcasting" begin
