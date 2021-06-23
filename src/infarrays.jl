@@ -289,12 +289,20 @@ _unsafe_getindex(::IndexLinear, A::Vcat, r::InfUnitRange) = _vcat(_gettail(first
 
 # some common cases
 Base.typed_vcat(::Type{T}, A::SubArray{<:Any,2,<:Any,<:Tuple{Any,InfIndexRanges}}, B::AbstractVecOrMat...) where T = Vcat{T}(A, B...)
+Base.typed_vcat(::Type{T}, A::SubArray{<:Any,2,<:Any,<:Tuple{Any,InfIndexRanges}}, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Vcat{T}(A, B, C...)
+Base.typed_vcat(::Type{T}, A::SubArray{<:Any,2,<:LayoutVecOrMat,<:Tuple{Any,InfIndexRanges}}, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Vcat{T}(A, B, C...)
 
 Base.typed_hcat(::Type{T}, A::AbstractFill{<:Any,1,Tuple{OneToInf{Int}}}, B::AbstractVecOrMat...) where T = Hcat{T}(A, B...)
+Base.typed_hcat(::Type{T}, A::AbstractFill{<:Any,1,Tuple{OneToInf{Int}}}, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
 Base.typed_hcat(::Type{T}, A::AbstractFill{<:Any,2,Tuple{OneToInf{Int},OneTo{Int}}}, B::AbstractVecOrMat...) where T = Hcat{T}(A, B...)
+Base.typed_hcat(::Type{T}, A::AbstractFill{<:Any,2,Tuple{OneToInf{Int},OneTo{Int}}}, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
 
 Base.typed_hcat(::Type{T}, A::SubArray{<:Any,2,<:Any,<:Tuple{InfIndexRanges,Any}}, B::AbstractVecOrMat...) where T = Hcat{T}(A, B...)
+Base.typed_hcat(::Type{T}, A::SubArray{<:Any,2,<:Any,<:Tuple{InfIndexRanges,Any}}, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
+Base.typed_hcat(::Type{T}, A::SubArray{<:Any,2,<:LayoutVecOrMat,<:Tuple{InfIndexRanges,Any}}, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
 Base.typed_hcat(::Type{T}, A::SubArray{<:Any,1,<:Any,<:Tuple{Any,InfIndexRanges}}, B::AbstractVecOrMat...) where T = Hcat{T}(A, B...)
+Base.typed_hcat(::Type{T}, A::SubArray{<:Any,1,<:LayoutVecOrMat,<:Tuple{Any,InfIndexRanges}}, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
+Base.typed_hcat(::Type{T}, A::SubArray{<:Any,1,<:Any,<:Tuple{Any,InfIndexRanges}}, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
 
 Base.typed_hcat(::Type{T}, A::AbstractVecOrMat, B::SubArray{<:Any,2,<:Any,<:Tuple{Any, InfIndexRanges}}) where T = Hcat{T}(A, B)
 
