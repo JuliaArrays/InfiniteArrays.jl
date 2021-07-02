@@ -311,6 +311,7 @@ for InfRowArray in (:(AbstractFill{<:Any,1,Tuple{OneToInf{Int}}}),
         Base.typed_hcat(::Type{T}, A::$InfRowArray, B::AbstractVecOrMat...) where T = Hcat{T}(A, B...)
         Base.typed_hcat(::Type{T}, A::$InfRowArray, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
         Base.typed_hcat(::Type{T}, A::AbstractVecOrMat, B::$InfRowArray, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
+        Base.typed_hcat(::Type{T}, A::LayoutVecOrMat, B::$InfRowArray, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
     end
 end
 
