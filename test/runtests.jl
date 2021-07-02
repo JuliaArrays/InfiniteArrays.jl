@@ -658,7 +658,8 @@ end
         @test [1:∞ D[:,1:5]][1:10,:] == [1:10 D[1:10,1:5]]
         @test [1 Zeros(1,∞)][:,1:10] == [1 zeros(1,9)]
 
-        [[1; zeros(∞)] D[:,1:5]]
+        @test [[1; zeros(∞)] D[:,1:5]][1:10,:] == [[1; zeros(9)] D[1:10,1:5]]
+        @test [[1; zeros(∞)] BandedMatrix(D[:,1:5])][1:10,:] == [[1; zeros(9)] D[1:10,1:5]]
     end
 
     @testset "sparse print" begin
