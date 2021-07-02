@@ -272,7 +272,7 @@ end
 
 
 #####
-# Vcat
+# Concat: Hcat/Vcat
 #####
 
 function getindex(f::Vcat{T,1}, k::PosInfinity) where T
@@ -294,7 +294,8 @@ for InfColMatrix in (:(SubArray{<:Any,2,<:Any,<:Tuple{Any,InfIndexRanges}}),
     @eval begin
         Base.typed_vcat(::Type{T}, A::$InfColMatrix, B::AbstractVecOrMat...) where T = Vcat{T}(A, B...)
         Base.typed_vcat(::Type{T}, A::$InfColMatrix, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Vcat{T}(A, B, C...)
-        Base.hcat(A::Number, B::$InfColMatrix, C::AbstractVecOrMat...) where T = Hcat(A, B, C...)
+        Base.hcat(A::Number, B::$InfColMatrix) = Hcat(A, B)
+        Base.typed_hcat(::Type{T}, A::AbstractVecOrMat, B::$InfColMatrix) where T = Hcat{T}(A, B)
     end
 end
 
