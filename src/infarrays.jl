@@ -272,7 +272,7 @@ end
 
 
 #####
-# Vcat
+# Concat: Hcat/Vcat
 #####
 
 function getindex(f::Vcat{T,1}, k::PosInfinity) where T
@@ -287,24 +287,34 @@ _vcat(a, b, c...) = Vcat(a, b, c...)
 getindex(A::Vcat, r::InfUnitRange) = Base.invoke(getindex, Tuple{AbstractArray, Any}, A, r)
 _unsafe_getindex(::IndexLinear, A::Vcat, r::InfUnitRange) = _vcat(_gettail(first(r), A.args...)...)
 
-# some common cases
-Base.typed_vcat(::Type{T}, A::SubArray{<:Any,2,<:Any,<:Tuple{Any,InfIndexRanges}}, B::AbstractVecOrMat...) where T = Vcat{T}(A, B...)
-Base.typed_vcat(::Type{T}, A::SubArray{<:Any,2,<:Any,<:Tuple{Any,InfIndexRanges}}, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Vcat{T}(A, B, C...)
-Base.typed_vcat(::Type{T}, A::SubArray{<:Any,2,<:LayoutVecOrMat,<:Tuple{Any,InfIndexRanges}}, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Vcat{T}(A, B, C...)
+# some common cases not catched by LayoutArrays + ambiguities
+for InfColMatrix in (:(SubArray{<:Any,2,<:Any,<:Tuple{Any,InfIndexRanges}}), 
+                     :(SubArray{<:Any,2,<:LayoutVecOrMat,<:Tuple{Any,InfIndexRanges}}), 
+                     :(AbstractFill{<:Any,2,Tuple{OneTo{Int},OneToInf{Int}}}))
+    @eval begin
+        Base.typed_vcat(::Type{T}, A::$InfColMatrix, B::AbstractVecOrMat...) where T = Vcat{T}(A, B...)
+        Base.typed_vcat(::Type{T}, A::$InfColMatrix, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Vcat{T}(A, B, C...)
+        Base.hcat(A::Number, B::$InfColMatrix) = Hcat(A, B)
+        Base.typed_hcat(::Type{T}, A::AbstractVecOrMat, B::$InfColMatrix) where T = Hcat{T}(A, B)
+    end
+end
 
-Base.typed_hcat(::Type{T}, A::AbstractFill{<:Any,1,Tuple{OneToInf{Int}}}, B::AbstractVecOrMat...) where T = Hcat{T}(A, B...)
-Base.typed_hcat(::Type{T}, A::AbstractFill{<:Any,1,Tuple{OneToInf{Int}}}, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
-Base.typed_hcat(::Type{T}, A::AbstractFill{<:Any,2,Tuple{OneToInf{Int},OneTo{Int}}}, B::AbstractVecOrMat...) where T = Hcat{T}(A, B...)
-Base.typed_hcat(::Type{T}, A::AbstractFill{<:Any,2,Tuple{OneToInf{Int},OneTo{Int}}}, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
+for InfRowArray in (:(AbstractFill{<:Any,1,Tuple{OneToInf{Int}}}),
+                    :(AbstractFill{<:Any,2,Tuple{OneToInf{Int},OneTo{Int}}}), 
+                    :(SubArray{<:Any,2,<:Any,<:Tuple{InfIndexRanges,Any}}), 
+                    :(SubArray{<:Any,2,<:LayoutVecOrMat,<:Tuple{InfIndexRanges,Any}}),
+                    :(SubArray{<:Any,1,<:Any,<:Tuple{Any,InfIndexRanges}}),
+                    :(SubArray{<:Any,1,<:LayoutMatrix,<:Tuple{Any,InfIndexRanges}}),
+                    :(SubArray{<:Any,1,<:Any,<:Tuple{InfIndexRanges,Any}}),
+                    :(SubArray{<:Any,1,<:LayoutMatrix,<:Tuple{InfIndexRanges,Any}}))
+    @eval begin
+        Base.typed_hcat(::Type{T}, A::$InfRowArray, B::AbstractVecOrMat...) where T = Hcat{T}(A, B...)
+        Base.typed_hcat(::Type{T}, A::$InfRowArray, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
+        Base.typed_hcat(::Type{T}, A::AbstractVecOrMat, B::$InfRowArray, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
+        Base.typed_hcat(::Type{T}, A::LayoutVecOrMat, B::$InfRowArray, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
+    end
+end
 
-Base.typed_hcat(::Type{T}, A::SubArray{<:Any,2,<:Any,<:Tuple{InfIndexRanges,Any}}, B::AbstractVecOrMat...) where T = Hcat{T}(A, B...)
-Base.typed_hcat(::Type{T}, A::SubArray{<:Any,2,<:Any,<:Tuple{InfIndexRanges,Any}}, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
-Base.typed_hcat(::Type{T}, A::SubArray{<:Any,2,<:LayoutVecOrMat,<:Tuple{InfIndexRanges,Any}}, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
-Base.typed_hcat(::Type{T}, A::SubArray{<:Any,1,<:Any,<:Tuple{Any,InfIndexRanges}}, B::AbstractVecOrMat...) where T = Hcat{T}(A, B...)
-Base.typed_hcat(::Type{T}, A::SubArray{<:Any,1,<:LayoutVecOrMat,<:Tuple{Any,InfIndexRanges}}, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
-Base.typed_hcat(::Type{T}, A::SubArray{<:Any,1,<:Any,<:Tuple{Any,InfIndexRanges}}, B::LayoutVecOrMats, C::AbstractVecOrMat...) where T = Hcat{T}(A, B, C...)
-
-Base.typed_hcat(::Type{T}, A::AbstractVecOrMat, B::SubArray{<:Any,2,<:Any,<:Tuple{Any, InfIndexRanges}}) where T = Hcat{T}(A, B)
 
 ArrayLayouts.typed_hcat(::Type{T}, ::Tuple{InfiniteCardinal{0},Any}, A...) where T = Hcat{T}(A...)
 ArrayLayouts.typed_hcat(::Type{T}, ::Tuple{InfiniteCardinal{0},InfiniteCardinal{0}}, A...) where T = Hcat{T}(A...)
