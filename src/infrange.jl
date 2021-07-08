@@ -135,7 +135,7 @@ unsafe_length(r::InfRanges) = ℵ₀
 first(r::OneToInf{T}) where {T} = oneunit(T)
 
 last(r::AbstractInfUnitRange) = ℵ₀
-last(r::InfStepRange) = sign(step(r))*∞
+last(r::InfStepRange) = RealInfinity(signbit(step(r)))
 
 minimum(r::InfUnitRange) = first(r)
 maximum(r::InfUnitRange) = ℵ₀
@@ -239,7 +239,7 @@ function getindex(r::AbstractInfUnitRange, s::InfStepRange{<:Integer})
     @boundscheck (step(s) > 0 && first(s) ≥ 1) || throw(BoundsError(r, minimum(s)))
     st = oftype(first(r), first(r) + s.start-1)
     new_step = step(s)
-    st:new_step:sign(new_step)*∞
+    InfStepRange(st,new_step)
 end
 
 function getindex(r::AbstractInfUnitRange, s::StepRange{<:Integer})
@@ -254,7 +254,7 @@ function getindex(r::InfStepRange, s::InfAxes)
     @boundscheck (step(s) > 0 && first(s) ≥ 1) || throw(BoundsError(r, minimum(s)))
     st = oftype(r.start, r.start + (first(s)-1)*step(r))
     new_step = step(r)*step(s)
-    st:new_step:sign(new_step)*∞
+    InfStepRange(st,new_step)
 end
 
 function getindex(r::InfStepRange, s::AbstractRange{<:Integer})
