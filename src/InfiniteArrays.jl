@@ -108,10 +108,8 @@ vcat(a::AbstractVector, b::AbstractVector, c::AbstractVector, d::AbstractFill{<:
 vcat(a::AbstractMatrix, b::AbstractFill{<:Any,2,<:Tuple{OneToInf,OneTo}}) = Vcat(a, b)
 
 cat_similar(A, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
-cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{PosInfinity}) where T =
-   Base.invoke(cat_similar, Tuple{AbstractArray, Type{T}, Any}, A, T, shape)
-cat_similar(A::Array, ::Type{T}, shape::Tuple{PosInfinity}) where T =
-   Base.invoke(cat_similar, Tuple{Array, Type{T}, Any}, A, T, shape)
+cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
+cat_similar(A::Array, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
 function Base.__cat(A, shape::NTuple{N,PosInfinity}, catdims, X...) where N
    offsets = zeros(Union{Int,InfiniteCardinal{0}}, N)
    inds = Vector{Union{UnitRange{Int},InfUnitRange{Int}}}(undef, N)

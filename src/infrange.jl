@@ -102,6 +102,8 @@ if VERSION ≥ v"1.7-"
     end
     broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::InfRanges) = InfStepRange(x*first(r), x*step(r))
     broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::InfRanges, x::Number) = InfStepRange(first(r)*x, step(r)*x)
+    broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::AbstractFloat, r::InfRanges) = InfStepRange(x*first(r), x*step(r))
+    broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::InfRanges, x::AbstractFloat) = InfStepRange(first(r)*x, step(r)*x)
 end
 
 

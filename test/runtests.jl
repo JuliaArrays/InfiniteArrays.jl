@@ -879,7 +879,6 @@ end
     @test size(AB) == (3,ℵ₀)
     @test (AB)[1:3,1:10] == Fill(1,3,10)*Diagonal(1:10)
 
-    @test A*B*C isa ApplyArray
     @test size(A*B*C) == (3,)
     @test (A*B*C)[1] == 14
     @test A*B*C == fill(14,3)
