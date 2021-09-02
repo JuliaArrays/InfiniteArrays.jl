@@ -517,7 +517,7 @@ end
     @test D[5,:][1:10] == D[5,1:10]
 
     if VERSION ≥ v"1.7-"
-        @test_broken D^2 isa Diagonal
+        @test D^2 isa Diagonal
     end
     @test D*D isa Diagonal
     @test MemoryLayout(typeof(D.diag)) == LazyLayout()
