@@ -662,6 +662,8 @@ end
 
         @test [[1; zeros(∞)] D[:,1:5]][1:10,:] == [[1; zeros(9)] D[1:10,1:5]]
         @test [[1; zeros(∞)] BandedMatrix(D[:,1:5])][1:10,:] == [[1; zeros(9)] D[1:10,1:5]]
+
+        @test cat([1,2,3],zeros(∞); dims=1) == cat(1:3,zeros(∞); dims=1) == [[1,2,3]; zeros(∞)]
     end
 
     @testset "sparse print" begin
