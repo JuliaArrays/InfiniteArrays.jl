@@ -92,6 +92,17 @@ AbstractMatrix{T}(ac::Transpose{<:Any,<:InfRanges}) where T<:Real = transpose(Ab
 copy(ac::AdjOrTrans{<:Any,<:InfRanges}) = ac
 reverse(a::InfRanges) = throw(ArgumentError("Cannot reverse infinite range"))
 
+if VERSION ≥ v"1.7-"
+    Base.range_start_step_length(a::T, st::T, len::PosInfinity) where T<:Union{Float16,Float32,Float64} = InfStepRange(a, st)
+    for op in (:+, :-)
+        @eval $op(a::InfRanges, b::InfRanges) = InfStepRange($op(first(a),first(b)), $op(step(a),step(b)))
+    end
+    broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::InfRanges) = InfStepRange(x*first(r), x*step(r))
+    broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::InfRanges, x::Number) = InfStepRange(first(r)*x, step(r)*x)
+    broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::AbstractFloat, r::InfRanges) = InfStepRange(x*first(r), x*step(r))
+    broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::InfRanges, x::AbstractFloat) = InfStepRange(first(r)*x, step(r)*x)
+end
+
 
 """
     OneToInf(n)
@@ -152,17 +163,10 @@ done(r::InfStepRange{T}, i) where {T} = false
 
 ## iteration with zip + finite iterator
 #  allows axes(zip(...)) and size(zip(...))
-if VERSION < v"1.6-" 
-    Base.Iterators._zip_promote_shape((a,)::Tuple{OneToInf}, (b,)::Tuple{OneTo}) =
-        (intersect(a, b),)
-    Base.Iterators._zip_promote_shape((a,)::Tuple{OneTo}, (b,)::Tuple{OneToInf}) =
-        (intersect(a, b),)
-else
-    Base.Iterators._promote_tuple_shape((a,)::Tuple{OneToInf}, (b,)::Tuple{OneTo}) =
-        (intersect(a, b),)
-    Base.Iterators._promote_tuple_shape((a,)::Tuple{OneTo}, (b,)::Tuple{OneToInf}) =
-        (intersect(a, b),)
-end
+Base.Iterators._promote_tuple_shape((a,)::Tuple{OneToInf}, (b,)::Tuple{OneTo}) =
+    (intersect(a, b),)
+Base.Iterators._promote_tuple_shape((a,)::Tuple{OneTo}, (b,)::Tuple{OneToInf}) =
+    (intersect(a, b),)
 
 ## indexing
 

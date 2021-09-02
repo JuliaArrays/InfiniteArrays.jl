@@ -48,46 +48,13 @@ import ArrayLayouts: RangeCumsum, LayoutVecOrMat, LayoutVecOrMats
 import Infinities: ∞, Infinity, InfiniteCardinal
 
 export ∞, ℵ₀, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
-
-if VERSION ≥ v"1.6-"
-   import Base: unitrange, oneto
-end
+import Base: unitrange, oneto
 
 
 
 include("infrange.jl")
 include("infarrays.jl")
 include("reshapedarray.jl")
-
-if VERSION < v"1.6-"
-   ##
-   # Temporary hacks for base support
-   ##
-   Base.OneTo(::Infinity) = OneToInf()
-   Base.OneTo(::InfiniteCardinal{0}) = OneToInf()
-   function Base.OneTo(x::ComplexInfinity)
-      iszero(x.angle) && return oneto(∞)
-      throw(ArgumentError("Cannot create infinite range with negative length"))
-   end
-   function Base.OneTo(x::RealInfinity)
-      signbit(x) || return oneto(∞)
-      throw(ArgumentError("Cannot create infinite range with negative length"))
-   end
-   Base.OneTo{T}(::Infinity) where T<:Integer = OneToInf{T}()
-   Base.UnitRange(start::Integer, ::Infinity) = InfUnitRange(start)
-   Base.UnitRange{T}(start::Integer, ::Infinity) where T<:Real = InfUnitRange{T}(start)
-   Base.OneTo{T}(::InfiniteCardinal{0}) where T<:Integer = OneToInf{T}()
-   Base.UnitRange(start::Integer, ::InfiniteCardinal{0}) = InfUnitRange(start)
-   Base.UnitRange{T}(start::Integer, ::InfiniteCardinal{0}) where T<:Real = InfUnitRange{T}(start)
-   Base.OneTo(a::OneToInf) = a
-   Base.OneTo{T}(::OneToInf) where T<:Integer = OneToInf{T}()
-
-   Base.Int(::Infinity) = ℵ₀
-   Base.Int(::InfiniteCardinal{0}) = ℵ₀
-
-   unitrange(a, b) = UnitRange(a, b)
-   oneto(n) = Base.OneTo(n)
-end
 
 ##
 # Fill FillArrays
@@ -141,13 +108,8 @@ vcat(a::AbstractVector, b::AbstractVector, c::AbstractVector, d::AbstractFill{<:
 vcat(a::AbstractMatrix, b::AbstractFill{<:Any,2,<:Tuple{OneToInf,OneTo}}) = Vcat(a, b)
 
 cat_similar(A, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
-if VERSION < v"1.6-"
-   cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{PosInfinity}) where T =
-      Base.invoke(cat_similar, Tuple{AbstractArray, Any, Any}, A, T, shape)
-else
-   cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{PosInfinity}) where T =
-      Base.invoke(cat_similar, Tuple{AbstractArray, Type{T}, Any}, A, T, shape)
-end
+cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
+cat_similar(A::Array, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
 function Base.__cat(A, shape::NTuple{N,PosInfinity}, catdims, X...) where N
    offsets = zeros(Union{Int,InfiniteCardinal{0}}, N)
    inds = Vector{Union{UnitRange{Int},InfUnitRange{Int}}}(undef, N)

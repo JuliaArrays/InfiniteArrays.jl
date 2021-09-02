@@ -516,7 +516,9 @@ end
     @test D[:,5][1:10] == D[1:10,5]
     @test D[5,:][1:10] == D[5,1:10]
 
-    @test_broken D^2 isa Diagonal
+    if VERSION ≥ v"1.7-"
+        @test D^2 isa Diagonal
+    end
     @test D*D isa Diagonal
     @test MemoryLayout(typeof(D.diag)) == LazyLayout()
     @test MemoryLayout(typeof(D)) == DiagonalLayout{LazyLayout}()
@@ -660,19 +662,16 @@ end
 
         @test [[1; zeros(∞)] D[:,1:5]][1:10,:] == [[1; zeros(9)] D[1:10,1:5]]
         @test [[1; zeros(∞)] BandedMatrix(D[:,1:5])][1:10,:] == [[1; zeros(9)] D[1:10,1:5]]
+
+        @test cat([1,2,3],zeros(∞); dims=1) == cat(1:3,zeros(∞); dims=1) == [[1,2,3]; zeros(∞)]
     end
 
     @testset "sparse print" begin
         A = Vcat(1, Zeros(∞))
         @test colsupport(A,1) == 1:1
         @test Base.replace_in_print_matrix(A, 2, 1, "0") == "⋅"
-        if VERSION < v"1.6-"
-			@test stringmime("text/plain", A; context=(:limit => true)) ==
-					"vcat($Int, ℵ₀-element Zeros{Float64,1,Tuple{OneToInf{$Int}}} with indices OneToInf()) with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
-		else
-			@test stringmime("text/plain", A; context=(:limit => true)) ==
-					"vcat($Int, ℵ₀-element Zeros{Float64, 1, Tuple{OneToInf{$Int}}} with indices OneToInf()) with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
-		end
+        @test stringmime("text/plain", A; context=(:limit => true)) ==
+                "vcat($Int, ℵ₀-element Zeros{Float64, 1, Tuple{OneToInf{$Int}}} with indices OneToInf()) with indices OneToInf():\n 1.0\n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n  ⋅ \n ⋮"
         A = Vcat(Ones{Int}(1,∞), Diagonal(1:∞))
         @test Base.replace_in_print_matrix(A, 2, 2, "0") == "⋅"
     end
@@ -882,7 +881,6 @@ end
     @test size(AB) == (3,ℵ₀)
     @test (AB)[1:3,1:10] == Fill(1,3,10)*Diagonal(1:10)
 
-    @test A*B*C isa ApplyArray
     @test size(A*B*C) == (3,)
     @test (A*B*C)[1] == 14
     @test A*B*C == fill(14,3)
