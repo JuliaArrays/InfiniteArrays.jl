@@ -112,6 +112,14 @@ print_matrix_vdots(io::IO, vdots::AbstractString,
 Base.mapreduce_impl(f, op, A::AbstractArray, ifirst::Integer, ::PosInfinity) =
     throw(ArgumentError("Cannot call mapreduce on an infinite length $(typeof(A))"))
 
+# fix error in show
+Base.isassigned(A::AbstractArray, i::RealInfinity) = i == ∞ ? isassigned(A, ℵ₀) : false
+Base.getindex(A::AbstractArray, i::RealInfinity) = A[convert(Integer, i)]
+Base.getindex(A::AbstractCachedVector, i::RealInfinity) = A[convert(Integer, i)]
+
+# work around due to RealInfinity appearing from UnitStepRange
+show_delim_array(io::IO, itr::AbstractArray, op, delim, cl, delim_one, i1, inf::RealInfinity) = 
+    show_delim_array(io, itr, op, delim, cl, delim_one, i1, convert(Integer, inf))
 function show_delim_array(io::IO, itr::AbstractArray, op, delim, cl,
                           delim_one, i1, ::PosInfinity)
     print(io, op)
@@ -352,6 +360,9 @@ sub_materialize(::PaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T 
 Base._unsafe_getindex(::IndexStyle, A::AbstractVector, r::InfAxes) = layout_getindex(A, r)
 Base._unsafe_getindex(::IndexStyle, A::AbstractFill{<:Any,1}, r::InfAxes) = FillArrays._fill_getindex(A, r)
 getindex(A::AbstractCachedVector, r::InfAxes) = layout_getindex(A, r)
+# don't resize to ∞
+getindex(A::AbstractCachedVector, r::InfiniteCardinal{0}) = A.array[r]
+
 
 
 Base._unsafe_getindex(::IndexStyle, A::AbstractMatrix, kr::InfAxes, jr::InfAxes) = layout_getindex(A, kr, jr)
