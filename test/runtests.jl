@@ -616,7 +616,7 @@ end
             Vcat(1,Zeros{Int}(∞)) .+ Vcat(3,Zeros{Int}(∞)) ≡
             Vcat(4,Zeros{Int}(∞))
 
-            size(Vcat(1:∞)) ≡ (ℵ₀,)
+        @test size(Vcat(1:∞)) ≡ (ℵ₀,)
     end
 
     @testset "Vcat infrange getindex" begin
