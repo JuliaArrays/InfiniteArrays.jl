@@ -31,6 +31,8 @@ _rangestyle(::Ordered, ::ArithmeticWraps, a::T, step::S, len::InfiniteCardinal{0
     InfStepRange{T,S}(a, step)
 _rangestyle(::Ordered, ::ArithmeticUnknown, a::T, step::S, len::InfiniteCardinal{0}) where {T,S} =
     InfStepRange{T,S}(a, step)
+_rangestyle(::Any, ::Any, a::T, step::S, len::InfiniteCardinal{0}) where {T,S} =
+    InfStepRange{T,S}(a, step)
 _range(a::T, st::T, ::Nothing, ::InfiniteCardinal{0}) where T<:Union{Float16,Float32,Float64} =
     InfStepRange{T,T}(a, st)
 _range(a::T, st::T, ::Nothing, ::InfiniteCardinal{0}) where T<:AbstractFloat =
