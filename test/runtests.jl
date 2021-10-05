@@ -1030,3 +1030,14 @@ Base.getindex(::MyInfMatrix, k::Int, j::Int) = k+j
     @test MyInfMatrix()[2:11,3:∞][1:10,1:10] == MyInfMatrix()[2:11,3:12]
     @test MyInfMatrix()[2:∞,3:12][1:10,1:10] == MyInfMatrix()[2:11,3:12]
 end
+
+struct MyReal <: Real
+    x::Float64
+end
+
+Base.ArithmeticStyle(::Type{MyReal}) = Base.ArithmeticRounds()
+
+@testset "non-float _range with ArithmeticRounds" begin
+    # this missing overloaded was triggered by ForwardDiff.Dual
+    @test range(MyReal(0.1); step=MyReal(0.2), length=ℵ₀) isa InfStepRange
+end
