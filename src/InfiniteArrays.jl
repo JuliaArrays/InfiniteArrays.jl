@@ -17,7 +17,7 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isl
             AbstractMatrix, AbstractArray, checkindex, unsafe_length, unsafe_indices, OneTo,
             to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots,
             checkindex, Slice, IdentityUnitRange, @propagate_inbounds, @_propagate_inbounds_meta,
-         	_in_range, _range, range_start_step_length, Ordered,
+         	_in_range, _range, Ordered,
          	ArithmeticWraps, ArithmeticUnknown, floatrange, reverse, unitrange_last,
          	AbstractArray, AbstractVector, Array, Vector, Matrix,
          	axes, (:), _sub2ind_recurse, promote_eltypeof,
@@ -28,6 +28,11 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isl
             searchsorted, searchsortedfirst, searchsortedlast, Ordering, lt, Fix2, findfirst,
             cat_indices, cat_size, cat_similar, __cat, _ind2sub_recurse, union, intersect, IEEEFloat
 
+if VERSION < v"1.8-"
+   import Base: _rangestyle
+else
+   import Base: range_start_step_length
+end
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
                         @nexprs, @ncall, combine_eltypes, DefaultArrayStyle, instantiate, axistype
