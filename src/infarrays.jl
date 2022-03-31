@@ -83,7 +83,7 @@ fill(x, nm::Tuple{PosInfinity, PosInfinity}) = cache(Fill(x,nm...))
 # This gets called when infinit number of columns
 axes_print_matrix_row(_, io, X, A, i, ::AbstractVector{<:PosInfinity}, sep) = nothing
 print_matrix_row(io::IO, X::AbstractVecOrMat, A::Vector, i::Integer, cols::AbstractVector{<:PosInfinity}, sep::AbstractString, idxlast::Integer=last(axes(X, 2))) = nothing
-print_matrix_row(io::IO, X::AbstractVecOrMat, A::Vector, i::Integer, cols::AbstractVector, sep::AbstractString, idxlast::Infinity) = print_matrix_row(io, X, A, i, cols, sep, ℵ₀)
+print_matrix_row(io::IO, X::AbstractVecOrMat, A::Vector, i::Integer, cols::AbstractVector, sep::AbstractString, idxlast::Union{RealInfinity,Infinity}) = print_matrix_row(io, X, A, i, cols, sep, ℵ₀)
 print_matrix_row(io::IO,
         X::Union{LayoutMatrix,
         LayoutVector,
