@@ -86,13 +86,13 @@ normp(a::Zeros{T,N,NTuple{N,OneToInf{Int}}}, p) where {T,N} = norm(getindex_valu
 
 for N=1:3
    for op in (:norm2, :norm1)
-      @eval function $op(a::AbstractFill{T,$N,NTuple{$N,OneToInf{Int}}}) where {T,N}
+      @eval function $op(a::AbstractFill{T,$N,NTuple{$N,OneToInf{Int}}}) where T
          z = norm(getindex_value(a))
          iszero(z) && return z
          typeof(z)(Inf)
       end
    end
-   @eval function normp(a::AbstractFill{T,$N,NTuple{$N,OneToInf{Int}}}, p) where {T,N }
+   @eval function normp(a::AbstractFill{T,$N,NTuple{$N,OneToInf{Int}}}, p) where T
       z = norm(getindex_value(a))
       iszero(z) && return z
       typeof(z)(Inf)

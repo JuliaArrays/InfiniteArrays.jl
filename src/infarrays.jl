@@ -1,9 +1,9 @@
 Array{T}(::UndefInitializer, ::Tuple{PosInfinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
-Array{T}(::UndefInitializer, ::Tuple{Integer, PosInfinity}) where {T,N} = throw(ArgumentError("Cannot create infinite Array"))
-Array{T}(::UndefInitializer, ::Tuple{PosInfinity, Integer}) where {T,N} = throw(ArgumentError("Cannot create infinite Array"))
+Array{T}(::UndefInitializer, ::Tuple{Integer, PosInfinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
+Array{T}(::UndefInitializer, ::Tuple{PosInfinity, Integer}) where T = throw(ArgumentError("Cannot create infinite Array"))
 Matrix{T}(::UndefInitializer, ::Tuple{Integer, PosInfinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
 Matrix{T}(::UndefInitializer, ::Tuple{PosInfinity, Integer}) where T = throw(ArgumentError("Cannot create infinite Array"))
-Array{T}(::UndefInitializer, ::Tuple{PosInfinity, PosInfinity}) where {T,N} = throw(ArgumentError("Cannot create infinite Array"))
+Array{T}(::UndefInitializer, ::Tuple{PosInfinity, PosInfinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
 Matrix{T}(::UndefInitializer, ::Tuple{PosInfinity, PosInfinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
 
 Array{T}(::UndefInitializer, ::PosInfinity) where T = throw(ArgumentError("Cannot create infinite Array"))
