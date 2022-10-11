@@ -65,6 +65,16 @@ include("reshapedarray.jl")
 # Fill FillArrays
 ##
 
+length(::Ones{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ℵ₀
+length(::Ones{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ℵ₀
+length(::Ones{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ℵ₀
+length(::Fill{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ℵ₀
+length(::Fill{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ℵ₀
+length(::Fill{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ℵ₀
+length(::Zeros{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ℵ₀
+length(::Zeros{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ℵ₀
+length(::Zeros{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ℵ₀
+
 for op in (:norm2, :norm1)
    @eval $op(a::Zeros{T,N,NTuple{N,OneToInf{Int}}}) where {T,N} = norm(getindex_value(a))
 end
