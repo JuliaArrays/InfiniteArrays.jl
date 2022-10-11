@@ -4,6 +4,10 @@ import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyAr
 import BandedMatrices: _BandedMatrix, BandedColumns
 import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
+using Aqua
+@testset "Project quality" begin
+    Aqua.test_all(InfiniteArrays, ambiguities=false)
+end
 
 @testset "construction" begin
     @testset "Array constructor errors" begin
