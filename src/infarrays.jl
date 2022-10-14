@@ -119,7 +119,7 @@ Base.getindex(A::AbstractArray, i::RealInfinity) = A[convert(Integer, i)]
 Base.getindex(A::AbstractCachedVector, i::RealInfinity) = A[convert(Integer, i)]
 
 # work around due to RealInfinity appearing from UnitStepRange
-show_delim_array(io::IO, itr::AbstractArray, op, delim, cl, delim_one, i1, inf::RealInfinity) = 
+show_delim_array(io::IO, itr::AbstractArray, op, delim, cl, delim_one, i1, inf::RealInfinity) =
     show_delim_array(io, itr, op, delim, cl, delim_one, i1, convert(Integer, inf))
 function show_delim_array(io::IO, itr::AbstractArray, op, delim, cl,
                           delim_one, i1, ::PosInfinity)
@@ -255,15 +255,15 @@ sub_materialize(::AbstractBandedLayout, V, ::Tuple{InfAxes,OneTo{Int}}) = V
 # banded columns are padded
 ##
 
-sublayout(::DiagonalLayout{L}, ::Type{<:Tuple{KR,Integer}}) where {L,KR<:InfAxes} = 
+sublayout(::DiagonalLayout{L}, ::Type{<:Tuple{KR,Integer}}) where {L,KR<:InfAxes} =
     sublayout(PaddedLayout{UnknownLayout}(), Tuple{KR})
-sublayout(::DiagonalLayout{L}, ::Type{<:Tuple{Integer,JR}}) where {L,JR<:InfAxes} = 
+sublayout(::DiagonalLayout{L}, ::Type{<:Tuple{Integer,JR}}) where {L,JR<:InfAxes} =
     sublayout(PaddedLayout{UnknownLayout}(), Tuple{JR})
 -
 
-sublayout(::AbstractBandedLayout, ::Type{<:Tuple{KR,Integer}}) where {KR<:InfAxes} = 
+sublayout(::AbstractBandedLayout, ::Type{<:Tuple{KR,Integer}}) where {KR<:InfAxes} =
     sublayout(PaddedLayout{UnknownLayout}(), Tuple{KR})
-sublayout(::AbstractBandedLayout, ::Type{<:Tuple{Integer,JR}}) where {JR<:InfAxes} = 
+sublayout(::AbstractBandedLayout, ::Type{<:Tuple{Integer,JR}}) where {JR<:InfAxes} =
     sublayout(PaddedLayout{UnknownLayout}(), Tuple{JR})
 
 
@@ -289,16 +289,16 @@ function getindex(f::Vcat{T,1}, k::PosInfinity) where T
     ∞
 end
 
-_gettail(k, a::Number, b...) = k ≤ 1 ? tuple(a, b...) : _gettail(k - length(a), b...)
-_gettail(k, a, b...) = k ≤ length(a) ? tuple(a[k:end], b...) : _gettail(k - length(a), b...)
+_gettail(k, a::Number, b...) = k ≤ 1 ? tuple(a, b...) : _gettail(k - length(a), b...)
+_gettail(k, a, b...) = k ≤ length(a) ? tuple(a[k:end], b...) : _gettail(k - length(a), b...)
 _vcat(a) = a
 _vcat(a, b, c...) = Vcat(a, b, c...)
 getindex(A::Vcat, r::InfUnitRange) = Base.invoke(getindex, Tuple{AbstractArray, Any}, A, r)
 _unsafe_getindex(::IndexLinear, A::Vcat, r::InfUnitRange) = _vcat(_gettail(first(r), A.args...)...)
 
 # some common cases not catched by LayoutArrays + ambiguities
-for InfColMatrix in (:(SubArray{<:Any,2,<:Any,<:Tuple{Any,InfIndexRanges}}), 
-                     :(SubArray{<:Any,2,<:LayoutVecOrMat,<:Tuple{Any,InfIndexRanges}}), 
+for InfColMatrix in (:(SubArray{<:Any,2,<:Any,<:Tuple{Any,InfIndexRanges}}),
+                     :(SubArray{<:Any,2,<:LayoutVecOrMat,<:Tuple{Any,InfIndexRanges}}),
                      :(AbstractFill{<:Any,2,Tuple{OneTo{Int},OneToInf{Int}}}))
     @eval begin
         Base.typed_vcat(::Type{T}, A::$InfColMatrix, B::AbstractVecOrMat...) where T = Vcat{T}(A, B...)
@@ -309,8 +309,8 @@ for InfColMatrix in (:(SubArray{<:Any,2,<:Any,<:Tuple{Any,InfIndexRanges}}),
 end
 
 for InfRowArray in (:(AbstractFill{<:Any,1,Tuple{OneToInf{Int}}}),
-                    :(AbstractFill{<:Any,2,Tuple{OneToInf{Int},OneTo{Int}}}), 
-                    :(SubArray{<:Any,2,<:Any,<:Tuple{InfIndexRanges,Any}}), 
+                    :(AbstractFill{<:Any,2,Tuple{OneToInf{Int},OneTo{Int}}}),
+                    :(SubArray{<:Any,2,<:Any,<:Tuple{InfIndexRanges,Any}}),
                     :(SubArray{<:Any,2,<:LayoutVecOrMat,<:Tuple{InfIndexRanges,Any}}),
                     :(SubArray{<:Any,1,<:Any,<:Tuple{Any,InfIndexRanges}}),
                     :(SubArray{<:Any,1,<:LayoutMatrix,<:Tuple{Any,InfIndexRanges}}),
@@ -356,7 +356,7 @@ sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{InfAxes,
 
 sub_materialize(::PaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T =
     _padded_sub_materialize(v)
-    
+
 
 Base._unsafe_getindex(::IndexStyle, A::AbstractVector, r::InfAxes) = layout_getindex(A, r)
 Base._unsafe_getindex(::IndexStyle, A::AbstractFill{<:Any,1}, r::InfAxes) = FillArrays._fill_getindex(A, r)

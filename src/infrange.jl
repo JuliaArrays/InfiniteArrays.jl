@@ -97,7 +97,7 @@ AbstractMatrix{T}(ac::Transpose{<:Any,<:InfRanges}) where T<:Real = transpose(Ab
 copy(ac::AdjOrTrans{<:Any,<:InfRanges}) = ac
 reverse(a::InfRanges) = throw(ArgumentError("Cannot reverse infinite range"))
 
-if VERSION ≥ v"1.7-"
+if VERSION ≥ v"1.7-"
     Base.range_start_step_length(a::T, st::T, len::PosInfinity) where T<:Union{Float16,Float32,Float64} = InfStepRange(a, st)
     for op in (:+, :-)
         @eval $op(a::InfRanges, b::InfRanges) = InfStepRange($op(first(a),first(b)), $op(step(a),step(b)))
@@ -328,7 +328,7 @@ intersect(r::StepRange{<:Integer}, s::AbstractInfUnitRange{<:Integer}) =
 
 
 function intersect(r::InfStepRange, s::InfStepRange)
-    sign(step(r)) == sign(step(s)) || throw(ArgumentError("Can only take intersection of infinite ranges"))
+    sign(step(r)) == sign(step(s)) || throw(ArgumentError("Can only take intersection of infinite ranges"))
     start1 = first(r)
     step1 = step(r)
     start2 = first(s)
