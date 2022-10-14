@@ -426,7 +426,7 @@ end
     @testset "maximum/minimum" begin
         @test maximum(2:∞) ≡ ℵ₀
         @test minimum(2:∞) ≡ 2
-    end 
+    end
 
     @testset "getindex[∞]" begin
         @test_throws BoundsError (2:6)[∞]
@@ -521,7 +521,7 @@ end
     @test D[:,5][1:10] == D[1:10,5]
     @test D[5,:][1:10] == D[5,1:10]
 
-    if VERSION ≥ v"1.7-"
+    if VERSION ≥ v"1.7-"
         @test D^2 isa Diagonal
     end
     @test D*D isa Diagonal
