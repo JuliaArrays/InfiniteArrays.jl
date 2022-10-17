@@ -198,6 +198,7 @@ function getindex(v::OneToInf{T}, i::Integer) where T
 end
 function getindex(v::InfStepRange{T}, i::Integer) where T
     @boundscheck i > 0 || Base.throw_boundserror(v, i)
+    i == 1 && return convert(T, first(v))
     convert(T, first(v) + (i - 1)*step(v))
 end
 
