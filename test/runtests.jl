@@ -147,6 +147,9 @@ end
 
         @test (1:∞)[Base.Slice(1:∞)] ≡ 1:∞
         @test Base.Slice(1:∞)[2:∞] ≡ 2:∞
+
+        v = InfiniteArrays.InfStepRange(InfiniteCardinal{0}(), InfiniteCardinal{0}())
+        @test v[1] == v[2] == InfiniteCardinal{0}()
     end
     @testset "length" begin
         @test length(.1:.1:∞) == ℵ₀
