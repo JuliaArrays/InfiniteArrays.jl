@@ -65,9 +65,6 @@ include("reshapedarray.jl")
 # Fill FillArrays
 ##
 
-length(::Ones{<:Any,1,Tuple{OneToInf{Int}}}) = ℵ₀
-length(::Fill{<:Any,1,Tuple{OneToInf{Int}}}) = ℵ₀
-length(::Zeros{<:Any,1,Tuple{OneToInf{Int}}}) = ℵ₀
 length(::Ones{<:Any,2,Tuple{OneToInf{Int},OneToInf{Int}}}) = ℵ₀
 length(::Ones{<:Any,2,<:Tuple{OneToInf{Int},<:Any}}) = ℵ₀
 length(::Ones{<:Any,2,<:Tuple{<:Any,OneToInf{Int}}}) = ℵ₀
