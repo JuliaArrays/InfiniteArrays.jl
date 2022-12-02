@@ -47,7 +47,7 @@ import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal, Fil
 import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
                     ZerosLayout, AbstractCachedVector, CachedArray, CachedVector, ApplyLayout, LazyMatrix,
                     reshapedlayout, sub_materialize, sublayout, LayoutMatrix, LayoutVector, _padded_sub_materialize, PaddedLayout,
-                    AbstractCachedMatrix, sub_paddeddata
+                    AbstractCachedMatrix, sub_paddeddata, InvColumnLayout
 
 import ArrayLayouts: RangeCumsum, LayoutVecOrMat, LayoutVecOrMats
 import Infinities: ∞, Infinity, InfiniteCardinal

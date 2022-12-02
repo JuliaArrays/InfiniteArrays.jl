@@ -1,6 +1,6 @@
 name = "InfiniteArrays"
 uuid = "4858937d-0d70-526a-a4dd-2d5cb5dd786c"
-version = "0.12.8"
+version = "0.12.7"
 
 [deps]
 ArrayLayouts = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
@@ -12,10 +12,10 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 Aqua = "0.5"
-ArrayLayouts = "0.7.5, 0.8"
-FillArrays = "0.12.3, 0.13"
+ArrayLayouts = "0.8"
+FillArrays = "0.13"
 Infinities = "0.1.1"
-LazyArrays = "0.21.1, 0.22"
+LazyArrays = "0.22.13"
 julia = "1.6"
 
 [extras]

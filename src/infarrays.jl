@@ -357,6 +357,9 @@ sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{InfAxes,
 sub_materialize(::PaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T =
     _padded_sub_materialize(v)
 
+sub_materialize(lay::InvColumnLayout, v::AbstractVector, ax::Tuple{InfAxes}) =
+    Base.invoke(sub_materialize, Tuple{InvColumnLayout, AbstractVector, Any}, lay, v, ax)
+
 
 Base._unsafe_getindex(::IndexStyle, A::AbstractVector, r::InfAxes) = layout_getindex(A, r)
 Base._unsafe_getindex(::IndexStyle, A::AbstractFill{<:Any,1}, r::InfAxes) = FillArrays._fill_getindex(A, r)

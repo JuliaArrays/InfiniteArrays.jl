@@ -1048,3 +1048,8 @@ Base.ArithmeticStyle(::Type{MyReal}) = Base.ArithmeticRounds()
     # this missing overloaded was triggered by ForwardDiff.Dual
     @test range(MyReal(0.1); step=MyReal(0.2), length=ℵ₀) isa InfStepRange
 end
+
+@testset "UpperTriangular Inverse" begin
+    A = UpperTriangular(Ones(∞,∞))
+    @test ApplyArray(inv,A)[1:10,1:10] ≈ diagm(0 => ones(10), 1 => -ones(9))
+end
