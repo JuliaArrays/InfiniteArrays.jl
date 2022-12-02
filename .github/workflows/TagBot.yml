@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       lookback:
-        default: 3
+        default: 10
 permissions:
   contents: write
 jobs:
