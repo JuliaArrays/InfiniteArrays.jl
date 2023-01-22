@@ -66,7 +66,11 @@ end
 InfStepRange(start::T, step::S) where {T,S} = InfStepRange{T,S}(start,step)
 InfStepRange{T,S}(start, step) where {T,S} = InfStepRange{T,S}(convert(T,start),convert(S,step))
 
+Base.IteratorSize(::Type{<:InfStepRange}) = Base.IsInfinite()
+
 abstract type AbstractInfUnitRange{T<:Real} <: AbstractUnitRange{T} end
+
+Base.IteratorSize(::Type{<:AbstractInfUnitRange}) = Base.IsInfinite()
 
 done(r::AbstractInfUnitRange{T}, i) where {T} = false
 unitrange_last(start, stop::PosInfinity) = ∞
