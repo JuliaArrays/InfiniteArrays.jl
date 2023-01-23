@@ -75,6 +75,7 @@ struct InfUnitRange{T<:Real} <: AbstractInfUnitRange{T}
     start::T
 end
 
+
 InfUnitRange(a::InfUnitRange) = a
 InfUnitRange{T}(a::AbstractInfUnitRange) where T<:Real = InfUnitRange{T}(first(a))
 InfUnitRange(a::AbstractInfUnitRange{T}) where T<:Real = InfUnitRange{T}(first(a))
