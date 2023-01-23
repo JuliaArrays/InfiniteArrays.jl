@@ -66,11 +66,7 @@ end
 InfStepRange(start::T, step::S) where {T,S} = InfStepRange{T,S}(start,step)
 InfStepRange{T,S}(start, step) where {T,S} = InfStepRange{T,S}(convert(T,start),convert(S,step))
 
-Base.IteratorSize(::Type{<:InfStepRange}) = Base.IsInfinite()
-
 abstract type AbstractInfUnitRange{T<:Real} <: AbstractUnitRange{T} end
-
-Base.IteratorSize(::Type{<:AbstractInfUnitRange}) = Base.IsInfinite()
 
 done(r::AbstractInfUnitRange{T}, i) where {T} = false
 unitrange_last(start, stop::PosInfinity) = ∞
@@ -78,7 +74,6 @@ unitrange_last(start, stop::PosInfinity) = ∞
 struct InfUnitRange{T<:Real} <: AbstractInfUnitRange{T}
     start::T
 end
-
 
 InfUnitRange(a::InfUnitRange) = a
 InfUnitRange{T}(a::AbstractInfUnitRange) where T<:Real = InfUnitRange{T}(first(a))
@@ -92,6 +87,8 @@ AbstractVector{T}(a::InfStepRange) where T<:Real = InfStepRange(convert(T,a.star
 
 const InfRanges{T} = Union{InfStepRange{T},AbstractInfUnitRange{T}}
 const InfAxes = Union{InfRanges{<:Integer},Slice{<:AbstractInfUnitRange{<:Integer}},IdentityUnitRange{<:AbstractInfUnitRange{<:Integer}}}
+
+Base.IteratorSize(::Type{<:InfAxes}) = Base.IsInfinite()
 
 AbstractArray{T}(ac::Adjoint{<:Any,<:InfRanges}) where T<:Real = AbstractArray{T}(parent(ac))'
 AbstractMatrix{T}(ac::Adjoint{<:Any,<:InfRanges}) where T<:Real = AbstractVector{T}(parent(ac))'
