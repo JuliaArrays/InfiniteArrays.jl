@@ -89,7 +89,7 @@ AbstractVector{T}(a::InfStepRange) where T<:Real = InfStepRange(convert(T,a.star
 const InfRanges{T} = Union{InfStepRange{T},AbstractInfUnitRange{T}}
 const InfAxes = Union{InfRanges{<:Integer},Slice{<:AbstractInfUnitRange{<:Integer}},IdentityUnitRange{<:AbstractInfUnitRange{<:Integer}}}
 
-Base.IteratorSize(::Type{<:InfAxes}) = Base.IsInfinite()
+Base.IteratorSize(::Type{<:InfRanges}) = Base.IsInfinite()
 
 AbstractArray{T}(ac::Adjoint{<:Any,<:InfRanges}) where T<:Real = AbstractArray{T}(parent(ac))'
 AbstractMatrix{T}(ac::Adjoint{<:Any,<:InfRanges}) where T<:Real = AbstractVector{T}(parent(ac))'
