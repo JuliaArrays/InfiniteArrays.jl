@@ -620,6 +620,8 @@ end
         A = Hcat(1, (1:∞)')
         @test A[1,:] isa Vcat{<:Any,1}
         @test A[1,:][1:10] == A[1,1:10]
+        
+        @test vcat(1,Fill(1.0,∞))==Fill(1.0,∞)
     end
 
     # This should be generalized, but it at the moment
