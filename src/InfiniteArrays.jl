@@ -98,7 +98,7 @@ end
 
 for Typ in (:Number, :AbstractVector)
    @eval begin
-      vcat(a::$Typ, b::AbstractFill{<:Any,1,<:Tuple{OneToInf}}) = Vcat(a, b)
+      vcat(a::$Typ, b::AbstractFill{<:Any,1,<:Tuple{OneToInf}}) = a==b[1] ? b : Vcat(a, b)
       vcat(a::$Typ, c::CachedVector{<:Any,<:Any,<:AbstractFill{<:Any,1,<:Tuple{OneToInf}}}) =
          CachedArray(vcat(a, view(c.data,1:c.datasize[1])), c.array)
    end
