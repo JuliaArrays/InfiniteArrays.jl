@@ -160,6 +160,14 @@ end
         @test length(1.:.2:∞) == ℵ₀
         @test length(2:-.2:-∞) == ℵ₀
         @test length(2.:-.2:-∞) == ℵ₀
+
+        @testset "IteratorSize" begin
+            @test Base.IteratorSize(1:2:∞) == Base.IsInfinite()
+            @test Base.IteratorSize(1:∞) == Base.IsInfinite()
+            s = Iterators.Stateful(2:∞)
+            @test first(s) == 2
+            @test first(s) == 3
+        end
     end
 
     @testset "intersect" begin
@@ -224,10 +232,10 @@ end
         @test Complex(1, 0) in 1.0:∞
         @test Complex(1.0, 0.0) in 1:∞
         @test Complex(1.0, 0.0) in 1.0:∞
-        @test_skip !(Complex(1, 1) in 1:∞)  # this is an infinite-loop at the moment
-        @test_skip !(Complex(1, 1) in 1.0:∞)
-        @test_skip !(Complex(1.0, 1.0) in 1:∞)
-        @test_skip !(Complex(1.0, 1.0) in 1.0:∞)
+        @test !(Complex(1, 1) in 1:∞)
+        @test !(Complex(1, 1) in 1.0:∞)
+        @test !(Complex(1.0, 1.0) in 1:∞)
+        @test !(Complex(1.0, 1.0) in 1.0:∞)
         @test !(π in 1:∞)
     end
 
