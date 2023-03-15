@@ -520,6 +520,12 @@ end
         @test sum([1; zeros(∞)]) ≡ 1.0
         @test sum([1; ones(∞)]) ≡ 1.0∞
     end
+
+    @testset "fill algebra" begin
+        @test zeros(∞) + (1:∞) ≡ 1.0:∞
+        @test ones(∞) + (1:∞) ≡ 2.0:∞
+        @test zeros(∞) - (1:∞) ≡ -1.0:-1.0:-∞
+    end
 end
 
 @testset "diagonal" begin
@@ -1002,19 +1008,23 @@ end
     @test convert(AbstractArray{Float64}, 1:∞) ≡ convert(AbstractArray{Float64}, oneto(∞)) ≡
         convert(AbstractVector{Float64}, 1:∞) ≡ convert(AbstractVector{Float64}, oneto(∞)) ≡
         AbstractVector{Float64}(1:∞) ≡ AbstractVector{Float64}(oneto(∞)) ≡
-        AbstractArray{Float64}(1:∞) ≡ AbstractArray{Float64}(oneto(∞)) ≡ InfUnitRange(1.0)
+        AbstractArray{Float64}(1:∞) ≡ AbstractArray{Float64}(oneto(∞)) ≡
+        float(1:∞) ≡ float(oneto(∞)) ≡
+        1.0:∞
 
     @test convert(AbstractArray{Float64}, (1:∞)') ≡ convert(AbstractArray{Float64}, oneto(∞)') ≡
         convert(AbstractMatrix{Float64}, (1:∞)') ≡ convert(AbstractMatrix{Float64}, oneto(∞)') ≡
         AbstractMatrix{Float64}((1:∞)') ≡ AbstractMatrix{Float64}(oneto(∞)') ≡
         AbstractArray{Float64}((1:∞)') ≡ AbstractArray{Float64}(oneto(∞)') ≡
-        InfUnitRange(1.0)'
+        float((1:∞)') ≡ float(oneto(∞)') ≡
+        (1.0:∞)'
 
     @test convert(AbstractArray{Float64}, transpose(1:∞)) ≡ convert(AbstractArray{Float64}, transpose(oneto(∞))) ≡
         convert(AbstractMatrix{Float64}, transpose(1:∞)) ≡ convert(AbstractMatrix{Float64}, transpose(oneto(∞))) ≡
         AbstractMatrix{Float64}(transpose(1:∞)) ≡ AbstractMatrix{Float64}(transpose(oneto(∞))) ≡
         AbstractArray{Float64}(transpose(1:∞)) ≡ AbstractArray{Float64}(transpose(oneto(∞))) ≡
-        transpose(InfUnitRange(1.0))
+        float(transpose(1:∞)) ≡ float(transpose(oneto(∞))) ≡
+        transpose(1.0:∞)
 end
 
 @testset "cached indexing" begin

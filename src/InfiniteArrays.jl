@@ -43,7 +43,7 @@ import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymm
 
 import Statistics: mean, median
 
-import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal, Fill, Ones, Zeros, Eye
+import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal, Fill, Ones, Zeros, Eye, elconvert
 import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
                     ZerosLayout, AbstractCachedVector, CachedArray, CachedVector, ApplyLayout, LazyMatrix,
                     reshapedlayout, sub_materialize, sublayout, LayoutMatrix, LayoutVector, _padded_sub_materialize, PaddedLayout,
