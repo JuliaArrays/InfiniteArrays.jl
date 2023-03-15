@@ -183,7 +183,45 @@ function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Ones{T,1,
     convert(AbstractArray{promote_type(T,V),N}, b)
 end
 
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Ones{T,2,Tuple{OneToInf{Int},OneTo{Int}}},AbstractArray{V,N}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(b)
+    convert(AbstractArray{promote_type(T,V),N}, b)
+end
+
+function _onesbroadcast_ifinf(::NTuple{2,OneToInf{Int}}, bc)
+    a,b = bc.args
+    convert(AbstractArray{promote_type(eltype(a),eltype(b))}, b)
+end
+_onesbroadcast_ifinf(_, bc) = BroadcastArray(bc)
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Ones{T,2,NTuple{2,OneToInf{Int}}},AbstractArray{V,N}}}) where {N,T,V}
+    a,b = bc.args
+    _onesbroadcast_ifinf(axes(b), bc)
+end
+
+
+
+copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Ones{T,1,Tuple{OneToInf{Int}}},AbstractArray{V,N},Vararg{Any}}}) where {N,T,V} =
+    broadcast(*, first(bc.args), broadcast(*, tail(bc.args)...))
+copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Ones{T,2,Tuple{OneToInf{Int},OneTo{Int}}},AbstractArray{V,N},Vararg{Any}}}) where {N,T,V} =
+    broadcast(*, first(bc.args), broadcast(*, tail(bc.args)...))
+copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Ones{T,2,NTuple{2,OneToInf{Int}}},AbstractArray{V,N},Vararg{Any}}}) where {N,T,V} =
+    broadcast(*, first(bc.args), broadcast(*, tail(bc.args)...))    
+
 function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},Ones{V,1,Tuple{OneToInf{Int}}}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(a)
+    convert(AbstractArray{promote_type(T,V),N}, a)
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},Ones{V,2,Tuple{OneTo{Int},OneToInf{Int}}}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(a)
+    convert(AbstractArray{promote_type(T,V),N}, a)
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},Ones{V,2,Tuple{OneToInf{Int},OneToInf{Int}}}}}) where {N,T,V}
     a,b = bc.args
     @assert bc.axes == axes(a)
     convert(AbstractArray{promote_type(T,V),N}, a)

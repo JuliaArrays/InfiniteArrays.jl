@@ -1061,3 +1061,12 @@ end
     A = UpperTriangular(Ones(∞,∞))
     @test ApplyArray(inv,A)[1:10,1:10] ≈ diagm(0 => ones(10), 1 => -ones(9))
 end
+
+@testset "3-mul (changed in Julia v1.9)" begin
+    @test *(Eye(∞),Diagonal(1:∞), Eye(∞)) == broadcast(*, Ones(∞), Diagonal(1:∞), Ones(1,∞)) ==
+        broadcast(*, Ones(∞), Diagonal(1:∞), Ones(∞,∞)) == broadcast(*, Ones(∞,1), Diagonal(1:∞), Ones(∞,∞)) ==
+        broadcast(*, Ones(∞,∞), Diagonal(1:∞), Ones(∞,∞)) == Diagonal(1:∞)
+
+    @test_throws DimensionMismatch broadcast(*, Ones(∞,2), Diagonal(1:∞))
+    @test_throws DimensionMismatch broadcast(*, Diagonal(1:∞), Ones(2,∞))
+end
