@@ -522,9 +522,9 @@ end
     end
 
     @testset "fill algebra" begin
-        @test zeros(∞) + (1:∞) ≡ 1.0:∞
-        @test ones(∞) + (1:∞) ≡ 2.0:∞
-        @test zeros(∞) - (1:∞) ≡ -1.0:-1.0:-∞
+        @test Zeros(∞) + (1:∞) ≡ 1.0:∞
+        @test Ones(∞) + (1:∞) ≡ 2.0:∞
+        @test Zeros(∞) - (1:∞) ≡ -1.0:-1.0:-∞
     end
 end
 
