@@ -404,8 +404,8 @@ end
     @testset "end" begin
         @test oneto(∞)[end] ≡ oneto(∞)[∞] ≡ ℵ₀
         @test (1:∞)[end] ≡ (1:∞)[∞] ≡ ℵ₀
-        @test (1:2:∞)[end] ≡ (1:2:∞)[∞] ≡ ℵ₀
-        @test (1.0:2:∞)[end] ≡ (1.0:2:∞)[∞] ≡ ℵ₀
+        @test (1:2:∞)[end] ≡ (1:2:∞)[∞] ≡ RealInfinity()
+        @test (1.0:2:∞)[end] ≡ (1.0:2:∞)[∞] ≡ RealInfinity()
     end
 
     @testset "union" begin
