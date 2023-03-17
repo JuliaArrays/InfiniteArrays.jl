@@ -406,6 +406,7 @@ end
         @test (1:∞)[end] ≡ (1:∞)[∞] ≡ ℵ₀
         @test (1:2:∞)[end] ≡ (1:2:∞)[∞] ≡ RealInfinity()
         @test (1.0:2:∞)[end] ≡ (1.0:2:∞)[∞] ≡ RealInfinity()
+        @test (-1.0:-2:-∞)[end] ≡ (-1.0:-2:-∞)[∞] ≡ -∞
     end
 
     @testset "union" begin
