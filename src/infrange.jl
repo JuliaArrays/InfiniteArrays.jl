@@ -99,16 +99,15 @@ AbstractMatrix{T}(ac::Transpose{<:Any,<:InfRanges}) where T<:Real = transpose(Ab
 copy(ac::AdjOrTrans{<:Any,<:InfRanges}) = ac
 reverse(a::InfRanges) = throw(ArgumentError("Cannot reverse infinite range"))
 
-if VERSION ≥ v"1.7-"
-    Base.range_start_step_length(a::T, st::T, len::PosInfinity) where T<:Union{Float16,Float32,Float64} = InfStepRange(a, st)
-    for op in (:+, :-)
-        @eval $op(a::InfRanges, b::InfRanges) = InfStepRange($op(first(a),first(b)), $op(step(a),step(b)))
-    end
-    broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::InfRanges) = InfStepRange(x*first(r), x*step(r))
-    broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::InfRanges, x::Number) = InfStepRange(first(r)*x, step(r)*x)
-    broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::AbstractFloat, r::InfRanges) = InfStepRange(x*first(r), x*step(r))
-    broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::InfRanges, x::AbstractFloat) = InfStepRange(first(r)*x, step(r)*x)
+
+Base.range_start_step_length(a::T, st::T, len::PosInfinity) where T<:Union{Float16,Float32,Float64} = InfStepRange(a, st)
+for op in (:+, :-)
+    @eval $op(a::InfRanges, b::InfRanges) = InfStepRange($op(first(a),first(b)), $op(step(a),step(b)))
 end
+broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::InfRanges) = InfStepRange(x*first(r), x*step(r))
+broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::InfRanges, x::Number) = InfStepRange(first(r)*x, step(r)*x)
+broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::AbstractFloat, r::InfRanges) = InfStepRange(x*first(r), x*step(r))
+broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::InfRanges, x::AbstractFloat) = InfStepRange(first(r)*x, step(r)*x)
 
 
 """
@@ -188,11 +187,9 @@ function _ind2sub_recurse(inds::Tuple{OneToInf{Int},Vararg{Any}}, ind::Integer)
     @_inline_meta
     (ind+1, _ind2sub_recurse(tail(inds), 0)...)
 end
-if VERSION ≥ v"1.7"
-	function _ind2sub_recurse(indslast::Tuple{OneToInf{Int}}, ind::Integer)
-		@inline
-		(ind+1,)
-	end
+function _ind2sub_recurse(indslast::Tuple{OneToInf{Int}}, ind::Integer)
+    @inline
+    (ind+1,)
 end
 
 function getindex(v::InfUnitRange{T}, i::Integer) where T
