@@ -1070,3 +1070,9 @@ end
     @test_throws DimensionMismatch broadcast(*, Ones(∞,2), Diagonal(1:∞))
     @test_throws DimensionMismatch broadcast(*, Diagonal(1:∞), Ones(2,∞))
 end
+
+@testset "∞-cached matrix indexing" begin
+    c = zeros(5,∞)
+    c[6] = 2
+    @test c[6] == 2
+end
