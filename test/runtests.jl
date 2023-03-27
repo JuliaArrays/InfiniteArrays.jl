@@ -1071,8 +1071,17 @@ end
     @test_throws DimensionMismatch broadcast(*, Diagonal(1:∞), Ones(2,∞))
 end
 
-c = zeros(5,∞)
-if VERSION ≥ v"1.8"
+@testset "∞-cached matrix indexing" begin
+    c = zeros(5,∞)
 	c[6] = 2
 	@test c[6] == 2
+
+    c = zeros(∞,3)
+	c[6] = 2
+	@test c[6] == 2
+
+    c = zeros(5,3,∞);
+    c[6] = 2
+    @test c[1,2,1] == 2
+    @test_broken c[6] == 2
 end

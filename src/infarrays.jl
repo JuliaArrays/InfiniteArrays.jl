@@ -63,6 +63,7 @@ zeros(sz::Union{Infinity, Integer, AbstractUnitRange}...) = zeros(Base.to_shape(
 zeros(::Type{T}, sz::Union{Infinity, Integer, AbstractUnitRange}...) where T = zeros(T, Base.to_shape(sz)...)
 zeros(::Type{T}, ::Tuple{PosInfinity}) where T = cache(Zeros{T}(∞))
 zeros(::Type{T}, nm::Tuple{Integer, PosInfinity}) where T = cache(Zeros{T}(nm...))
+zeros(::Type{T}, nm::Tuple{Integer, Integer, PosInfinity}) where T = cache(Zeros{T}(nm...))
 zeros(::Type{T}, nm::Tuple{PosInfinity, Integer}) where T = cache(Zeros{T}(nm...))
 zeros(::Type{T}, nm::Tuple{PosInfinity, PosInfinity}) where T = cache(Zeros{T}(nm...))
 
