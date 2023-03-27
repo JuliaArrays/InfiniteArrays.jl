@@ -189,6 +189,10 @@ function _ind2sub_recurse(inds::Tuple{OneToInf{Int},Vararg{Any}}, ind::Integer)
     (ind+1, _ind2sub_recurse(tail(inds), 0)...)
 end
 
+function _ind2sub_recurse(indslast::Tuple{OneToInf{Int}}, ind::Integer)
+	@_inline_meta
+	(ind+1,)
+end
 
 function getindex(v::InfUnitRange{T}, i::Integer) where T
     @boundscheck i > 0 || Base.throw_boundserror(v, i)
