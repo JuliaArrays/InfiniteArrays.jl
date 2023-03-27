@@ -1073,6 +1073,8 @@ end
 
 @testset "∞-cached matrix indexing" begin
     c = zeros(5,∞)
-    c[6] = 2
-    @test c[6] == 2
+    if VERSION ≥ v"1.8"
+        c[6] = 2
+        @test c[6] == 2
+    end
 end
