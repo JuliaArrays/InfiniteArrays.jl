@@ -66,6 +66,8 @@ end
 InfStepRange(start::T, step::S) where {T,S} = InfStepRange{T,S}(start,step)
 InfStepRange{T,S}(start, step) where {T,S} = InfStepRange{T,S}(convert(T,start),convert(S,step))
 
+FillArrays.steprangelen(start, step, ::PosInfinity) = InfStepRange(start, step)
+
 abstract type AbstractInfUnitRange{T<:Real} <: AbstractUnitRange{T} end
 
 done(r::AbstractInfUnitRange{T}, i) where {T} = false
