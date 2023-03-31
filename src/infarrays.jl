@@ -81,7 +81,7 @@ fill(x, nm::Tuple{PosInfinity, PosInfinity}) = cache(Fill(x,nm...))
 
 
 
-# This gets called when infinit number of columns
+# This gets called when infinite number of columns
 axes_print_matrix_row(_, io, X, A, i, ::AbstractVector{<:PosInfinity}, sep) = nothing
 print_matrix_row(io::IO, X::AbstractVecOrMat, A::Vector, i::Integer, cols::AbstractVector{<:PosInfinity}, sep::AbstractString, idxlast::Integer=last(axes(X, 2))) = nothing
 print_matrix_row(io::IO, X::AbstractVecOrMat, A::Vector, i::Integer, cols::AbstractVector, sep::AbstractString, idxlast::Union{RealInfinity,Infinity}) = print_matrix_row(io, X, A, i, cols, sep, ℵ₀)
@@ -164,7 +164,7 @@ end
 #####
 
 
-# Lazy Broadacasting
+# Lazy Broadcasting
 for typ in (:Ones, :Zeros, :Fill)
     @eval begin
         BroadcastStyle(::Type{$typ{T,N,NTuple{N,<:OneToInf}}}) where {T,N} = LazyArrayStyle{N}()
@@ -335,7 +335,7 @@ _vcat(a, b, c...) = Vcat(a, b, c...)
 getindex(A::Vcat, r::InfUnitRange) = Base.invoke(getindex, Tuple{AbstractArray, Any}, A, r)
 _unsafe_getindex(::IndexLinear, A::Vcat, r::InfUnitRange) = _vcat(_gettail(first(r), A.args...)...)
 
-# some common cases not catched by LayoutArrays + ambiguities
+# some common cases not caught by LayoutArrays + ambiguities
 for InfColMatrix in (:(SubArray{<:Any,2,<:Any,<:Tuple{Any,InfIndexRanges}}),
                      :(SubArray{<:Any,2,<:LayoutVecOrMat,<:Tuple{Any,InfIndexRanges}}),
                      :(AbstractFill{<:Any,2,Tuple{OneTo{Int},OneToInf{Int}}}))
