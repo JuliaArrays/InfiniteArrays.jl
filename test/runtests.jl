@@ -7,7 +7,7 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
 using Aqua
 @testset "Project quality" begin
-#    Aqua.test_all(InfiniteArrays, ambiguities=false, piracy=false)
+    Aqua.test_all(InfiniteArrays, ambiguities=false, piracy=false)
 end
 
 @testset "construction" begin
