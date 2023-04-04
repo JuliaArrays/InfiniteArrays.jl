@@ -211,7 +211,7 @@ end
     return LazyArrays.searchsortedlast_recursive(n, x, args...)
 end
 
-
+include("biinfrange.jl")
 
 
 end # module
