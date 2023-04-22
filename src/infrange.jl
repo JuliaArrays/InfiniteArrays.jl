@@ -66,6 +66,8 @@ end
 InfStepRange(start::T, step::S) where {T,S} = InfStepRange{T,S}(start,step)
 InfStepRange{T,S}(start, step) where {T,S} = InfStepRange{T,S}(convert(T,start),convert(S,step))
 
+FillArrays.steprangelen(start, step, ::PosInfinity) = InfStepRange(start, step)
+
 abstract type AbstractInfUnitRange{T<:Real} <: AbstractUnitRange{T} end
 
 done(r::AbstractInfUnitRange{T}, i) where {T} = false
@@ -192,6 +194,10 @@ function _ind2sub_recurse(inds::Tuple{OneToInf{Int},Vararg{Any}}, ind::Integer)
     (ind+1, _ind2sub_recurse(tail(inds), 0)...)
 end
 
+function _ind2sub_recurse(indslast::Tuple{OneToInf{Int}}, ind::Integer)
+	@_inline_meta
+	(ind+1,)
+end
 
 function getindex(v::InfUnitRange{T}, i::Integer) where T
     @boundscheck i > 0 || Base.throw_boundserror(v, i)

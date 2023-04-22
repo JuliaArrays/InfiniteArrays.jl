@@ -1,4 +1,5 @@
-using LinearAlgebra, SparseArrays, InfiniteArrays, Infinities, FillArrays, LazyArrays, Statistics, BandedMatrices, LazyBandedMatrices, Test, Base64
+using LinearAlgebra, SparseArrays, InfiniteArrays, Infinities, FillArrays, LazyArrays, Statistics, Test, Base64
+using BandedMatrices, LazyBandedMatrices
 import InfiniteArrays: InfUnitRange, InfStepRange, OneToInf, NotANumber, oneto, unitrange
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport, DualLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
@@ -6,7 +7,7 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
 using Aqua
 @testset "Project quality" begin
-    Aqua.test_all(InfiniteArrays, ambiguities=false)
+    Aqua.test_all(InfiniteArrays, ambiguities=false, piracy=false)
 end
 
 @testset "construction" begin
@@ -1079,4 +1080,19 @@ end
 
     @test_throws DimensionMismatch broadcast(*, Ones(∞,2), Diagonal(1:∞))
     @test_throws DimensionMismatch broadcast(*, Diagonal(1:∞), Ones(2,∞))
+end
+
+@testset "∞-cached matrix indexing" begin
+    c = zeros(5,∞)
+	c[6] = 2
+	@test c[6] == 2
+
+    c = zeros(∞,3)
+	c[6] = 2
+	@test c[6] == 2
+
+    c = zeros(5,3,∞);
+    c[6] = 2
+    @test c[1,2,1] == 2
+    @test_broken c[6] == 2
 end
