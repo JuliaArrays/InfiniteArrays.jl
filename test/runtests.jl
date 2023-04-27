@@ -192,7 +192,7 @@ end
         @test @inferred(intersect(0:3:∞, 0:4:∞)) == intersect(0:4:∞, 0:3:∞) == 0:12:∞
 
         @test intersect(24:-3:0, 0:4:∞) == 0:12:24
-        @test_throws ArgumentError intersect(1:6:∞, 0:4:∞) # supporting empty would break type inferrence
+        @test_throws ArgumentError intersect(1:6:∞, 0:4:∞) # supporting empty would break type inference
 
         @test intersect(1:∞,3) == 3:3
         @test intersect(1:∞, 2:∞, UnitRange(3,7), UnitRange(4,6)) == UnitRange(4,6)
@@ -626,7 +626,7 @@ end
     # This should be generalized, but it at the moment
     # it is restricted to a single Number. Support smart
     # addition for any number of Number/SVector's would be better
-    # allowibng for the tail to be variable lenth
+    # allowibng for the tail to be variable length
     @testset "Vcat special case" begin
         @test Vcat(1,Zeros{Int}(∞)) + Vcat(3,Zeros{Int}(∞)) ≡
             Vcat(1,Zeros{Int}(∞)) .+ Vcat(3,Zeros{Int}(∞)) ≡
