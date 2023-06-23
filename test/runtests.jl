@@ -549,6 +549,7 @@ end
         v = [1:∞; 2.0; 1:2]
         @test v isa AbstractVector{Float64}
         @test v[1:10] == 1:10
+        @test [Int8(1):∞; Int16(1):∞] === Int16(1):∞
     end
 end
 

@@ -513,14 +513,15 @@ getindex(c::RangeCumsum{<:Any,<:OneToInf}, k::Integer) = k * (k+1) ÷ 2
 
 # vcat
 
-function _promoteinfrange(r, as)
+_maprange(::Type{T}, r::AbstractInfUnitRange) where {T<:Integer} = T(first(r)):ℵ₀
+_maprange(::Type{T}, r) where {T} = T.(r)
+function _promoteinfrange(r::InfRanges, as)
     Tas = mapreduce(eltype, promote_type, as)
     T = promote_type(eltype(r), Tas)
-    T.(r)
+    _maprange(T, r)
 end
-vcat(r::InfRanges) = r
 vcat(r::InfRanges{T}, ::InfRanges{T}, ::InfRanges{T}...) where {T<:Number} = r
-vcat(r::InfRanges, ::InfRanges, ::InfRanges...) = _promoteinfrange(r, rs)
+vcat(r::InfRanges, r2::InfRanges, rs::InfRanges...) = _promoteinfrange(r, (r2, rs...))
 
 vcat(a::Number, r::InfRanges, rs::InfRanges...) = Vcat(a, r, rs...)
 vcat(r::InfRanges{T}, ::T...) where {T<:Number} = r
