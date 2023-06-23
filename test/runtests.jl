@@ -466,6 +466,90 @@ end
             @test x == 6
         end
     end
+
+    @testset "vcat" begin
+        @test [1:∞;] === 1:∞
+
+        @testset for r in (2, 2.0)
+            v = [r; 1:∞]
+            @test v isa AbstractVector{typeof(r)}
+            @test isinf(length(v))
+            @test v[1] == r
+            if typeof(v) == Int # fast infinite getindex is not defined for Float64
+                @test v[2:∞] == 1:∞
+            else
+                @test v[2:10] == 1:9
+            end
+
+            v = [1:∞; r]
+            @test v isa AbstractVector{typeof(r)}
+            @test isinf(length(v))
+            if typeof(v) == Int # fast infinite getindex is not defined for Float64
+                @test v[1:∞] == 1:∞
+            else
+                @test v[1:10] == 1:10
+            end
+        end
+
+        @testset for r in (1:∞, 1:2, [1,2])
+            v = [1:∞; r]
+            @test v isa AbstractVector{Int}
+            @test isinf(length(v))
+            @test v[1:∞] == 1:∞
+
+            v = [r; 1:∞]
+            @test v isa AbstractVector{Int}
+            @test isinf(length(v))
+            @test v[axes(r,1)] == r
+            if isfinite(length(r))
+                @test v[length(r) .+ 1:∞] == 1:∞
+            end
+
+            for w in (r, 1:∞)
+                v = [1:∞; r; w]
+                @test v isa AbstractVector{Int}
+                @test isinf(length(v))
+                @test v[1:∞] == 1:∞
+
+                v = [1:∞; w; r]
+                @test v isa AbstractVector{Int}
+                @test isinf(length(v))
+                @test v[1:∞] == 1:∞
+            end
+        end
+
+        @testset for r in (1.0:2.0, [1.0,2.0])
+            v = [1:∞; r]
+            @test v isa AbstractVector{Float64}
+            @test isinf(length(v))
+            @test v[1:10] == 1:10
+
+            v = [r; 1:∞]
+            @test v isa AbstractVector{Float64}
+            @test isinf(length(v))
+            if isfinite(length(r))
+                @test v[axes(r,1)] == r
+            end
+            @test v[length(r) .+ (1:10)] == 1:10
+
+            for w in (r, 1:∞)
+                v = [1:∞; r; w]
+                @test v isa AbstractVector{Float64}
+                @test isinf(length(v))
+                @test v[1:10] == 1:10
+
+                v = [1:∞; w; r]
+                @test v isa AbstractVector{Float64}
+                @test isinf(length(v))
+                @test v[1:10] == 1:10
+            end
+        end
+
+        @test [1:∞; 2; 1:2] == 1:∞
+        v = [1:∞; 2.0; 1:2]
+        @test v isa AbstractVector{Float64}
+        @test v[1:10] == 1:10
+    end
 end
 
 @testset "fill" begin
