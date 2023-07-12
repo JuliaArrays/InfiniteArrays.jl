@@ -33,6 +33,16 @@ if VERSION < v"1.8-"
 else
    import Base: range_start_step_length
 end
+if VERSION ≥ v"1.11.0-DEV.21"
+   using LinearAlgebra: UpperOrLowerTriangular
+else
+   const UpperOrLowerTriangular{T,S} = Union{LinearAlgebra.UpperTriangular{T,S},
+                                             LinearAlgebra.UnitUpperTriangular{T,S},
+                                             LinearAlgebra.LowerTriangular{T,S},
+                                             LinearAlgebra.UnitLowerTriangular{T,S}}
+end
+
+
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
                         @nexprs, @ncall, combine_eltypes, DefaultArrayStyle, instantiate, axistype
