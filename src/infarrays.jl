@@ -88,7 +88,7 @@ print_matrix_row(io::IO, X::AbstractVecOrMat, A::Vector, i::Integer, cols::Abstr
 print_matrix_row(io::IO,
         X::Union{LayoutMatrix,
         LayoutVector,
-        AbstractTriangular{<:Any,<:LayoutMatrix},
+        UpperOrLowerTriangular{<:Any,<:LayoutMatrix},
         AdjOrTrans{<:Any,<:LayoutMatrix},
         AdjOrTrans{<:Any,<:LayoutVector},
         HermOrSym{<:Any,<:LayoutMatrix},
@@ -101,7 +101,7 @@ print_matrix_row(io::IO,
                  AbstractFill{<:Any,2},
                  Diagonal{<:Any,<:AbstractFill{<:Any,1}},
                  RectDiagonal,
-                 AbstractTriangular{<:Any,<:AbstractFill{<:Any,2}}
+                 UpperOrLowerTriangular{<:Any,<:AbstractFill{<:Any,2}}
                  }, A::Vector,
         i::Integer, cols::AbstractVector{<:PosInfinity}, sep::AbstractString, idxlast::Integer=last(axes(X, 2))) =
     axes_print_matrix_row(axes(X), io, X, A, i, cols, sep)
