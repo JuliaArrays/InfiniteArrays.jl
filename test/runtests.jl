@@ -1171,3 +1171,8 @@ end
     @test c[1,2,1] == 2
     @test_broken c[6] == 2
 end
+
+@testset "print_matrix_row" begin
+    # check that show works
+    Base.sprint(show, I(ℵ₀), context=:limit=>true)
+end
