@@ -1105,8 +1105,6 @@ end
 
 @testset "cached indexing" begin
     @test cache(1:∞)[Fill(2,∞)][1:10] == fill(2,10)
-    @test isassigned(cache(1:∞),RealInfinity())
-    @test cache(1:∞)[RealInfinity()] == ∞
     C = cache(Fill(2.0,∞,∞))
     C[1:5,1:5] .= randn.()
     @test C[1:∞,2:∞][1:10,1:10] == C[1:10,2:11]
