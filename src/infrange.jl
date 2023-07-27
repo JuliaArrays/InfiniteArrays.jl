@@ -437,8 +437,6 @@ InfStepRange(r::InfUnitRange{T}) where {T} =
 ## sorting ##
 
 sum(r::InfRanges{<:Real}) = last(r)
-mean(r::InfRanges{<:Real}) = last(r)
-median(r::InfRanges{<:Real}) = last(r)
 
 in(x::Union{Infinity,RealInfinity}, r::InfRanges) = false # never reach it...
 in(x::Infinity, r::InfRanges{<:Integer}) = false # never reach it...

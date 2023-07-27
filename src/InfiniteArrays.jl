@@ -1,6 +1,6 @@
 module InfiniteArrays
 using ArrayLayouts: LayoutVecOrMat
-using Base, Statistics, LinearAlgebra, FillArrays, Infinities, LazyArrays, ArrayLayouts
+using LinearAlgebra, FillArrays, Infinities, LazyArrays, ArrayLayouts
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
@@ -50,8 +50,6 @@ import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcas
 import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
                              det, logdet, istriu, istril, adjoint, tr, AbstractTriangular,
                              norm2, norm1, normp, AdjOrTrans, HermOrSym
-
-import Statistics: mean, median
 
 import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal, Fill, Ones, Zeros, Eye
 import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
@@ -221,7 +219,9 @@ end
     return LazyArrays.searchsortedlast_recursive(n, x, args...)
 end
 
-
+if !isdefined(Base, :get_extension)
+    include("../ext/InfiniteArraysStatisticsExt.jl")
+end
 
 
 end # module
