@@ -7,7 +7,10 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
 using Aqua
 @testset "Project quality" begin
-    Aqua.test_all(InfiniteArrays, ambiguities=false, piracy=false)
+    Aqua.test_all(InfiniteArrays, ambiguities=false, piracy=false,
+        # only test formatting on VERSION >= v1.7
+        # https://github.com/JuliaTesting/Aqua.jl/issues/105#issuecomment-1551405866
+        project_toml_formatting = VERSION >= v"1.7")
 end
 
 @testset "construction" begin

@@ -1,5 +1,4 @@
 module InfiniteArrays
-
 using LinearAlgebra, FillArrays, Infinities, LazyArrays, ArrayLayouts
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isless,
@@ -51,8 +50,6 @@ import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymm
                              det, logdet, istriu, istril, adjoint, tr, AbstractTriangular,
                              norm2, norm1, normp, AdjOrTrans, HermOrSym
 
-import Statistics: mean, median
-
 import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal, Fill, Ones, Zeros, Eye
 
 import LazyArrays: LazyArrayStyle, LazyLayout,
@@ -62,7 +59,7 @@ import LazyArrays: LazyArrayStyle, LazyLayout,
 
 import ArrayLayouts: RangeCumsum, LayoutVecOrMat, LayoutVecOrMats, LayoutMatrix, LayoutVector,
                      AbstractBandedLayout, MemoryLayout, UnknownLayout, reshapedlayout,
-                     sub_materialize, sublayout, ZerosLayout
+                     sub_materialize, sublayout, ZerosLayout, LayoutVecOrMat
 
 import Infinities: ∞, Infinity, InfiniteCardinal
 
@@ -225,7 +222,9 @@ end
     return LazyArrays.searchsortedlast_recursive(n, x, args...)
 end
 
-
+if !isdefined(Base, :get_extension)
+    include("../ext/InfiniteArraysStatisticsExt.jl")
+end
 
 
 end # module
