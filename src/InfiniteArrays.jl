@@ -1,5 +1,4 @@
 module InfiniteArrays
-using ArrayLayouts: LayoutVecOrMat
 using LinearAlgebra, FillArrays, Infinities, LazyArrays, ArrayLayouts
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isless,
@@ -52,12 +51,16 @@ import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymm
                              norm2, norm1, normp, AdjOrTrans, HermOrSym
 
 import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal, Fill, Ones, Zeros, Eye
-import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
-                    ZerosLayout, AbstractCachedVector, CachedArray, CachedVector, ApplyLayout, LazyMatrix,
-                    reshapedlayout, sub_materialize, sublayout, LayoutMatrix, LayoutVector, _padded_sub_materialize, PaddedLayout,
+
+import LazyArrays: LazyArrayStyle, LazyLayout,
+                    AbstractCachedVector, CachedArray, CachedVector, ApplyLayout, LazyMatrix,
+                    _padded_sub_materialize, PaddedLayout,
                     AbstractCachedMatrix, sub_paddeddata, InvColumnLayout
 
-import ArrayLayouts: RangeCumsum, LayoutVecOrMat, LayoutVecOrMats
+import ArrayLayouts: RangeCumsum, LayoutVecOrMat, LayoutVecOrMats, LayoutMatrix, LayoutVector,
+                     AbstractBandedLayout, MemoryLayout, UnknownLayout, reshapedlayout,
+                     sub_materialize, sublayout, ZerosLayout, LayoutVecOrMat
+
 import Infinities: ∞, Infinity, InfiniteCardinal
 
 export ∞, ℵ₀, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
