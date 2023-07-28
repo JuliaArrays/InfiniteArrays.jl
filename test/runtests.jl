@@ -505,17 +505,23 @@ end
             @test v[length(r) .+ (1:10)] == 1:10
         end
 
+        @test_throws ArgumentError [1:∞; 1]
         @test_throws ArgumentError [1:∞; 1:∞]
+        @test_throws ArgumentError [1:∞; 1]
         @test_throws ArgumentError [1:∞; 1:∞; 1:∞]
+        @test_throws ArgumentError [1:∞; 1:∞; 1:∞; 1]
         @test_throws ArgumentError [1:∞; 1.0:∞]
         @test_throws ArgumentError [1:∞; 1:2]
+        @test_throws ArgumentError [1:∞; 1:2; 1]
         @test_throws ArgumentError [1:∞; 1:2; 1:∞]
         @test_throws ArgumentError [1:∞; 1:2.0]
         @test_throws ArgumentError [1:∞; 1:2.0; 1:∞]
+        @test_throws ArgumentError [1:∞; 1:2.0; 1]
         @test_throws ArgumentError [1:∞; [1]]
         @test_throws ArgumentError [1:∞; [1]; 1:∞]
         @test_throws ArgumentError [1:∞; [1.0]]
         @test_throws ArgumentError [1:∞; [1.0]; 1:∞]
+        @test_throws ArgumentError [1:∞; 1; [1]]
     end
 end
 
