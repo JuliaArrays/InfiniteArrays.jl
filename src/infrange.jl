@@ -511,40 +511,19 @@ getindex(c::RangeCumsum{<:Any,<:OneToInf}, k::Integer) = k * (k+1) ÷ 2
 
 # vcat
 
-_maprange(::Type{T}, r::AbstractInfUnitRange) where {T<:Integer} = T(first(r)):ℵ₀
-_maprange(::Type{T}, r) where {T} = T.(r)
-function _promoteinfrange(r::InfRanges, as)
-    Tas = mapreduce(eltype, promote_type, as)
-    T = promote_type(eltype(r), Tas)
-    _maprange(T, r)
-end
-vcat(r::InfRanges{T}, ::InfRanges{T}, ::InfRanges{T}...) where {T<:Number} = r
-vcat(r::InfRanges, r2::InfRanges, rs::InfRanges...) = _promoteinfrange(r, (r2, rs...))
+vcat(a::Number, r::InfRanges) = Vcat(a, r)
 
-vcat(a::Number, r::InfRanges, rs::InfRanges...) = Vcat(a, r, rs...)
-vcat(r::InfRanges{T}, ::T...) where {T<:Number} = r
-vcat(infr::InfRanges, as::Number...) = _promoteinfrange(infr, as)
-
-# disambiguate with vcat(::AbstractRange, ::InfRanges, ::AbstractRange)
-vcat(r::InfRanges{T}, ::InfRanges{T}, ::AbstractRange{T}...) where {T<:Number} = r
-vcat(r::InfRanges{T}, ::AbstractRange{T}...) where {T<:Number} = r
-# disambiguate with vcat(::AbstractVector, ::InfRanges, ::AbstractVector)
-vcat(r::InfRanges{T}, ::InfRanges{T}, ::AbstractVector{T}...) where {T<:Number} = r
-vcat(r::InfRanges{T}, ::AbstractVector{T}...) where {T<:Number} = r
-
-vcat(infr::InfRanges{T}, ::Union{AbstractVector{T},T}...) where {T<:Number} = infr
-vcat(infr::InfRanges, as::Union{AbstractVector,Number}...) = _promoteinfrange(infr, as)
-
-vcat(infr::InfRanges, infr2::InfRanges, as::AbstractRange...) =
-    _promoteinfrange(infr, (infr2, as...))
-vcat(infr::InfRanges, as::AbstractRange...) = _promoteinfrange(infr, as)
-vcat(infr::InfRanges, infr2::InfRanges, as::AbstractVector...) =
-    _promoteinfrange(infr, (infr2, as...))
-vcat(infr::InfRanges, as::AbstractVector...) = _promoteinfrange(infr, as)
-
-vcat(r::AbstractRange{T}, infr::InfRanges{T}, ::AbstractRange{T}...) where {T<:Number} = Vcat(r, infr)
-vcat(r::AbstractRange, infr::InfRanges, ::AbstractRange...) = Vcat(r, infr)
-vcat(v::AbstractVector, infr::InfRanges, ::AbstractVector...) = Vcat(v, infr)
+throw_inferror() = throw(ArgumentError("vcat is undefined with a leading infinite range"))
+vcat(r::InfRanges) = r
+vcat(r::InfRanges{T}, args::InfRanges{T}...) where {T} = throw_inferror()
+vcat(r::InfRanges, args::InfRanges...) = throw_inferror()
+vcat(r::InfRanges{T}, args::AbstractRange{T}...) where {T} = throw_inferror()
+vcat(r::InfRanges, args::AbstractRange...) = throw_inferror()
+vcat(r::InfRanges{T}, args::AbstractVector{T}...) where {T} = throw_inferror()
+vcat(r::InfRanges, args::AbstractVector...) = throw_inferror()
+vcat(r::AbstractRange{T}, infr::InfRanges{T}) where {T} = Vcat(r, infr)
+vcat(r::AbstractRange, infr::InfRanges) = Vcat(r, infr)
+vcat(v::AbstractVector, infr::InfRanges) = Vcat(v, infr)
 
 ###
 # MemoryLayout
