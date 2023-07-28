@@ -483,23 +483,9 @@ end
             else
                 @test v[2:10] == 1:9
             end
-
-            v = [1:∞; r]
-            @test v isa AbstractVector{typeof(r)}
-            @test isinf(length(v))
-            if typeof(v) == Int # fast infinite getindex is not defined for Float64
-                @test v[1:∞] == 1:∞
-            else
-                @test v[1:10] == 1:10
-            end
         end
 
-        @testset for r in (1:∞, 1:2, [1,2])
-            v = [1:∞; r]
-            @test v isa AbstractVector{Int}
-            @test isinf(length(v))
-            @test v[1:∞] == 1:∞
-
+        @testset for r in (1:2, [1,2])
             v = [r; 1:∞]
             @test v isa AbstractVector{Int}
             @test isinf(length(v))
@@ -507,26 +493,9 @@ end
             if isfinite(length(r))
                 @test v[length(r) .+ 1:∞] == 1:∞
             end
-
-            for w in (r, 1:∞)
-                v = [1:∞; r; w]
-                @test v isa AbstractVector{Int}
-                @test isinf(length(v))
-                @test v[1:∞] == 1:∞
-
-                v = [1:∞; w; r]
-                @test v isa AbstractVector{Int}
-                @test isinf(length(v))
-                @test v[1:∞] == 1:∞
-            end
         end
 
         @testset for r in (1.0:2.0, [1.0,2.0])
-            v = [1:∞; r]
-            @test v isa AbstractVector{Float64}
-            @test isinf(length(v))
-            @test v[1:10] == 1:10
-
             v = [r; 1:∞]
             @test v isa AbstractVector{Float64}
             @test isinf(length(v))
@@ -534,25 +503,25 @@ end
                 @test v[axes(r,1)] == r
             end
             @test v[length(r) .+ (1:10)] == 1:10
-
-            for w in (r, 1:∞)
-                v = [1:∞; r; w]
-                @test v isa AbstractVector{Float64}
-                @test isinf(length(v))
-                @test v[1:10] == 1:10
-
-                v = [1:∞; w; r]
-                @test v isa AbstractVector{Float64}
-                @test isinf(length(v))
-                @test v[1:10] == 1:10
-            end
         end
 
-        @test [1:∞; 2; 1:2] == 1:∞
-        v = [1:∞; 2.0; 1:2]
-        @test v isa AbstractVector{Float64}
-        @test v[1:10] == 1:10
-        @test [Int8(1):∞; Int16(1):∞] === Int16(1):∞
+        @test_throws ArgumentError [1:∞; 1]
+        @test_throws ArgumentError [1:∞; 1:∞]
+        @test_throws ArgumentError [1:∞; 1]
+        @test_throws ArgumentError [1:∞; 1:∞; 1:∞]
+        @test_throws ArgumentError [1:∞; 1:∞; 1:∞; 1]
+        @test_throws ArgumentError [1:∞; 1.0:∞]
+        @test_throws ArgumentError [1:∞; 1:2]
+        @test_throws ArgumentError [1:∞; 1:2; 1]
+        @test_throws ArgumentError [1:∞; 1:2; 1:∞]
+        @test_throws ArgumentError [1:∞; 1:2.0]
+        @test_throws ArgumentError [1:∞; 1:2.0; 1:∞]
+        @test_throws ArgumentError [1:∞; 1:2.0; 1]
+        @test_throws ArgumentError [1:∞; [1]]
+        @test_throws ArgumentError [1:∞; [1]; 1:∞]
+        @test_throws ArgumentError [1:∞; [1.0]]
+        @test_throws ArgumentError [1:∞; [1.0]; 1:∞]
+        @test_throws ArgumentError [1:∞; 1; [1]]
     end
 end
 
