@@ -224,6 +224,7 @@ end
 
 if !isdefined(Base, :get_extension)
     include("../ext/InfiniteArraysStatisticsExt.jl")
+    include("../ext/InfiniteArraysDSPExt.jl")
 end
 
 

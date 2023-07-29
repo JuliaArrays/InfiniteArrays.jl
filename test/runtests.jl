@@ -1148,3 +1148,5 @@ end
     # check that show works
     Base.sprint(show, I(ℵ₀), context=:limit=>true)
 end
+
+include("test_infconv.jl")
