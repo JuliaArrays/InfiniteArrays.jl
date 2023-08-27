@@ -144,6 +144,7 @@ AbstractVector{T}(a::OneToInf) where T<:Real = InfUnitRange{T}(a)
 ## interface implementations
 
 size(r::InfRanges) = (ℵ₀,)
+axes(r::InfRanges) = (OneToInf(),)
 
 isempty(r::InfRanges) = false
 
@@ -514,17 +515,17 @@ getindex(c::RangeCumsum{<:Any,<:OneToInf}, k::Integer) = k * (k+1) ÷ 2
 vcat(a::Number, r::InfRanges) = Vcat(a, r)
 
 throw_inferror() = throw(ArgumentError("vcat is undefined with a leading infinite range"))
-vcat(r::InfRanges) = r
-vcat(r::InfRanges{T}, args::InfRanges{T}...) where {T} = throw_inferror()
-vcat(r::InfRanges, args::InfRanges...) = throw_inferror()
-vcat(r::InfRanges{T}, args::AbstractRange{T}...) where {T} = throw_inferror()
-vcat(r::InfRanges, args::AbstractRange...) = throw_inferror()
-vcat(r::InfRanges{T}, args::AbstractVector{T}...) where {T} = throw_inferror()
-vcat(r::InfRanges, args::AbstractVector...) = throw_inferror()
-vcat(r::InfRanges, ::Union{Number, AbstractVector}...) = throw_inferror()
-vcat(r::AbstractRange{T}, infr::InfRanges{T}) where {T} = Vcat(r, infr)
-vcat(r::AbstractRange, infr::InfRanges) = Vcat(r, infr)
-vcat(v::AbstractVector, infr::InfRanges) = Vcat(v, infr)
+vcat(r::InfRanges{<:Number}) = r
+vcat(r::InfRanges{T}, args::InfRanges{T}...) where {T<:Number} = throw_inferror()
+vcat(r::InfRanges{<:Number}, args::InfRanges{<:Number}...) = throw_inferror()
+vcat(r::InfRanges{T}, args::AbstractRange{T}...) where {T<:Number} = throw_inferror()
+vcat(r::InfRanges{<:Number}, args::AbstractRange{<:Number}...) = throw_inferror()
+vcat(r::InfRanges{T}, args::AbstractVector{T}...) where {T<:Number} = throw_inferror()
+vcat(r::InfRanges{<:Number}, args::AbstractVector{<:Number}...) = throw_inferror()
+vcat(r::InfRanges{<:Number}, ::Union{Number, AbstractVector{<:Number}}...) = throw_inferror()
+vcat(r::AbstractRange{T}, infr::InfRanges{T}) where {T<:Number} = Vcat(r, infr)
+vcat(r::AbstractRange{<:Number}, infr::InfRanges{<:Number}) = Vcat(r, infr)
+vcat(v::AbstractVector{<:Number}, infr::InfRanges{<:Number}) = Vcat(v, infr)
 
 ###
 # MemoryLayout
