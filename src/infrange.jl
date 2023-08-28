@@ -144,6 +144,7 @@ AbstractVector{T}(a::OneToInf) where T<:Real = InfUnitRange{T}(a)
 ## interface implementations
 
 size(r::InfRanges) = (ℵ₀,)
+axes(r::InfRanges) = (OneToInf(),)
 
 isempty(r::InfRanges) = false
 
