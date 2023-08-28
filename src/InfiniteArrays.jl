@@ -161,10 +161,10 @@ axistype(::OneToInf{V}, ::OneTo{T}) where {T,V} = OneToInf{promote_type(T,V)}()
 # returns the range of indices of v equal to x
 # if v does not contain x, returns a 0-length range
 # indicating the insertion point of x
-function searchsorted(v::AbstractVector, x, ilo::Int, ::PosInfinity, o::Ordering)
+function searchsorted(v::AbstractVector, x, ilo::Integer, ::PosInfinity, o::Ordering)
     lo = ilo-1
     hi = ℵ₀
-    @inbounds while lo < hi-1
+    while lo < hi-1
         m = isinf(hi) ? lo + 1000 : (lo+hi)>>>1
         if lt(o, v[m], x)
             lo = m
@@ -182,11 +182,11 @@ end
 
 # index of the first value of vector a that is greater than or equal to x;
 # returns length(v)+1 if x is greater than all values in v.
-function searchsortedfirst(v::AbstractVector, x, lo::Int, hi::PosInfinity, o::Ordering)
+function searchsortedfirst(v::AbstractVector, x, lo::Integer, hi::PosInfinity, o::Ordering)
    u = 1
    lo = lo - u
    hi = ℵ₀
-   @inbounds while lo < hi - u
+   while lo < hi - u
       m = isinf(hi) ? lo + 1000 : (lo+hi)>>>1
       if lt(o, v[m], x)
          lo = m
@@ -199,11 +199,11 @@ end
 
 # index of the last value of vector a that is less than or equal to x;
 # returns 0 if x is less than all values of v.
-function searchsortedlast(v::AbstractVector, x, lo::Int, hi::PosInfinity, o::Ordering)
+function searchsortedlast(v::AbstractVector, x, lo::Integer, hi::PosInfinity, o::Ordering)
    u = 1
    lo = lo - u
    hi = ℵ₀
-   @inbounds while lo < hi - u
+   while lo < hi - u
        m = isinf(hi) ? lo + 1000 : (lo+hi)>>>1
        if lt(o, x, v[m])
            hi = m

@@ -125,6 +125,11 @@ end
     @test ∞:1 ≡ 1:0
 
     @testset "indexing" begin
+        @testset "axes" begin
+            r = axes(big(1):∞,1)
+            @test r == axes(r,1)
+            @test r[typemax(Int)+big(1)] == typemax(Int)+big(1)
+        end
         L32 = @inferred(Int32(1):∞)
         L64 = @inferred(Int64(1):∞)
         @test @inferred(L32[1]) === Int32(1) && @inferred(L64[1]) === Int64(1)
