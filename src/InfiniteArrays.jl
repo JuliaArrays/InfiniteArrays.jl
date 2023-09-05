@@ -164,7 +164,7 @@ axistype(::OneToInf{V}, ::OneTo{T}) where {T,V} = OneToInf{promote_type(T,V)}()
 function searchsorted(v::AbstractVector, x, ilo::Integer, ::PosInfinity, o::Ordering)
     lo = ilo-1
     hi = ℵ₀
-    while lo < hi-1
+    @inbounds while lo < hi-1
         m = isinf(hi) ? lo + 1000 : (lo+hi)>>>1
         if lt(o, v[m], x)
             lo = m
@@ -186,7 +186,7 @@ function searchsortedfirst(v::AbstractVector, x, lo::Integer, hi::PosInfinity, o
    u = 1
    lo = lo - u
    hi = ℵ₀
-   while lo < hi - u
+   @inbounds while lo < hi - u
       m = isinf(hi) ? lo + 1000 : (lo+hi)>>>1
       if lt(o, v[m], x)
          lo = m
@@ -203,7 +203,7 @@ function searchsortedlast(v::AbstractVector, x, lo::Integer, hi::PosInfinity, o:
    u = 1
    lo = lo - u
    hi = ℵ₀
-   while lo < hi - u
+   @inbounds while lo < hi - u
        m = isinf(hi) ? lo + 1000 : (lo+hi)>>>1
        if lt(o, x, v[m])
            hi = m
