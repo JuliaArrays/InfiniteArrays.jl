@@ -4,6 +4,7 @@ import InfiniteArrays: InfUnitRange, InfStepRange, OneToInf, NotANumber, oneto, 
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport, DualLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
 import Base.Broadcast: broadcasted, Broadcasted, instantiate
+using Dates
 
 using Aqua
 @testset "Project quality" begin
@@ -123,6 +124,11 @@ end
     @test_throws ArgumentError (1:-∞)
 
     @test ∞:1 ≡ 1:0
+
+    @testset "custom element types" begin
+        r = InfiniteArrays.InfStepRange(Date(2004, 1, 1), Day(1))
+        @test r[366] == Date(2004, 12, 31)
+    end
 
     @testset "indexing" begin
         @testset "axes" begin
