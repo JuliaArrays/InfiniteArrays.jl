@@ -2,9 +2,9 @@ module InfiniteArraysDSPExt
 
 using InfiniteArrays
 using InfiniteArrays: InfRanges, OneToInf
-using FillArrays
-using FillArrays: AbstractFill, getindex_value
-using LazyArrays
+using InfiniteArrays.FillArrays
+using InfiniteArrays.FillArrays: AbstractFill, getindex_value
+using InfiniteArrays.LazyArrays
 import DSP: conv
 
 

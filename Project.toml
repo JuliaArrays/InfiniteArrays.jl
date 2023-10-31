@@ -1,6 +1,6 @@
 name = "InfiniteArrays"
 uuid = "4858937d-0d70-526a-a4dd-2d5cb5dd786c"
-version = "0.13.2"
+version = "0.13.3"
 
 [deps]
 ArrayLayouts = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
@@ -28,6 +28,8 @@ FillArrays = "1.0"
 Infinities = "0.1.1"
 LazyArrays = "1.0"
 LazyBandedMatrices = "0.8.9, 0.9"
+LinearAlgebra = "1.6"
+Statistics = "1.6"
 julia = "1.6"
 
 [extras]
