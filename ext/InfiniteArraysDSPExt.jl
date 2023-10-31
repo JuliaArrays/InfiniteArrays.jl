@@ -2,9 +2,11 @@ module InfiniteArraysDSPExt
 
 using InfiniteArrays
 using InfiniteArrays: InfRanges, OneToInf
-using FillArrays
-using FillArrays: AbstractFill, getindex_value
-using LazyArrays
+# Specifying the full namespace is necessary because of https://github.com/JuliaLang/julia/issues/48533
+# See https://github.com/JuliaStats/LogExpFunctions.jl/pull/63
+using InfiniteArrays.FillArrays
+using InfiniteArrays.FillArrays: AbstractFill, getindex_value
+using InfiniteArrays.LazyArrays
 import DSP: conv
 
 
