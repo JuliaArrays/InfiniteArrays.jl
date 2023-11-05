@@ -1,6 +1,5 @@
 module InfiniteArrays
-using ArrayLayouts: LayoutVecOrMat
-using Base, Statistics, LinearAlgebra, FillArrays, Infinities, LazyArrays, ArrayLayouts
+using LinearAlgebra, FillArrays, Infinities, LazyArrays, ArrayLayouts
 
 import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isless,
             fld, cld, div, min, max, minimum, maximum, mod,
@@ -33,6 +32,16 @@ if VERSION < v"1.8-"
 else
    import Base: range_start_step_length
 end
+if VERSION ≥ v"1.11.0-DEV.21"
+   using LinearAlgebra: UpperOrLowerTriangular
+else
+   const UpperOrLowerTriangular{T,S} = Union{LinearAlgebra.UpperTriangular{T,S},
+                                             LinearAlgebra.UnitUpperTriangular{T,S},
+                                             LinearAlgebra.LowerTriangular{T,S},
+                                             LinearAlgebra.UnitLowerTriangular{T,S}}
+end
+
+
 using Base.Broadcast
 import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
                         @nexprs, @ncall, combine_eltypes, DefaultArrayStyle, instantiate, axistype
@@ -41,15 +50,17 @@ import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymm
                              det, logdet, istriu, istril, adjoint, tr, AbstractTriangular,
                              norm2, norm1, normp, AdjOrTrans, HermOrSym
 
-import Statistics: mean, median
-
 import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal, Fill, Ones, Zeros, Eye, elconvert
-import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
-                    ZerosLayout, AbstractCachedVector, CachedArray, CachedVector, ApplyLayout, LazyMatrix,
-                    reshapedlayout, sub_materialize, sublayout, LayoutMatrix, LayoutVector, _padded_sub_materialize, PaddedLayout,
+
+import LazyArrays: LazyArrayStyle, LazyLayout,
+                    AbstractCachedVector, CachedArray, CachedVector, ApplyLayout, LazyMatrix,
+                    _padded_sub_materialize, PaddedLayout,
                     AbstractCachedMatrix, sub_paddeddata, InvColumnLayout
 
-import ArrayLayouts: RangeCumsum, LayoutVecOrMat, LayoutVecOrMats
+import ArrayLayouts: RangeCumsum, LayoutVecOrMat, LayoutVecOrMats, LayoutMatrix, LayoutVector,
+                     AbstractBandedLayout, MemoryLayout, UnknownLayout, reshapedlayout,
+                     sub_materialize, sublayout, ZerosLayout, LayoutVecOrMat
+
 import Infinities: ∞, Infinity, InfiniteCardinal
 
 export ∞, ℵ₀, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
@@ -150,7 +161,7 @@ axistype(::OneToInf{V}, ::OneTo{T}) where {T,V} = OneToInf{promote_type(T,V)}()
 # returns the range of indices of v equal to x
 # if v does not contain x, returns a 0-length range
 # indicating the insertion point of x
-function searchsorted(v::AbstractVector, x, ilo::Int, ::PosInfinity, o::Ordering)
+function searchsorted(v::AbstractVector, x, ilo::Integer, ::PosInfinity, o::Ordering)
     lo = ilo-1
     hi = ℵ₀
     @inbounds while lo < hi-1
@@ -171,7 +182,7 @@ end
 
 # index of the first value of vector a that is greater than or equal to x;
 # returns length(v)+1 if x is greater than all values in v.
-function searchsortedfirst(v::AbstractVector, x, lo::Int, hi::PosInfinity, o::Ordering)
+function searchsortedfirst(v::AbstractVector, x, lo::Integer, hi::PosInfinity, o::Ordering)
    u = 1
    lo = lo - u
    hi = ℵ₀
@@ -188,7 +199,7 @@ end
 
 # index of the last value of vector a that is less than or equal to x;
 # returns 0 if x is less than all values of v.
-function searchsortedlast(v::AbstractVector, x, lo::Int, hi::PosInfinity, o::Ordering)
+function searchsortedlast(v::AbstractVector, x, lo::Integer, hi::PosInfinity, o::Ordering)
    u = 1
    lo = lo - u
    hi = ℵ₀
@@ -211,7 +222,10 @@ end
     return LazyArrays.searchsortedlast_recursive(n, x, args...)
 end
 
-
+if !isdefined(Base, :get_extension)
+    include("../ext/InfiniteArraysStatisticsExt.jl")
+    include("../ext/InfiniteArraysDSPExt.jl")
+end
 
 
 end # module

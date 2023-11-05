@@ -7,7 +7,10 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
 using Aqua
 @testset "Project quality" begin
-    Aqua.test_all(InfiniteArrays, ambiguities=false, piracy=false)
+    Aqua.test_all(InfiniteArrays, ambiguities=false, piracy=false,
+        # only test formatting on VERSION >= v1.7
+        # https://github.com/JuliaTesting/Aqua.jl/issues/105#issuecomment-1551405866
+        project_toml_formatting = VERSION >= v"1.7")
 end
 
 @testset "construction" begin
@@ -122,6 +125,11 @@ end
     @test ∞:1 ≡ 1:0
 
     @testset "indexing" begin
+        @testset "axes" begin
+            r = axes(big(1):∞,1)
+            @test r == axes(r,1)
+            @test r[typemax(Int)+big(1)] == typemax(Int)+big(1)
+        end
         L32 = @inferred(Int32(1):∞)
         L64 = @inferred(Int64(1):∞)
         @test @inferred(L32[1]) === Int32(1) && @inferred(L64[1]) === Int64(1)
@@ -192,7 +200,7 @@ end
         @test @inferred(intersect(0:3:∞, 0:4:∞)) == intersect(0:4:∞, 0:3:∞) == 0:12:∞
 
         @test intersect(24:-3:0, 0:4:∞) == 0:12:24
-        @test_throws ArgumentError intersect(1:6:∞, 0:4:∞) # supporting empty would break type inferrence
+        @test_throws ArgumentError intersect(1:6:∞, 0:4:∞) # supporting empty would break type inference
 
         @test intersect(1:∞,3) == 3:3
         @test intersect(1:∞, 2:∞, UnitRange(3,7), UnitRange(4,6)) == UnitRange(4,6)
@@ -466,6 +474,60 @@ end
             @test x == 6
         end
     end
+
+    @testset "vcat" begin
+        @test [1:∞;] === 1:∞
+
+        @testset for r in (2, 2.0)
+            v = [r; 1:∞]
+            @test v isa AbstractVector{typeof(r)}
+            @test isinf(length(v))
+            @test v[1] == r
+            if typeof(v) == Int # fast infinite getindex is not defined for Float64
+                @test v[2:∞] == 1:∞
+            else
+                @test v[2:10] == 1:9
+            end
+        end
+
+        @testset for r in (1:2, [1,2])
+            v = [r; 1:∞]
+            @test v isa AbstractVector{Int}
+            @test isinf(length(v))
+            @test v[axes(r,1)] == r
+            if isfinite(length(r))
+                @test v[length(r) .+ 1:∞] == 1:∞
+            end
+        end
+
+        @testset for r in (1.0:2.0, [1.0,2.0])
+            v = [r; 1:∞]
+            @test v isa AbstractVector{Float64}
+            @test isinf(length(v))
+            if isfinite(length(r))
+                @test v[axes(r,1)] == r
+            end
+            @test v[length(r) .+ (1:10)] == 1:10
+        end
+
+        @test_throws ArgumentError [1:∞; 1]
+        @test_throws ArgumentError [1:∞; 1:∞]
+        @test_throws ArgumentError [1:∞; 1]
+        @test_throws ArgumentError [1:∞; 1:∞; 1:∞]
+        @test_throws ArgumentError [1:∞; 1:∞; 1:∞; 1]
+        @test_throws ArgumentError [1:∞; 1.0:∞]
+        @test_throws ArgumentError [1:∞; 1:2]
+        @test_throws ArgumentError [1:∞; 1:2; 1]
+        @test_throws ArgumentError [1:∞; 1:2; 1:∞]
+        @test_throws ArgumentError [1:∞; 1:2.0]
+        @test_throws ArgumentError [1:∞; 1:2.0; 1:∞]
+        @test_throws ArgumentError [1:∞; 1:2.0; 1]
+        @test_throws ArgumentError [1:∞; [1]]
+        @test_throws ArgumentError [1:∞; [1]; 1:∞]
+        @test_throws ArgumentError [1:∞; [1.0]]
+        @test_throws ArgumentError [1:∞; [1.0]; 1:∞]
+        @test_throws ArgumentError [1:∞; 1; [1]]
+    end
 end
 
 @testset "fill" begin
@@ -632,7 +694,7 @@ end
     # This should be generalized, but it at the moment
     # it is restricted to a single Number. Support smart
     # addition for any number of Number/SVector's would be better
-    # allowibng for the tail to be variable lenth
+    # allowibng for the tail to be variable length
     @testset "Vcat special case" begin
         @test Vcat(1,Zeros{Int}(∞)) + Vcat(3,Zeros{Int}(∞)) ≡
             Vcat(1,Zeros{Int}(∞)) .+ Vcat(3,Zeros{Int}(∞)) ≡
@@ -1096,3 +1158,10 @@ end
     @test c[1,2,1] == 2
     @test_broken c[6] == 2
 end
+
+@testset "print_matrix_row" begin
+    # check that show works
+    Base.sprint(show, I(ℵ₀), context=:limit=>true)
+end
+
+include("test_infconv.jl")

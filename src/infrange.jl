@@ -147,6 +147,8 @@ AbstractVector{T}(a::OneToInf) where T<:Real = InfStepRange(one(T),one(T))
 ## interface implementations
 
 size(r::InfRanges) = (ℵ₀,)
+axes(r::InfRanges{<:Integer}) = (OneToInf{promote_type(Int,eltype(r))}(),)
+axes(r::InfRanges) = (OneToInf(),)
 
 isempty(r::InfRanges) = false
 
@@ -440,8 +442,6 @@ InfStepRange(r::InfUnitRange{T}) where {T} =
 ## sorting ##
 
 sum(r::InfRanges{<:Real}) = last(r)
-mean(r::InfRanges{<:Real}) = last(r)
-median(r::InfRanges{<:Real}) = last(r)
 
 in(x::Union{Infinity,RealInfinity}, r::InfRanges) = false # never reach it...
 in(x::Infinity, r::InfRanges{<:Integer}) = false # never reach it...
@@ -514,6 +514,22 @@ diff(r::OneToInf{T}) where T = Ones{T}(∞)
 Base.@propagate_inbounds getindex(c::RangeCumsum, kr::OneToInf) = RangeCumsum(c.range[kr])
 getindex(c::RangeCumsum{<:Any,<:OneToInf}, k::Integer) = k * (k+1) ÷ 2
 
+# vcat
+
+vcat(a::Number, r::InfRanges) = Vcat(a, r)
+
+throw_inferror() = throw(ArgumentError("vcat is undefined with a leading infinite range"))
+vcat(r::InfRanges) = r
+vcat(r::InfRanges{T}, args::InfRanges{T}...) where {T} = throw_inferror()
+vcat(r::InfRanges, args::InfRanges...) = throw_inferror()
+vcat(r::InfRanges{T}, args::AbstractRange{T}...) where {T} = throw_inferror()
+vcat(r::InfRanges, args::AbstractRange...) = throw_inferror()
+vcat(r::InfRanges{T}, args::AbstractVector{T}...) where {T} = throw_inferror()
+vcat(r::InfRanges, args::AbstractVector...) = throw_inferror()
+vcat(r::InfRanges, ::Union{Number, AbstractVector}...) = throw_inferror()
+vcat(r::AbstractRange{T}, infr::InfRanges{T}) where {T} = Vcat(r, infr)
+vcat(r::AbstractRange, infr::InfRanges) = Vcat(r, infr)
+vcat(v::AbstractVector, infr::InfRanges) = Vcat(v, infr)
 
 ###
 # MemoryLayout
