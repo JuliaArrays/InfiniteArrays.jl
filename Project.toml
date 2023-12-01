@@ -1,6 +1,6 @@
 name = "InfiniteArrays"
 uuid = "4858937d-0d70-526a-a4dd-2d5cb5dd786c"
-version = "0.13.3"
+version = "0.13.2"
 
 [deps]
 ArrayLayouts = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
@@ -20,16 +20,19 @@ InfiniteArraysDSPExt = "DSP"
 InfiniteArraysStatisticsExt = "Statistics"
 
 [compat]
-Aqua = "0.6"
+Aqua = "0.8"
 ArrayLayouts = "1.0"
-BandedMatrices = "0.17.18"
+BandedMatrices = "0.17.18, 1"
+Base64 = "1"
 DSP = "0.7"
 FillArrays = "1.0"
 Infinities = "0.1.1"
 LazyArrays = "1.0"
 LazyBandedMatrices = "0.8.9, 0.9"
 LinearAlgebra = "1.6"
-Statistics = "1.6"
+SparseArrays = "1"
+Statistics = "1"
+Test = "1"
 julia = "1.6"
 
 [extras]
