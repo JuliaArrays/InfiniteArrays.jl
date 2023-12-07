@@ -1152,7 +1152,11 @@ end
 end
 
 @testset "comprehension" begin
-    [k * (k+1) for k = 1:∞]    
+    @test [k * (k+1) for k = 1:∞][1:10] == [k * (k+1) for k = 1:10]
+    @test [k * (k+1) for k = 1:2:∞][1:10] == [k * (k+1) for k = 1:2:20]
+    @test [k * (k+1) for k = 1:2.0:∞][1:10] == [k * (k+1) for k = 1:2.0:20]
+    @test [k * (k+1) for k = 1:2:∞] isa AbstractVector{Int}
+    @test [k * (k+1) for k = 1:2.0:∞] isa AbstractVector{Float64}
 end
 
 include("test_infconv.jl")
