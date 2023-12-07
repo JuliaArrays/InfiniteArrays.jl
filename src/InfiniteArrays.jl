@@ -25,7 +25,8 @@ import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isl
          	cat_similar, vcat, hcat, one, zero,
 		 	reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs,
             searchsorted, searchsortedfirst, searchsortedlast, Ordering, lt, Fix2, findfirst,
-            cat_indices, cat_size, cat_similar, __cat, _ind2sub_recurse, union, intersect, IEEEFloat
+            cat_indices, cat_size, cat_similar, __cat, _ind2sub_recurse, union, intersect, IEEEFloat,
+            collect
 
 if VERSION < v"1.8-"
    import Base: _rangestyle
@@ -221,6 +222,9 @@ end
     r > 0 && return n + r
     return LazyArrays.searchsortedlast_recursive(n, x, args...)
 end
+
+
+collect(G::Base.Generator{<:InfRanges}) = BroadcastArray(G.f, G.iter)
 
 if !isdefined(Base, :get_extension)
     include("../ext/InfiniteArraysStatisticsExt.jl")

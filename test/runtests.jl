@@ -1151,4 +1151,8 @@ end
     Base.sprint(show, I(ℵ₀), context=:limit=>true)
 end
 
+@testset "comprehension" begin
+    [k * (k+1) for k = 1:∞]    
+end
+
 include("test_infconv.jl")
