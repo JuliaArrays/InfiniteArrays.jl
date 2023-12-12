@@ -1159,4 +1159,12 @@ end
     @test [k * (k+1) for k = 1:2.0:∞] isa AbstractVector{Float64}
 end
 
+@testset "diag" begin
+    D = Diagonal(1:∞)
+    @test @inferred(diag(D)) === 1:∞
+    @test @inferred((D -> diag(D,1))(D)) === Zeros{Int}(ℵ₀)
+    # test for compile-time evaluation of off-diagonals
+    @inferred Val((D -> diag(D,1))(D))
+end
+
 include("test_infconv.jl")
