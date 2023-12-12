@@ -579,3 +579,11 @@ permutedims(D::Diagonal{<:Any,<:InfRanges}) = D
 copy(D::Diagonal{<:Any,<:InfRanges}) = D
 broadcasted(::LazyArrayStyle{2}, ::typeof(*), a::Number, D::Diagonal{<:Any,<:InfRanges}) = a*D
 broadcasted(::LazyArrayStyle{2}, ::typeof(*), D::Diagonal{<:Any,<:InfRanges}, a::Number) = D*a
+
+function LinearAlgebra.diag(D::Diagonal{<:Any,<:InfRanges}, k::Integer = 0)
+    if k == 0
+        return parent(D)
+    else
+        return Zeros{eltype(D)}(size(D,1)) # infinite vector of zeros
+    end
+end
