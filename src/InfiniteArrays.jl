@@ -108,18 +108,18 @@ for N=1:3
    end
 end
 
-for Typ in (:Number, :AbstractVector)
+for Typ in (:Number, :(AbstractVector{<:Number}))
    @eval begin
-      vcat(a::$Typ, b::AbstractFill{<:Any,1,<:Tuple{OneToInf}}) = Vcat(a, b)
-      vcat(a::$Typ, c::CachedVector{<:Any,<:Any,<:AbstractFill{<:Any,1,<:Tuple{OneToInf}}}) =
+      vcat(a::$Typ, b::AbstractFill{<:Number,1,<:Tuple{OneToInf}}) = Vcat(a, b)
+      vcat(a::$Typ, c::CachedVector{<:Number,<:Any,<:AbstractFill{<:Any,1,<:Tuple{OneToInf}}}) =
          CachedArray(vcat(a, view(c.data,1:c.datasize[1])), c.array)
    end
 end
 
-vcat(a::AbstractVector, b::AbstractVector, c::AbstractFill{<:Any,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b), c)
-vcat(a::AbstractVector, b::AbstractVector, c::AbstractVector, d::AbstractFill{<:Any,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b,c), d)
+vcat(a::AbstractVector{<:Number}, b::AbstractVector{<:Number}, c::AbstractFill{<:Number,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b), c)
+vcat(a::AbstractVector{<:Number}, b::AbstractVector{<:Number}, c::AbstractVector{<:Number}, d::AbstractFill{<:Number,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b,c), d)
 
-vcat(a::AbstractMatrix, b::AbstractFill{<:Any,2,<:Tuple{OneToInf,OneTo}}) = Vcat(a, b)
+vcat(a::AbstractMatrix{<:Number}, b::AbstractFill{<:Number,2,<:Tuple{OneToInf,OneTo}}) = Vcat(a, b)
 
 cat_similar(A, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
 cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
