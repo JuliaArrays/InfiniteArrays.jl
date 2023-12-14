@@ -528,6 +528,15 @@ vcat(r::AbstractRange{T}, infr::InfRanges{T}) where {T} = Vcat(r, infr)
 vcat(r::AbstractRange, infr::InfRanges) = Vcat(r, infr)
 vcat(v::AbstractVector, infr::InfRanges) = Vcat(v, infr)
 
+vcat(r::InfRanges{<:Number}, args::AbstractVector{<:Number}...) = throw_inferror()
+vcat(r::InfRanges{<:Number}) = r
+vcat(r::InfRanges{<:Number}, args::AbstractRange{<:Number}...) = throw_inferror()
+vcat(r::InfRanges{<:Number}, args::InfRanges{<:Number}...) = throw_inferror()
+vcat(r::InfRanges{<:Number}, ::Union{Number, AbstractVector{<:Number}}...) = throw_inferror()
+vcat(r::AbstractRange{T}, infr::InfRanges{T}) where {T<:Number} = Vcat(r, infr)
+vcat(r::AbstractRange{<:Number}, infr::InfRanges{<:Number}) = Vcat(r, infr)
+vcat(v::AbstractVector{<:Number}, infr::InfRanges{<:Number}) = Vcat(v, infr)
+
 ###
 # MemoryLayout
 ####
