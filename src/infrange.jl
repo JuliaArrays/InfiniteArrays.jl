@@ -157,7 +157,9 @@ unsafe_length(r::InfRanges) = ℵ₀
 first(r::OneToInf{T}) where {T} = oneunit(T)
 
 last(r::AbstractInfUnitRange) = ℵ₀
-last(r::InfStepRange) = RealInfinity(signbit(step(r)))
+_signbit(x::Real) = signbit(x)
+_signbit(x) = (y = sign(x); y < zero(y))
+last(r::InfStepRange) = RealInfinity(_signbit(step(r)))
 
 minimum(r::InfUnitRange) = first(r)
 maximum(r::InfUnitRange) = ℵ₀
