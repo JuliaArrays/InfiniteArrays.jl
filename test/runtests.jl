@@ -167,7 +167,9 @@ end
         @test length(2:-.2:-∞) == ℵ₀
         @test length(2.:-.2:-∞) == ℵ₀
 
-        @test Base.checked_length(1:∞) == length(1:∞)
+        if VERSION >= v"1.7"
+            @test Base.checked_length(1:∞) == length(1:∞)
+        end
 
         @testset "IteratorSize" begin
             @test Base.IteratorSize(1:2:∞) == Base.IsInfinite()
