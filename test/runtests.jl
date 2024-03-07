@@ -167,6 +167,8 @@ end
         @test length(2:-.2:-∞) == ℵ₀
         @test length(2.:-.2:-∞) == ℵ₀
 
+        @test Base.checked_length(1:∞) == length(1:∞)
+
         @testset "IteratorSize" begin
             @test Base.IteratorSize(1:2:∞) == Base.IsInfinite()
             @test Base.IteratorSize(1:∞) == Base.IsInfinite()
@@ -174,6 +176,11 @@ end
             @test first(s) == 2
             @test first(s) == 3
         end
+    end
+
+    @testset "first" begin
+        @test first(1:4:∞) == 1
+        @test first(1:4:∞, 4) == range(1, step=4, length=4)
     end
 
     @testset "intersect" begin
