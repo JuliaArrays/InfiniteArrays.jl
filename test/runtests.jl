@@ -424,6 +424,11 @@ end
         @test_throws ArgumentError (3:∞) ∪ (2:2:∞)
         @test_throws ArgumentError (2:2:∞) ∪ (3:∞)
         @test_throws ArgumentError (2:3:∞) ∪ (2:2:∞)
+
+        @test @inferred(union(1:∞)) ≡ 1:∞
+        @test @inferred(union(1.5:∞)) ≡ 1.5:∞
+        @test @inferred(union(1:∞, 2:∞, 4:∞)) ≡ 1:∞
+        @test @inferred(union(1.5:∞, 0.5:∞, 2.5:2:∞)) ≡ 0.5:1:∞
     end
 
     @testset "adjoint indexing" begin

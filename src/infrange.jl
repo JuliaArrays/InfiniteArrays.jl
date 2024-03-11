@@ -400,11 +400,16 @@ intersect(s::StepRange, r::InfStepRange) = intersect(r, s)
 intersect(s::AbstractRange, r::InfStepRange) = intersect(StepRange(s), r)
 intersect(s::InfStepRange, r::AbstractRange) = intersect(s, StepRange(r))
 
-function union(ain::InfRanges, bin::InfRanges)
-    a,b = promote(ain, bin)
-    first(b) ∈ a && iszero(mod(step(b), step(a))) && return a
-    first(a) ∈ b && iszero(mod(step(a), step(b))) && return b
-    throw(ArgumentError("Cannot take union of $a and $b"))
+function union(ain::InfRanges, bin::InfRanges...)
+    ranges = promote(ain, bin...)
+    steps = step.(ranges)
+    firsts = first.(ranges)
+    for r in ranges
+        if all(in(r), firsts) && all(s -> iszero(mod(step(s), step(r))), ranges)
+            return r
+        end
+    end
+    throw(ArgumentError("Cannot take union of $ranges"))
 end
 
 promote_rule(a::Type{InfUnitRange{T1}}, b::Type{InfUnitRange{T2}}) where {T1,T2} =
