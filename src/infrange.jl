@@ -133,6 +133,10 @@ function oneto(x::ComplexInfinity)
     throw(ArgumentError("Cannot create infinite range with negative length"))
  end
 
+@static if VERSION >= v"1.11.0-"
+    Base.unchecked_oneto(::PosInfinity) = OneToInf()
+end
+
 AbstractArray{T}(a::OneToInf) where T<:Integer = OneToInf{T}()
 AbstractVector{T}(a::OneToInf) where T<:Integer = OneToInf{T}()
 AbstractArray{T}(a::OneToInf) where T<:Real = InfUnitRange{T}(a)
