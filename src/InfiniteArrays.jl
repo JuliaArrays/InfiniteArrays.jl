@@ -51,7 +51,7 @@ import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymm
                              det, logdet, istriu, istril, adjoint, tr, AbstractTriangular,
                              norm2, norm1, normp, AdjOrTrans, HermOrSym
 
-import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal, Fill, Ones, Zeros, Eye
+import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal, Fill, Ones, Zeros, Eye, elconvert
 
 import LazyArrays: LazyArrayStyle, LazyLayout,
                     AbstractCachedVector, CachedArray, CachedVector, ApplyLayout, LazyMatrix,
