@@ -156,6 +156,9 @@ isempty(r::InfRanges) = false
 step(r::InfStepRange) = r.step
 
 length(r::InfRanges) = ℵ₀
+if VERSION >= v"1.7"
+    Base.checked_length(r::InfRanges) = ℵ₀
+end
 unsafe_length(r::InfRanges) = ℵ₀
 
 first(r::OneToInf{T}) where {T} = oneunit(T)
