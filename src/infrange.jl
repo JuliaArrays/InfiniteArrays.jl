@@ -516,7 +516,7 @@ broadcast(f, r::Transpose{<:Any,<:InfRanges}, a::Number) = transpose(broadcast(f
 # cumsum(r::InfRanges) = OneToInf() .* (first(r) .+ r) .÷ 2
 cumsum(r::InfRanges) = RangeCumsum(r)
 diff(r::InfRanges) = Fill(step(r),∞)
-diff(r::OneToInf{T}) where T = Ones{T}(∞)
+diff(r::AbstractInfUnitRange{T}) where T = Ones{T}(∞)
 Base.@propagate_inbounds getindex(c::RangeCumsum, kr::OneToInf) = RangeCumsum(c.range[kr])
 getindex(c::RangeCumsum{<:Any,<:OneToInf}, k::Integer) = k * (k+1) ÷ 2
 function union(r1::RangeCumsum{T1, OneToInf{T1}}, r2::RangeCumsum{T2, OneToInf{T2}}) where {T1,T2}

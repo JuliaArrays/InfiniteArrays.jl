@@ -897,7 +897,7 @@ end
     @test cumsum(Ones{BigInt}(∞)) ≡ OneToInf{BigInt}()
 
     @test diff(oneto(∞)) ≡ Ones{Int}(∞)
-    @test diff(1:∞) ≡ Fill(1,∞)
+    @test diff(1:∞) ≡ Ones{Int}(∞)
     @test diff(1:2:∞) ≡ Fill(2,∞)
     @test diff(1:2.0:∞) ≡ Fill(2.0,∞)
 
