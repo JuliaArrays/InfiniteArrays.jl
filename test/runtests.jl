@@ -399,6 +399,13 @@ end
             @test axes(z) == (Base.OneTo(100),)
             @test size(z) == (100,)
         end
+
+        @testset "union of cumsum" begin
+            r1 = InfiniteArrays.OneToInf{Int8}()
+            r2 = InfiniteArrays.OneToInf{Int16}()
+            rs = union(cumsum(r1), cumsum(r2))
+            @test rs == cumsum(r2)
+        end
     end
 
     @testset "show" begin
