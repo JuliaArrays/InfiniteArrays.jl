@@ -298,6 +298,13 @@ end
         @test 0.0:0.1:∞ != 0.0f0:0.1f0:∞
     end
 
+    @testset "constprop in comparing OneToInf" begin
+        r1 = OneToInf{Int8}()
+        r2 = OneToInf{Int16}()
+        v = @inferred ((r1,r2) -> Val(r1 == r2))(r1, r2)
+        @test v isa Val{true}
+    end
+
     @testset "comparing InfiniteUnitRanges and OneToInf" begin
         @test 1:2:∞ == 1:2:∞ != 1:3:∞ != 2:3:∞ == 2:3:∞ != 2:∞
         @test 1:1:∞ == 1:∞ == 1:∞ == OneToInf() == OneToInf()

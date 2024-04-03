@@ -143,8 +143,6 @@ AbstractArray{T}(a::OneToInf) where T<:Real = InfUnitRange{T}(a)
 AbstractVector{T}(a::OneToInf) where T<:Real = InfUnitRange{T}(a)
 
 
-(==)(::OneToInf, ::OneToInf) = true
-
 ## interface implementations
 
 size(r::InfRanges) = (ℵ₀,)
