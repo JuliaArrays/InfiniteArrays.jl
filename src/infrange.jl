@@ -524,6 +524,9 @@ function union(r1::RangeCumsum{T1, OneToInf{T1}}, r2::RangeCumsum{T2, OneToInf{T
     T = promote_type(T1, T2)
     RangeCumsum(OneToInf{T}())
 end
+Base.issorted(r::RangeCumsum{<:Any,<:OneToInf}) = true
+Base.sort(r::RangeCumsum{<:Any,<:OneToInf}) = r
+Base.sort!(r::RangeCumsum{<:Any,<:OneToInf}) = r
 
 # vcat
 

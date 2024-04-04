@@ -220,6 +220,13 @@ end
         @test sort(2:2:∞) ≡ sort!(2:2:∞) ≡ 2:2:∞
         @test_throws ArgumentError sort(2:-2:-∞)
         @test_throws ArgumentError sort!(2:-2:-∞)
+
+        @testset "RangeCumsum" begin
+            r = InfiniteArrays.OneToInf()
+            rs = RangeCumsum(r)
+            @test sort(rs) === sort!(rs) === rs
+            @test @inferred((rs -> Val(issorted(rs)))(rs)) isa Val{true}
+        end
     end
     @testset "in" begin
         @test 0 in UInt(0):100:∞
