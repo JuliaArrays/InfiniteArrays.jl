@@ -223,7 +223,7 @@ end
 
         @testset "RangeCumsum" begin
             r = InfiniteArrays.OneToInf()
-            rs = RangeCumsum(r)
+            rs = cumsum(r)
             @test sort(rs) === sort!(rs) === rs
             @test @inferred((rs -> Val(issorted(rs)))(rs)) isa Val{true}
         end
