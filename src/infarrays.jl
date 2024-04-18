@@ -21,6 +21,7 @@ Vector{T}(::UndefInitializer, ::PosInfinity) where T = throw(ArgumentError("Cann
 
 filltype(_, ::Type{T}, axes) where T = Zeros{T}(axes)
 filltype(F::AbstractFill, ::Type{T}, axes) where T = Fill{T}(getindex_value(F), axes)
+filltype(F::Vcat, ::Type{T}, axes) where T = filltype(F.args[end], T, axes)
 
 similar(A::AbstractArray, ::Type{T}, axes::Tuple{OneToInf{Int}}) where T = cache(filltype(A, T, axes))
 similar(A::AbstractArray, ::Type{T}, axes::Tuple{OneToInf{Int},OneToInf{Int}}) where T = cache(filltype(A, T, axes))
