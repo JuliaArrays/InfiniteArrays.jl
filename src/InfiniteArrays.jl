@@ -1,7 +1,7 @@
 module InfiniteArrays
 using LinearAlgebra, FillArrays, Infinities, LazyArrays, ArrayLayouts
 
-import Base: *, +, -, /, <, ==, >, \, ≤, ≥, (:), @_inline_meta, @propagate_inbounds,
+import Base: *, +, -, /, <, ==, >, \, ≤, ≥, (:), @propagate_inbounds,
              AbstractArray, AbstractMatrix, AbstractVector, ArithmeticUnknown, ArithmeticWraps, Array, Fix2, IEEEFloat,
              IdentityUnitRange, Int, Matrix, OneTo, Ordered, Ordering, ReshapedIndex, Slice, Vector, __cat, _in_range,
              _ind2sub_recurse, _range, _sub2ind, _sub2ind_recurse, _unsafe_getindex, _unsafe_getindex_rs,
