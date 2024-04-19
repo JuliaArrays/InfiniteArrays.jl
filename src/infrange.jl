@@ -193,13 +193,11 @@ _sub2ind(inds::Tuple{OneToInf}, i::Integer)    = i
 to_shape(::OneToInf) = ℵ₀
 
 # used for linear indexing
-function _ind2sub_recurse(inds::Tuple{OneToInf{Int},Vararg{Any}}, ind::Integer)
-    @_inline_meta
+@inline function _ind2sub_recurse(inds::Tuple{OneToInf{Int},Vararg{Any}}, ind::Integer)
     (ind+1, _ind2sub_recurse(tail(inds), 0)...)
 end
 
-function _ind2sub_recurse(indslast::Tuple{OneToInf{Int}}, ind::Integer)
-	@_inline_meta
+@inline function _ind2sub_recurse(indslast::Tuple{OneToInf{Int}}, ind::Integer)
 	(ind+1,)
 end
 
@@ -259,31 +257,27 @@ getindex(r::AbstractInfUnitRange, s::Slice{<:AbstractInfUnitRange{<:Integer}}) =
 
 getindex(r::OneToInf{T}, s::OneTo) where T = OneTo(T(s.stop))
 
-function getindex(r::AbstractInfUnitRange, s::InfStepRange{<:Integer})
-    @_inline_meta
+@inline function getindex(r::AbstractInfUnitRange, s::InfStepRange{<:Integer})
     @boundscheck (step(s) > 0 && first(s) ≥ 1) || throw(BoundsError(r, minimum(s)))
     st = oftype(first(r), first(r) + s.start-1)
     new_step = step(s)
     InfStepRange(st,new_step)
 end
 
-function getindex(r::AbstractInfUnitRange, s::StepRange{<:Integer})
-    @_inline_meta
+@inline function getindex(r::AbstractInfUnitRange, s::StepRange{<:Integer})
     @boundscheck minimum(s) ≥ 1 || throw(BoundsError(r, minimum(s)))
     st = oftype(first(r), first(r) + s.start-1)
     range(st; step=step(s), length=length(s))
 end
 
-function getindex(r::InfStepRange, s::InfAxes)
-    @_inline_meta
+@inline function getindex(r::InfStepRange, s::InfAxes)
     @boundscheck (step(s) > 0 && first(s) ≥ 1) || throw(BoundsError(r, minimum(s)))
     st = oftype(r.start, r.start + (first(s)-1)*step(r))
     new_step = step(r)*step(s)
     InfStepRange(st,new_step)
 end
 
-function getindex(r::InfStepRange, s::AbstractRange{<:Integer})
-    @_inline_meta
+@inline function getindex(r::InfStepRange, s::AbstractRange{<:Integer})
     @boundscheck isempty(s) || minimum(s) ≥ 1 || throw(BoundsError(r, minimum(s)))
     st = oftype(r.start, r.start + (first(s)-1)*step(r))
     range(st; step=step(r)*step(s), length=length(s))
