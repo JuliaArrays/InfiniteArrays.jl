@@ -1,32 +1,20 @@
 module InfiniteArrays
 using LinearAlgebra, FillArrays, Infinities, LazyArrays, ArrayLayouts
 
-import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isless,
-            fld, cld, div, min, max, minimum, maximum, mod,
-            <, ≤, >, ≥, promote_rule, convert, unsafe_convert, copy,
-            size, step, isempty, length, first, last, tail,
-            getindex, setindex!, intersect, @_inline_meta,
-            sort, sort!, issorted, sortperm, sum, in, broadcast,
-            eltype, elsize, parent, parentindices, reinterpret,
-            unaliascopy, dataids,
-            real, imag, conj, transpose,
-            exp, log, sqrt, cos, sin, tan, csc, sec, cot,
-            cosh, sinh, tanh, csch, sech, coth, acos, asin, atan, acsc, asec, acot,
-            acosh, asinh, atanh, acsch, asech, acoth, (:),
-            AbstractMatrix, AbstractArray, checkindex, unsafe_length, unsafe_indices, OneTo,
-            to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots,
-            checkindex, Slice, IdentityUnitRange, @propagate_inbounds, @_propagate_inbounds_meta,
-         	_in_range, _range, Ordered,
-         	ArithmeticWraps, ArithmeticUnknown, floatrange, reverse, unitrange_last,
-         	AbstractArray, AbstractVector, Array, Vector, Matrix,
-         	axes, (:), _sub2ind_recurse, promote_eltypeof,
-         	diff, cumsum, show_delim_array, show_circular, Int,
-         	similar, _unsafe_getindex, string, zeros, ones, fill, permutedims,
-         	cat_similar, vcat, hcat, one, zero,
-		 	reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs,
-            searchsorted, searchsortedfirst, searchsortedlast, Ordering, lt, Fix2, findfirst,
-            cat_indices, cat_size, cat_similar, __cat, _ind2sub_recurse, union, intersect, IEEEFloat,
-            collect
+import Base: *, +, -, /, <, ==, >, \, ≤, ≥, (:), @_inline_meta, @propagate_inbounds,
+             AbstractArray, AbstractMatrix, AbstractVector, ArithmeticUnknown, ArithmeticWraps, Array, Fix2, IEEEFloat,
+             IdentityUnitRange, Int, Matrix, OneTo, Ordered, Ordering, ReshapedIndex, Slice, Vector, __cat, _in_range,
+             _ind2sub_recurse, _range, _sub2ind, _sub2ind_recurse, _unsafe_getindex, _unsafe_getindex_rs,
+             angle, axes, broadcast, cat_indices,
+             cat_similar, cat_size, checkindex, collect, convert, copy,
+             cumsum, dataids, diff, div, eltype, fill, findfirst, first, floatrange, getindex, hcat,
+             in, ind2sub_rs, intersect, isempty, isinf, issorted, last, length, lt, max,
+             maximum, minimum, mod, one, ones, parent, parentindices, permutedims, print_matrix, print_matrix_row,
+             print_matrix_vdots, promote_rule, reinterpret, reshape, reverse, searchsorted,
+             searchsortedfirst, searchsortedlast, setindex!, show, show_circular, show_delim_array, sign,
+             signbit, similar, size, sort, sort!, step, sum, tail,
+             to_shape, transpose, unaliascopy, union, unitrange_last, unsafe_convert, unsafe_indices, unsafe_length,
+             vcat, zeros
 
 if VERSION < v"1.8-"
    import Base: _rangestyle
@@ -44,25 +32,19 @@ end
 
 
 using Base.Broadcast
-import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
-                        @nexprs, @ncall, combine_eltypes, DefaultArrayStyle, instantiate, axistype
+import ArrayLayouts: AbstractBandedLayout, LayoutMatrix, LayoutVecOrMat, LayoutVecOrMats, LayoutVector, MemoryLayout,
+                     RangeCumsum, UnknownLayout, reshapedlayout, sub_materialize, sublayout
 
-import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
-                             det, logdet, istriu, istril, adjoint, tr, AbstractTriangular,
-                             norm2, norm1, normp, AdjOrTrans, HermOrSym
+import Base.Broadcast: BroadcastStyle, Broadcasted, DefaultArrayStyle, axistype, broadcasted
 
-import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal, Fill, Ones, Zeros, Eye
+import FillArrays: AbstractFill, Eye, Fill, Ones, RectDiagonal, Zeros, fill_reshape, getindex_value
 
-import LazyArrays: LazyArrayStyle, LazyLayout,
-                    AbstractCachedVector, CachedArray, CachedVector, ApplyLayout, LazyMatrix,
-                    _padded_sub_materialize, PaddedLayout,
-                    AbstractCachedMatrix, sub_paddeddata, InvColumnLayout
+import Infinities: InfiniteCardinal, Infinity, ∞
 
-import ArrayLayouts: RangeCumsum, LayoutVecOrMat, LayoutVecOrMats, LayoutMatrix, LayoutVector,
-                     AbstractBandedLayout, MemoryLayout, UnknownLayout, reshapedlayout,
-                     sub_materialize, sublayout, ZerosLayout, LayoutVecOrMat
+import LazyArrays: AbstractCachedVector, ApplyLayout, CachedArray, CachedVector, InvColumnLayout,
+                   LazyArrayStyle, LazyLayout, LazyMatrix, PaddedLayout, _padded_sub_materialize, sub_paddeddata
 
-import Infinities: ∞, Infinity, InfiniteCardinal
+import LinearAlgebra: AdjOrTrans, HermOrSym, diag, norm, norm1, norm2, normp
 
 export ∞, ℵ₀, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 import Base: unitrange, oneto
