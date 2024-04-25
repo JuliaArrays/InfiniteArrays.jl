@@ -226,6 +226,7 @@ end
             rs = cumsum(r)
             @test sort(rs) === sort!(rs) === rs
             @test @inferred((rs -> Val(issorted(rs)))(rs)) isa Val{true}
+            @test rs[end] ≡ ℵ₀
         end
     end
     @testset "in" begin
@@ -944,6 +945,11 @@ end
         @test c[Base.OneTo(20)] isa InfiniteArrays.RangeCumsum
         @test exp.(c)[1:20] == exp.(c[1:20])
     end
+
+    @test cumsum(3:4:∞)[end] ≡ cumsum(3:4:∞)[∞] ≡ cumsum(3:4:∞)[ℵ₀] ≡ RealInfinity()
+    @test cumsum(2:∞)[end] ≡ cumsum(2:∞)[∞] ≡ cumsum(2:∞)[ℵ₀] ≡ cumsum(oneto(∞))[end] ≡ cumsum(oneto(∞))[∞] ≡ cumsum(oneto(∞))[ℵ₀] ≡  ℵ₀
+
+    @test_throws BoundsError cumsum(oneto(∞))[-5]
 
     @test cumsum(1:∞)[2:∞][1:5] == cumsum(1:6)[2:end]
 

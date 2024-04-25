@@ -21,8 +21,8 @@ InfiniteArraysStatisticsExt = "Statistics"
 
 [compat]
 Aqua = "0.8"
-ArrayLayouts = "1.0"
-BandedMatrices = "0.17.18, 1"
+ArrayLayouts = "1.8"
+BandedMatrices = "1.0"
 Base64 = "1"
 DSP = "0.7"
 FillArrays = "1.0"

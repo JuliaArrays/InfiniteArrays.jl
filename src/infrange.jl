@@ -513,7 +513,10 @@ cumsum(r::InfRanges) = RangeCumsum(r)
 diff(r::InfRanges) = Fill(step(r),∞)
 diff(r::AbstractInfUnitRange{T}) where T = Ones{T}(∞)
 Base.@propagate_inbounds getindex(c::RangeCumsum, kr::OneToInf) = RangeCumsum(c.range[kr])
-getindex(c::RangeCumsum{<:Any,<:OneToInf}, k::Integer) = k * (k+1) ÷ 2
+Base.@propagate_inbounds function getindex(c::RangeCumsum{<:Any,<:OneToInf}, k::Integer)
+    @boundscheck checkbounds(c, k)
+    k * (k+1) ÷ 2
+end
 function union(r1::RangeCumsum{T1, OneToInf{T1}}, r2::RangeCumsum{T2, OneToInf{T2}}) where {T1,T2}
     T = promote_type(T1, T2)
     RangeCumsum(OneToInf{T}())
@@ -522,6 +525,12 @@ Base.issorted(r::RangeCumsum{<:Any,<:OneToInf}) = true
 Base.sort(r::RangeCumsum{<:Any,<:OneToInf}) = r
 Base.sort!(r::RangeCumsum{<:Any,<:OneToInf}) = r
 
+getindex(c::RangeCumsum{<:Any,<:OneToInf}, ::InfiniteCardinal{0}) = last(c)
+Base.@propagate_inbounds function getindex(c::RangeCumsum{<:Any,<:AbstractRange}, k::InfiniteCardinal{0})
+    @boundscheck checkbounds(c, k)
+    last(c)
+end
+Base._unsafe_getindex(::IndexStyle, A::RangeCumsum, I::InfiniteCardinal{0}) = last(A)
 # vcat
 
 vcat(a::Number, r::InfRanges) = Vcat(a, r)
