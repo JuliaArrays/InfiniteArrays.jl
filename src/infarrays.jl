@@ -393,7 +393,7 @@ sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{<:Any,In
 sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{InfAxes,Any}) = ApplyArray(V)
 
 
-sub_materialize(::PaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T =
+sub_materialize(::AbstractPaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T =
     _padded_sub_materialize(v)
 
 sub_materialize(lay::InvColumnLayout, v::AbstractVector, ax::Tuple{InfAxes}) =

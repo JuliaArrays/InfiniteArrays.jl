@@ -46,6 +46,8 @@ import LazyArrays: AbstractCachedVector, ApplyLayout, CachedArray, CachedVector,
 
 import LinearAlgebra: AdjOrTrans, HermOrSym, diag, norm, norm1, norm2, normp
 
+import LazyArrays: AbstractPaddedLayout
+
 export ∞, ℵ₀, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 import Base: unitrange, oneto
 

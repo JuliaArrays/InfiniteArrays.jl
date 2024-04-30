@@ -1,5 +1,5 @@
 using LinearAlgebra, SparseArrays, InfiniteArrays, Infinities, FillArrays, LazyArrays, Statistics, Test, Base64
-using BandedMatrices, LazyBandedMatrices
+using BandedMatrices
 import InfiniteArrays: InfUnitRange, InfStepRange, OneToInf, NotANumber, oneto, unitrange
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport, DualLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
