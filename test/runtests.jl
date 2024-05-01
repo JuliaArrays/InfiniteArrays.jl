@@ -1209,3 +1209,4 @@ end
 end
 
 include("test_infconv.jl")
+include("test_block.jl")
