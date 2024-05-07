@@ -295,15 +295,15 @@ sub_materialize(::AbstractBandedLayout, V, ::Tuple{InfAxes,OneTo{Int}}) = V
 ##
 
 sublayout(::DiagonalLayout{L}, ::Type{<:Tuple{KR,Integer}}) where {L,KR<:InfAxes} =
-    sublayout(PaddedLayout{UnknownLayout}(), Tuple{KR})
+    sublayout(PaddedColumns{UnknownLayout}(), Tuple{KR})
 sublayout(::DiagonalLayout{L}, ::Type{<:Tuple{Integer,JR}}) where {L,JR<:InfAxes} =
-    sublayout(PaddedLayout{UnknownLayout}(), Tuple{JR})
+    sublayout(PaddedColumns{UnknownLayout}(), Tuple{JR})
 -
 
 sublayout(::AbstractBandedLayout, ::Type{<:Tuple{KR,Integer}}) where {KR<:InfAxes} =
-    sublayout(PaddedLayout{UnknownLayout}(), Tuple{KR})
+    sublayout(PaddedColumns{UnknownLayout}(), Tuple{KR})
 sublayout(::AbstractBandedLayout, ::Type{<:Tuple{Integer,JR}}) where {JR<:InfAxes} =
-    sublayout(PaddedLayout{UnknownLayout}(), Tuple{JR})
+    sublayout(PaddedColumns{UnknownLayout}(), Tuple{JR})
 
 
 function sub_paddeddata(::AbstractBandedLayout, S::SubArray{T,1,<:AbstractMatrix,<:Tuple{InfAxes,Integer}}) where T
