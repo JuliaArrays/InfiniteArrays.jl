@@ -19,12 +19,16 @@ Matrix{T}(::UndefInitializer, ::Integer, ::PosInfinity) where T = throw(Argument
 Vector{T}(::UndefInitializer, ::Tuple{PosInfinity}) where T = throw(ArgumentError("Cannot create infinite Array"))
 Vector{T}(::UndefInitializer, ::PosInfinity) where T = throw(ArgumentError("Cannot create infinite Array"))
 
-similar(A::AbstractArray, ::Type{T}, axes::Tuple{OneToInf{Int}}) where T = cache(Zeros{T}(axes))
-similar(A::AbstractArray, ::Type{T}, axes::Tuple{OneToInf{Int},OneToInf{Int}}) where T = cache(Zeros{T}(axes))
-similar(A::AbstractArray, ::Type{T}, dims::Tuple{PosInfinity}) where T = cache(Zeros{T}(dims))
-similar(A::AbstractArray, ::Type{T}, dims::Tuple{PosInfinity,PosInfinity}) where T = cache(Zeros{T}(dims))
-similar(A::AbstractArray, ::Type{T}, dims::Tuple{Integer,PosInfinity}) where T = cache(Zeros{T}(dims))
-similar(A::AbstractArray, ::Type{T}, dims::Tuple{PosInfinity,Integer}) where T = cache(Zeros{T}(dims))
+filltype(_, ::Type{T}, axes) where T = Zeros{T}(axes)
+filltype(F::AbstractFill, ::Type{T}, axes) where T = Fill{T}(getindex_value(F), axes)
+filltype(F::Vcat, ::Type{T}, axes) where T = filltype(F.args[end], T, axes)
+
+similar(A::AbstractArray, ::Type{T}, axes::Tuple{OneToInf{Int}}) where T = cache(filltype(A, T, axes))
+similar(A::AbstractArray, ::Type{T}, axes::Tuple{OneToInf{Int},OneToInf{Int}}) where T = cache(filltype(A, T, axes))
+similar(A::AbstractArray, ::Type{T}, dims::Tuple{PosInfinity}) where T = cache(filltype(A, T, dims))
+similar(A::AbstractArray, ::Type{T}, dims::Tuple{PosInfinity,PosInfinity}) where T = cache(filltype(A, T, dims))
+similar(A::AbstractArray, ::Type{T}, dims::Tuple{Integer,PosInfinity}) where T = cache(filltype(A, T, dims))
+similar(A::AbstractArray, ::Type{T}, dims::Tuple{PosInfinity,Integer}) where T = cache(filltype(A, T, dims))
 
 similar(::Type{<:AbstractArray{T}}, axes::Tuple{OneToInf{Int}}) where T = cache(Zeros{T}(axes))
 similar(::Type{<:AbstractArray{T}}, axes::Tuple{OneToInf{Int},OneToInf{Int}}) where T = cache(Zeros{T}(axes))
@@ -34,6 +38,7 @@ similar(::Type{<:AbstractArray{T}}, dims::Tuple{PosInfinity}) where T = cache(Ze
 similar(::Type{<:AbstractArray{T}}, dims::Tuple{PosInfinity,PosInfinity}) where T = cache(Zeros{T}(dims))
 similar(::Type{<:AbstractArray{T}}, dims::Tuple{Integer,PosInfinity}) where T = cache(Zeros{T}(dims))
 similar(::Type{<:AbstractArray{T}}, dims::Tuple{PosInfinity,Integer}) where T = cache(Zeros{T}(dims))
+
 
 similar(arr::AbstractArray{T}, sz::Union{Infinity,Integer,AbstractUnitRange}...) where T = similar(arr, Base.to_shape(sz)...)
 similar(arr::AbstractArray, ::Type{T}, sz::Union{Infinity,Integer,AbstractUnitRange}...) where T = similar(arr, T, Base.to_shape(sz)...)

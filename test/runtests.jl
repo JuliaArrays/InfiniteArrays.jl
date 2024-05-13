@@ -751,6 +751,9 @@ end
 
         @test [randn(2,2); Zeros(∞,2)] isa Vcat{<:Any,2,<:Tuple{Array,Zeros}}
 
+        x = [[1, 3]; Fill(2,∞)]
+        @test similar(x)[1:10] == fill(2,10)
+
         a = [[1,2,3]; zeros(Int,∞)]
         @test a[3:∞][1:5] == a[3:7]
         @test cache(1:∞)[2:∞][1:5] == 2:6
