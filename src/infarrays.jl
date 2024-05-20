@@ -305,6 +305,8 @@ sublayout(::AbstractBandedLayout, ::Type{<:Tuple{KR,Integer}}) where {KR<:InfAxe
 sublayout(::AbstractBandedLayout, ::Type{<:Tuple{Integer,JR}}) where {JR<:InfAxes} =
     sublayout(PaddedColumns{UnknownLayout}(), Tuple{JR})
 
+sublayout(::ApplyBandedLayout, ::Type{<:Tuple{KR,Integer}}) where {KR<:InfAxes} =
+    sublayout(PaddedColumns{UnknownLayout}(), Tuple{KR})
 
 function sub_paddeddata(::AbstractBandedLayout, S::SubArray{T,1,<:AbstractMatrix,<:Tuple{InfAxes,Integer}}) where T
     P = parent(S)
