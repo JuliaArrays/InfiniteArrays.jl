@@ -48,9 +48,6 @@ import LinearAlgebra: AdjOrTrans, HermOrSym, diag, norm, norm1, norm2, normp
 
 import LazyArrays: AbstractPaddedLayout
 
-LazyArraysBandedMatricesExt = Base.get_extension(LazyArrays, :LazyArraysBandedMatricesExt)
-ApplyBandedLayout = LazyArraysBandedMatricesExt.ApplyBandedLayout
-
 export ∞, ℵ₀, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 import Base: unitrange, oneto
 
