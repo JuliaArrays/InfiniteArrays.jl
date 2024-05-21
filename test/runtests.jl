@@ -1,5 +1,5 @@
 using LinearAlgebra, SparseArrays, InfiniteArrays, Infinities, FillArrays, LazyArrays, Statistics, Test, Base64
-using BandedMatrices, LazyBandedMatrices
+using BandedMatrices
 import InfiniteArrays: InfUnitRange, InfStepRange, OneToInf, NotANumber, oneto, unitrange
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport, DualLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
@@ -1208,4 +1208,13 @@ end
     @inferred Val((D -> diag(D,1))(D))
 end
 
+@testset "inf padded" begin
+    v = Vcat(1, Zeros(∞))
+    @test LazyArrays.sub_materialize(view(v, 1:∞))[1:10] == [1; zeros(9)]
+    @test LazyArrays.sub_materialize(view(v, 2:∞))[1:10] == zeros(10)
+    @test v[2:∞] isa Zeros
+    @test v[1:∞] == v
+end
+
 include("test_infconv.jl")
+include("test_block.jl")

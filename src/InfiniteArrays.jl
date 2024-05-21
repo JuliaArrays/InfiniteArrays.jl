@@ -42,9 +42,11 @@ import FillArrays: AbstractFill, Eye, Fill, Ones, RectDiagonal, Zeros, fill_resh
 import Infinities: InfiniteCardinal, Infinity, ∞
 
 import LazyArrays: AbstractCachedVector, ApplyLayout, CachedArray, CachedVector, InvColumnLayout,
-                   LazyArrayStyle, LazyLayout, LazyMatrix, PaddedLayout, _padded_sub_materialize, sub_paddeddata
+                   LazyArrayStyle, LazyLayout, LazyMatrix, PaddedColumns, _padded_sub_materialize, sub_paddeddata
 
 import LinearAlgebra: AdjOrTrans, HermOrSym, diag, norm, norm1, norm2, normp
+
+import LazyArrays: AbstractPaddedLayout
 
 export ∞, ℵ₀, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 import Base: unitrange, oneto
