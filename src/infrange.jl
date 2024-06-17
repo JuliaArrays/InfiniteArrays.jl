@@ -599,7 +599,8 @@ for op in (:isequal, :(==))
             isinteger(p.x) ? findfirst($op(convert(V, p.x)), r) : nothing
     end
 end
-
+findfirst(::typeof(isone), r::InfRanges{T}) where {T} = findfirst(==(one(T)), r)
+findfirst(::typeof(iszero), r::InfRanges{T}) where {T} = findfirst(==(zero(T)), r)
 
 FillArrays._range_convert(::Type{AbstractVector{T}}, r::InfRanges) where T = convert(AbstractVector{T}, r)
 
@@ -618,9 +619,9 @@ function LinearAlgebra.diag(D::Diagonal{<:Any,<:InfRanges}, k::Integer = 0)
     end
 end
 
-function inv(D::Diagonal{T, <:InfRanges}) where {T} 
+function inv(D::Diagonal{<:Any, <:InfRanges})
     d = D.diag 
-    idx = findfirst(==(zero(T)), d) 
+    idx = findfirst(iszero, d) 
     isnothing(idx) || throw(SingularException(idx))
     return Diagonal(inv.(d))
 end

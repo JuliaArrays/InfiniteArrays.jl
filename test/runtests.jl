@@ -1097,6 +1097,17 @@ end
     @test searchsorted(factorial.(big(1):∞), 6) == 3:3
     @test searchsortedfirst(factorial.(big(1):∞), 7) == 4
     @test searchsortedlast(factorial.(big(1):∞), 7) == 3
+
+    @testset "Issue #178" begin
+        findfirst(isone, 1:∞) == 1 
+        findfirst(isone, 0:2:∞) === nothing
+        findfirst(isone, -5:∞) == 7
+        findfirst(isone, 2:∞) === nothing 
+        findfirst(iszero, 0:∞) == 1 
+        findfirst(iszero, 5:∞) === nothing 
+        findfirst(iszero, 0.5:∞) === nothing 
+        findfirst(iszero, -5.0:2.5:∞) == 3
+    end
 end
 
 @testset "convert infrange" begin
