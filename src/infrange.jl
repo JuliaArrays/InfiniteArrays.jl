@@ -617,3 +617,5 @@ function LinearAlgebra.diag(D::Diagonal{<:Any,<:InfRanges}, k::Integer = 0)
         return Zeros{eltype(D)}(size(D,1)) # infinite vector of zeros
     end
 end
+
+inv(D::Diagonal{<:Any, <:InfRanges}) = Diagonal(inv.(D.diag))
