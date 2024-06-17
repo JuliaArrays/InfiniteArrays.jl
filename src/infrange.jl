@@ -618,4 +618,9 @@ function LinearAlgebra.diag(D::Diagonal{<:Any,<:InfRanges}, k::Integer = 0)
     end
 end
 
-inv(D::Diagonal{<:Any, <:InfRanges}) = Diagonal(inv.(D.diag))
+function inv(D::Diagonal{T, <:InfRanges}) where {T} 
+    d = D.diag 
+    idx = findfirst(==(zero(T)), d) 
+    isnothing(idx) || throw(SingularException(idx))
+    return Diagonal(inv.(d))
+end
