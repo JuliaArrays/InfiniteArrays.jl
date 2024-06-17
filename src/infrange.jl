@@ -617,3 +617,10 @@ function LinearAlgebra.diag(D::Diagonal{<:Any,<:InfRanges}, k::Integer = 0)
         return Zeros{eltype(D)}(size(D,1)) # infinite vector of zeros
     end
 end
+
+function inv(D::Diagonal{T, <:InfRanges}) where {T} 
+    d = D.diag 
+    idx = findfirst(==(zero(T)), d) 
+    isnothing(idx) || throw(SingularException(idx))
+    return Diagonal(inv.(d))
+end

@@ -1206,6 +1206,8 @@ end
     @test @inferred((D -> diag(D,1))(D)) === Zeros{Int}(ℵ₀)
     # test for compile-time evaluation of off-diagonals
     @inferred Val((D -> diag(D,1))(D))
+    # Issue #176 
+    @test inv(D)[1:100,1:100] == Diagonal(inv.(1:∞))[1:100,1:100]
 end
 
 @testset "inf padded" begin
