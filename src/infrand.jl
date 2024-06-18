@@ -23,7 +23,7 @@ julia> seq[1:5]
 
 julia> using Distributions, Random
 
-julia> seq = InfRandVector(MersenneTwister(123), Normal(0.3, 1.7))
+julia> seq = InfiniteArrays.InfRandVector(MersenneTwister(123), Normal(0.3, 1.7))
 ℵ₀-element InfRandVector{Float64, Normal{Float64}, MersenneTwister} with indices 1:∞:
   2.3234553976766703
   3.7819055032417075
