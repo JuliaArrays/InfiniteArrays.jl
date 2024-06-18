@@ -8,7 +8,7 @@ to generate from can be specified using the `dist` argument, which defaults to `
 ```julia-repl
 julia> using InfiniteArrays
 
-julia> seq = InfRandVector();
+julia> seq = InfiniteArrays.InfRandVector();
 
 julia> seq[1]
 0.6947847847152157
