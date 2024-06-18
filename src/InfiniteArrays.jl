@@ -51,7 +51,7 @@ import LazyArrays: AbstractPaddedLayout
 
 import Random: default_rng
 
-export ∞, ℵ₀, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache, InfRandVector
+export ∞, ℵ₀, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 import Base: unitrange, oneto
 
 
