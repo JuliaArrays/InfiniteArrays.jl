@@ -1,7 +1,7 @@
 @testset "InfRandVector" begin
     @testset "Default constructor" begin
         Random.seed!(123)
-        seq = InfRandVector()
+        seq = InfiniteArrays.InfRandVector()
         val = seq[1]
         @test seq[1] == val # constant 
         @test seq[1:10000] == seq[1:10000]
@@ -17,7 +17,7 @@
 
     @testset "Providing an RNG and a distribution" begin
         rng = MersenneTwister(123)
-        seq = InfRandVector(rng, Float16)
+        seq = InfiniteArrays.InfRandVector(rng, Float16)
         rng2 = MersenneTwister(123)
         @test seq[1:10000] == [rand(rng2, Float16) for _ in 1:10000]
     end 
@@ -25,7 +25,7 @@
     @testset "Distributions.jl" begin 
         dist = Normal(0.3, 1.7) # do Normal{Float32} for example if you want that number type
         rng = Xoshiro(5)
-        seq = InfRandVector(rng, dist)
+        seq = InfiniteArrays.InfRandVector(rng, dist)
         rng2 = Xoshiro(5)
         @test seq[1:100] == [0.3 + 1.7randn(rng2) for _ in 1:100]
     end
