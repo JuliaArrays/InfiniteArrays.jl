@@ -1,5 +1,5 @@
-using LinearAlgebra, SparseArrays, InfiniteArrays, Infinities, FillArrays, LazyArrays, Statistics, Test, Base64
-using BandedMatrices
+using LinearAlgebra, SparseArrays, InfiniteArrays, Infinities, FillArrays, LazyArrays, Random, Statistics, Test, Base64
+using BandedMatrices, Distributions
 import InfiniteArrays: InfUnitRange, InfStepRange, OneToInf, NotANumber, oneto, unitrange
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport, DualLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
@@ -1231,3 +1231,4 @@ end
 
 include("test_infconv.jl")
 include("test_block.jl")
+include("test_infrand.jl")
