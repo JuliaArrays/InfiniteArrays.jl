@@ -49,7 +49,7 @@ import LinearAlgebra: AdjOrTrans, HermOrSym, diag, norm, norm1, norm2, normp
 
 import LazyArrays: AbstractPaddedLayout
 
-import Random: default_rng
+import Random: default_rng, seed!
 
 export ∞, ℵ₀, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 import Base: unitrange, oneto

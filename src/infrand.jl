@@ -1,3 +1,10 @@
+_dist_type(dist) = typeof(dist)
+_dist_type(dist::Type{T}) where {T} = Type{T} # avoid DataType for typeof(Float64), since DataType means rand(seq.rng, seq.dist) is inferred as Any
+function _reset_seed!(rng)
+    new_seed = rand(rng, UInt32)
+    return seed!(rng, new_seed)
+end
+
 """
     InfRandVector([rng=default_rng()], [dist=Float64])
 
@@ -5,6 +12,13 @@ Represents a random infinite sequence. The random number generator can be specif
 by the first argument `rng`, which defaults to `Random.default_rng()`, and the distribution 
 to generate from can be specified using the `dist` argument, which defaults to `Float64`.
 
+!!! note "Mutation of rng"
+
+    When an InfRandVector is constructed, the `rng` (or, if 
+    no `rng` is provided, the global `rng`) gets reseeded
+    using `Random.seed!(rng, rand(rng, UInt32))`.
+
+# Examples
 ```julia-repl
 julia> using InfiniteArrays
 
@@ -41,14 +55,19 @@ mutable struct InfRandVector{T,D,RNG} <: AbstractCachedVector{T}
     const data::Vector{T}
     datasize::Int
 end
+
 function InfRandVector(rng=default_rng(), dist=Float64)
     T = typeof(rand(copy(rng), dist))
     _rng = copy(rng)
-    return InfRandVector{T,typeof(dist),typeof(_rng)}(_rng, dist, T[], 0)
+    _reset_seed!(rng)
+    return InfRandVector{T,_dist_type(dist),typeof(_rng)}(_rng, dist, T[], 0)
 end
+
 Base.size(::InfRandVector) = (ℵ₀,)
 Base.axes(::InfRandVector) = (1:ℵ₀,)
 Base.length(::InfRandVector) = ℵ₀
+
+@inline _single_rand(seq::InfRandVector) = rand(seq.rng, seq.dist)
 function resizedata!(seq::InfRandVector, inds)
     newlen = maximum(inds)
     curlen = length(seq.data)
@@ -57,7 +76,7 @@ function resizedata!(seq::InfRandVector, inds)
     # rand!(seq.rng, view(seq.data, curlen+1:newlen), seq.dist)
     # ^ rand() is not actually sequential.. rand(Random.seed!(123), 1000) ≠ (rng = Random.seed!(123); [rand(rng) for _ in 1:1000])
     for i in (curlen+1):newlen
-        seq.data[i] = rand(seq.rng, seq.dist)
+        seq.data[i] = _single_rand(seq)
     end
     seq.datasize = newlen
     return seq
