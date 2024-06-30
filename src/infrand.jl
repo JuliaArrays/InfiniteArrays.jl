@@ -46,9 +46,9 @@ function InfRandVector(rng=default_rng(), dist=Float64)
     _rng = copy(rng)
     return InfRandVector{T,typeof(dist),typeof(_rng)}(_rng, dist, T[], 0)
 end
-Base.size(::InfRandVector) = (ℵ₀,)
-Base.axes(::InfRandVector) = (1:ℵ₀,)
-Base.length(::InfRandVector) = ℵ₀
+size(::InfRandVector) = (ℵ₀,)
+axes(::InfRandVector) = (1:ℵ₀,)
+length(::InfRandVector) = ℵ₀
 function resizedata!(seq::InfRandVector, inds)
     newlen = maximum(inds)
     curlen = length(seq.data)
@@ -62,3 +62,25 @@ function resizedata!(seq::InfRandVector, inds)
     seq.datasize = newlen
     return seq
 end
+
+"""
+    InfRandMatrix([rng=default_rng()], n; dist=Float64])
+
+Represents a random infinite matrix with `n` rows. The random number generator 
+can be specified by the first argument `rng`, which defaults to `Random.default_rng()`, and the number of 
+rows is given by the `n` argument. The `dist` keyword argument (default `Float64`)
+can be used to specify the distribution to sample from. 
+"""
+struct InfRandMatrix{T, S <: InfRandVector{T}} <: LazyMatrix{T} 
+    seq::S 
+    n::Int
+end 
+InfRandMatrix(n::Int; dist=Float64) = InfRandMatrix(default_rng(), n; dist)
+InfRandMatrix(rng, n::Int; dist=Float64) = InfRandMatrix(InfRandVector(rng, dist), n)
+function Base.getindex(A::InfRandMatrix, i::Int, j::Int)
+    ((i < 1) || (i > A.n) || (j < 0)) && throw(BoundsError(A, (i, j)))
+    lin = (j - 1) * A.n + i 
+    return A.seq[lin]
+end
+size(A::InfRandMatrix) = (A.n, ∞)
+
