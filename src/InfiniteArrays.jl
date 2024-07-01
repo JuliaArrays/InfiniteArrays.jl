@@ -10,7 +10,7 @@ import Base: *, +, -, /, <, ==, >, \, ≤, ≥, (:), @propagate_inbounds,
              cumsum, dataids, diff, div, eltype, fill, findfirst, first, floatrange, getindex, hcat,
              in, ind2sub_rs, intersect, inv, isempty, isinf, issorted, last, length, lt, max,
              maximum, minimum, mod, one, ones, parent, parentindices, permutedims, print_matrix, print_matrix_row,
-             print_matrix_vdots, promote_rule, rand, reinterpret, reshape, reverse, searchsorted,
+             print_matrix_vdots, promote_rule, reinterpret, reshape, reverse, searchsorted,
              searchsortedfirst, searchsortedlast, setindex!, show, show_circular, show_delim_array, sign,
              signbit, similar, size, sort, sort!, step, sum, tail,
              to_shape, transpose, unaliascopy, union, unitrange_last, unsafe_convert, unsafe_indices, unsafe_length,
@@ -42,14 +42,11 @@ import FillArrays: AbstractFill, Eye, Fill, Ones, RectDiagonal, Zeros, fill_resh
 import Infinities: InfiniteCardinal, Infinity, ∞
 
 import LazyArrays: AbstractCachedVector, ApplyLayout, CachedArray, CachedVector, InvColumnLayout,
-                   LazyArrayStyle, LazyLayout, LazyMatrix, PaddedColumns, _padded_sub_materialize, resizedata!, 
-                   sub_paddeddata
+                   LazyArrayStyle, LazyLayout, LazyMatrix, PaddedColumns, _padded_sub_materialize, sub_paddeddata
 
 import LinearAlgebra: AdjOrTrans, HermOrSym, diag, norm, norm1, norm2, normp
 
 import LazyArrays: AbstractPaddedLayout
-
-import Random: default_rng
 
 export ∞, ℵ₀, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 import Base: unitrange, oneto
@@ -59,7 +56,6 @@ import Base: unitrange, oneto
 include("infrange.jl")
 include("infarrays.jl")
 include("reshapedarray.jl")
-include("infrand.jl")
 
 ##
 # Fill FillArrays
