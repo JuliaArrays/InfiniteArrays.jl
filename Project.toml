@@ -9,34 +9,27 @@ FillArrays = "1a297f60-69ca-5386-bcde-b61e274b549b"
 Infinities = "e1ba4f0e-776d-440f-acd9-e1d2e9742647"
 LazyArrays = "5078a376-72f3-5289-bfd5-ec5146d43c02"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
-
-[weakdeps]
-DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
-Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
-
-[extensions]
-InfiniteArraysDSPExt = "DSP"
-InfiniteArraysStatisticsExt = "Statistics"
 
 [compat]
 Aqua = "0.8"
 ArrayLayouts = "1.8"
 BandedMatrices = "1.0"
-Base64 = "1"
 BlockArrays = "1.0"
+Base64 = "1"
 DSP = "0.7"
-Distributions = "0.25"
 FillArrays = "1.0"
 Infinities = "0.1.1"
 LazyArrays = "2.0.2"
 LinearAlgebra = "1.6"
-Random = "1"
 SparseArrays = "1"
 Statistics = "1"
 Test = "1"
 julia = "1.10"
+
+[extensions]
+InfiniteArraysDSPExt = "DSP"
+InfiniteArraysStatisticsExt = "Statistics"
 
 [extras]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
@@ -44,10 +37,13 @@ BandedMatrices = "aae01518-5342-5314-be14-df237901396f"
 Base64 = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 BlockArrays = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
 DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
-Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Aqua", "Test", "BandedMatrices", "BlockArrays", "Statistics", "SparseArrays", "Base64", "DSP", "Distributions"]
+test = ["Aqua", "Test", "BandedMatrices", "BlockArrays", "Statistics", "SparseArrays", "Base64", "DSP"]
+
+[weakdeps]
+DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
