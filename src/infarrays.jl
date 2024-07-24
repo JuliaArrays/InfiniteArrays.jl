@@ -403,6 +403,8 @@ sub_materialize(lay::InvColumnLayout, v::AbstractVector, ax::Tuple{InfAxes}) =
 Base._unsafe_getindex(::IndexStyle, A::AbstractVector, r::InfAxes) = layout_getindex(A, r)
 Base._unsafe_getindex(::IndexStyle, A::AbstractFill{<:Any,1}, r::InfAxes) = FillArrays._fill_getindex(A, r)
 getindex(A::AbstractCachedVector, r::InfAxes) = layout_getindex(A, r)
+# preserve padded/fill structure
+getindex(A::CachedVector{<:Any,<:AbstractVector,<:AbstractFill{<:Any,1}}, r::InfAxes) = LazyArrays.cache_getindex(A, r)
 # don't resize to ∞
 Base.isassigned(A::AbstractCachedVector, r::InfiniteCardinal{0}) = true
 getindex(A::AbstractCachedVector, r::InfiniteCardinal{0}) = A.array[r]
@@ -421,4 +423,5 @@ Base._unsafe_getindex(::IndexStyle, A::AbstractFill{<:Any,2}, kr::InfAxes, jr::U
 
 Base.checkindex(::Type{Bool}, inds::AbstractUnitRange, I::AbstractFill) = Base.checkindex(Bool, inds, getindex_value(I))
 LazyArrays.cache_getindex(::InfiniteCardinal{0}, A::AbstractVector, I, J...) = layout_getindex(A, I, J...)
+LazyArrays.cache_getindex(::InfiniteCardinal{0}, A::CachedVector{<:Any,<:AbstractVector,<:AbstractFill{<:Any,1}}, I::AbstractVector) = LazyArrays.cache_getindex(nothing, A, I)
 
