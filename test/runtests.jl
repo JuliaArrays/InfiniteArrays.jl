@@ -1231,3 +1231,10 @@ end
 
 include("test_infconv.jl")
 include("test_block.jl")
+
+@testset "bounds-checking for StepRangeLen{<:CartesianIndex}" begin
+    if VERSION >= v"1.11.0-rc3"
+        D = Diagonal(1:∞)
+        @test checkbounds(Bool, D, diagind(D, IndexCartesian()))
+    end
+end
