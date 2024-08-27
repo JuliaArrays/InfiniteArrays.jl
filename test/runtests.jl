@@ -1229,6 +1229,16 @@ end
     @test v[1:∞] == v
 end
 
+@testset "issue #180" begin
+    @test isnothing(findfirst(==(21), 10:-1:-∞))
+    @test isnothing(findfirst(==(11), 10:-1:-∞))
+    @test findfirst(==(9), 10:-1:-∞) == 2
+    r = 10:-1:-∞
+    v = -20
+    ind = findfirst(==(v), r)
+    @test r[ind] == v
+end
+
 include("test_infconv.jl")
 include("test_block.jl")
 

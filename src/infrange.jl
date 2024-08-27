@@ -571,7 +571,7 @@ MemoryLayout(::Type{<:AbstractInfUnitRange}) = LazyLayout()
 
 # from array.jl
 function _step_findfirst(p, r::InfStepRange{T,S}) where {T,S}
-    first(r) <= p.x || return nothing
+    first(r) <= p.x && step(r) > zero(step(r)) || first(r) >= p.x && step(r) < zero(step(r)) || return nothing
     d = convert(S, p.x - first(r))
     iszero(d % step(r)) || return nothing
     return d ÷ step(r) + 1
