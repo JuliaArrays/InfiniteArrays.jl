@@ -625,3 +625,8 @@ function inv(D::Diagonal{<:Any, <:InfRanges})
     isnothing(idx) || throw(SingularException(idx))
     return Diagonal(inv.(d))
 end
+
+# bounds-checking
+function Base.checkindex(::Type{Bool}, inds::NTuple{N, AbstractInfUnitRange}, i::AbstractRange{CartesianIndex{N}}) where {N}
+    isempty(i) | checkindex(Bool, inds, first(i))
+end
