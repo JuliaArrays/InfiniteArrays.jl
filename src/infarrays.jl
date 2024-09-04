@@ -173,7 +173,9 @@ for typ in (:Ones, :Zeros, :Fill)
     end
 end
 
-BroadcastStyle(::Type{<:Diagonal{T,<:AbstractFill{T,1,Tuple{OneToInf{I}}}}}) where {T,I} = LazyArrayStyle{2}()
+for M in (:Diagonal, :Bidiagonal, :Tridiagonal, :SymTridiagonal)
+    @eval BroadcastStyle(::Type{<:$M{T,<:AbstractFill{T,1,Tuple{OneToInf{I}}}}}) where {T,I} = LazyArrayStyle{2}()
+end
 
 ## Support broadcast(*, ::AbstractFill, A)
 
@@ -285,7 +287,9 @@ end
 one(D::Diagonal{T,<:AbstractFill{T,1,Tuple{OneToInf{Int}}}}) where T = Eye{T}(size(D,1))
 copy(D::Diagonal{T,<:AbstractFill{T,1,Tuple{OneToInf{Int}}}}) where T = D
 
-BroadcastStyle(::Type{<:Diagonal{<:Any,<:AbstractInfUnitRange}}) = LazyArrayStyle{2}()
+for M in (:Diagonal, :Bidiagonal, :Tridiagonal, :SymTridiagonal)
+    @eval BroadcastStyle(::Type{<:$M{<:Any,<:AbstractInfUnitRange}}) = LazyArrayStyle{2}()
+end
 sub_materialize(::AbstractBandedLayout, V, ::Tuple{InfAxes,InfAxes}) = V
 sub_materialize(::AbstractBandedLayout, V, ::Tuple{OneTo{Int},InfAxes}) = V
 sub_materialize(::AbstractBandedLayout, V, ::Tuple{InfAxes,OneTo{Int}}) = V
