@@ -912,6 +912,16 @@ end
         @test c[1:6] == a[r[2:7]]
         @test Base.BroadcastStyle(typeof(c)) isa LazyArrayStyle
     end
+
+    @testset "structured matrices" begin
+        r = 1:∞
+        f = Fill(2, ∞)
+        for B in (Bidiagonal(r, r, :U), Tridiagonal(r, r, r), SymTridiagonal(r, r),
+                   Bidiagonal(f, f, :U), Tridiagonal(f, f, f), SymTridiagonal(f, f))
+            B2 = B .+ B
+            @test B2[1:10, 1:10] == 2B[1:10, 1:10]
+        end
+    end
 end
 
 @testset "Cumsum and diff" begin
