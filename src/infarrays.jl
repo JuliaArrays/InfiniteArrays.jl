@@ -173,7 +173,9 @@ for typ in (:Ones, :Zeros, :Fill)
     end
 end
 
-BroadcastStyle(::Type{<:Diagonal{T,<:AbstractFill{T,1,Tuple{OneToInf{I}}}}}) where {T,I} = LazyArrayStyle{2}()
+for M in (:Diagonal, :Bidiagonal, :Tridiagonal, :SymTridiagonal)
+    @eval BroadcastStyle(::Type{<:$M{T,<:AbstractFill{T,1,Tuple{OneToInf{I}}}}}) where {T,I} = LazyArrayStyle{2}()
+end
 
 ## Support broadcast(*, ::AbstractFill, A)
 
@@ -285,7 +287,9 @@ end
 one(D::Diagonal{T,<:AbstractFill{T,1,Tuple{OneToInf{Int}}}}) where T = Eye{T}(size(D,1))
 copy(D::Diagonal{T,<:AbstractFill{T,1,Tuple{OneToInf{Int}}}}) where T = D
 
-BroadcastStyle(::Type{<:Diagonal{<:Any,<:AbstractInfUnitRange}}) = LazyArrayStyle{2}()
+for M in (:Diagonal, :Bidiagonal, :Tridiagonal, :SymTridiagonal)
+    @eval BroadcastStyle(::Type{<:$M{<:Any,<:AbstractInfUnitRange}}) = LazyArrayStyle{2}()
+end
 sub_materialize(::AbstractBandedLayout, V, ::Tuple{InfAxes,InfAxes}) = V
 sub_materialize(::AbstractBandedLayout, V, ::Tuple{OneTo{Int},InfAxes}) = V
 sub_materialize(::AbstractBandedLayout, V, ::Tuple{InfAxes,OneTo{Int}}) = V
@@ -295,15 +299,15 @@ sub_materialize(::AbstractBandedLayout, V, ::Tuple{InfAxes,OneTo{Int}}) = V
 ##
 
 sublayout(::DiagonalLayout{L}, ::Type{<:Tuple{KR,Integer}}) where {L,KR<:InfAxes} =
-    sublayout(PaddedLayout{UnknownLayout}(), Tuple{KR})
+    sublayout(PaddedColumns{UnknownLayout}(), Tuple{KR})
 sublayout(::DiagonalLayout{L}, ::Type{<:Tuple{Integer,JR}}) where {L,JR<:InfAxes} =
-    sublayout(PaddedLayout{UnknownLayout}(), Tuple{JR})
+    sublayout(PaddedColumns{UnknownLayout}(), Tuple{JR})
 -
 
 sublayout(::AbstractBandedLayout, ::Type{<:Tuple{KR,Integer}}) where {KR<:InfAxes} =
-    sublayout(PaddedLayout{UnknownLayout}(), Tuple{KR})
+    sublayout(PaddedColumns{UnknownLayout}(), Tuple{KR})
 sublayout(::AbstractBandedLayout, ::Type{<:Tuple{Integer,JR}}) where {JR<:InfAxes} =
-    sublayout(PaddedLayout{UnknownLayout}(), Tuple{JR})
+    sublayout(PaddedColumns{UnknownLayout}(), Tuple{JR})
 
 
 function sub_paddeddata(::AbstractBandedLayout, S::SubArray{T,1,<:AbstractMatrix,<:Tuple{InfAxes,Integer}}) where T
@@ -393,7 +397,7 @@ sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{<:Any,In
 sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{InfAxes,Any}) = ApplyArray(V)
 
 
-sub_materialize(::PaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T =
+sub_materialize(::AbstractPaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T =
     _padded_sub_materialize(v)
 
 sub_materialize(lay::InvColumnLayout, v::AbstractVector, ax::Tuple{InfAxes}) =
@@ -403,7 +407,10 @@ sub_materialize(lay::InvColumnLayout, v::AbstractVector, ax::Tuple{InfAxes}) =
 Base._unsafe_getindex(::IndexStyle, A::AbstractVector, r::InfAxes) = layout_getindex(A, r)
 Base._unsafe_getindex(::IndexStyle, A::AbstractFill{<:Any,1}, r::InfAxes) = FillArrays._fill_getindex(A, r)
 getindex(A::AbstractCachedVector, r::InfAxes) = layout_getindex(A, r)
+# preserve padded/fill structure
+getindex(A::CachedVector{<:Any,<:AbstractVector,<:AbstractFill{<:Any,1}}, r::InfAxes) = LazyArrays.cache_getindex(A, r)
 # don't resize to ∞
+Base.isassigned(A::AbstractCachedVector, r::InfiniteCardinal{0}) = true
 getindex(A::AbstractCachedVector, r::InfiniteCardinal{0}) = A.array[r]
 
 
@@ -420,4 +427,5 @@ Base._unsafe_getindex(::IndexStyle, A::AbstractFill{<:Any,2}, kr::InfAxes, jr::U
 
 Base.checkindex(::Type{Bool}, inds::AbstractUnitRange, I::AbstractFill) = Base.checkindex(Bool, inds, getindex_value(I))
 LazyArrays.cache_getindex(::InfiniteCardinal{0}, A::AbstractVector, I, J...) = layout_getindex(A, I, J...)
+LazyArrays.cache_getindex(::InfiniteCardinal{0}, A::CachedVector{<:Any,<:AbstractVector,<:AbstractFill{<:Any,1}}, I::AbstractVector) = LazyArrays.cache_getindex(nothing, A, I)
 

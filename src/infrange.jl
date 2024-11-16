@@ -136,13 +136,15 @@ function oneto(x::ComplexInfinity)
     throw(ArgumentError("Cannot create infinite range with negative length"))
  end
 
+@static if VERSION >= v"1.11.0-"
+    Base.unchecked_oneto(::PosInfinity) = OneToInf()
+end
+
 AbstractArray{T}(a::OneToInf) where T<:Integer = OneToInf{T}()
 AbstractVector{T}(a::OneToInf) where T<:Integer = OneToInf{T}()
 AbstractArray{T}(a::OneToInf) where T<:Real = InfStepRange(one(T),one(T))
 AbstractVector{T}(a::OneToInf) where T<:Real = InfStepRange(one(T),one(T))
 
-
-(==)(::OneToInf, ::OneToInf) = true
 
 ## interface implementations
 
@@ -155,6 +157,9 @@ isempty(r::InfRanges) = false
 step(r::InfStepRange) = r.step
 
 length(r::InfRanges) = ℵ₀
+if VERSION >= v"1.7"
+    Base.checked_length(r::InfRanges) = ℵ₀
+end
 unsafe_length(r::InfRanges) = ℵ₀
 
 first(r::OneToInf{T}) where {T} = oneunit(T)
@@ -191,13 +196,11 @@ _sub2ind(inds::Tuple{OneToInf}, i::Integer)    = i
 to_shape(::OneToInf) = ℵ₀
 
 # used for linear indexing
-function _ind2sub_recurse(inds::Tuple{OneToInf{Int},Vararg{Any}}, ind::Integer)
-    @_inline_meta
+@inline function _ind2sub_recurse(inds::Tuple{OneToInf{Int},Vararg{Any}}, ind::Integer)
     (ind+1, _ind2sub_recurse(tail(inds), 0)...)
 end
 
-function _ind2sub_recurse(indslast::Tuple{OneToInf{Int}}, ind::Integer)
-	@_inline_meta
+@inline function _ind2sub_recurse(indslast::Tuple{OneToInf{Int}}, ind::Integer)
 	(ind+1,)
 end
 
@@ -257,31 +260,27 @@ getindex(r::AbstractInfUnitRange, s::Slice{<:AbstractInfUnitRange{<:Integer}}) =
 
 getindex(r::OneToInf{T}, s::OneTo) where T = OneTo(T(s.stop))
 
-function getindex(r::AbstractInfUnitRange, s::InfStepRange{<:Integer})
-    @_inline_meta
+@inline function getindex(r::AbstractInfUnitRange, s::InfStepRange{<:Integer})
     @boundscheck (step(s) > 0 && first(s) ≥ 1) || throw(BoundsError(r, minimum(s)))
     st = oftype(first(r), first(r) + s.start-1)
     new_step = step(s)
     InfStepRange(st,new_step)
 end
 
-function getindex(r::AbstractInfUnitRange, s::StepRange{<:Integer})
-    @_inline_meta
+@inline function getindex(r::AbstractInfUnitRange, s::StepRange{<:Integer})
     @boundscheck minimum(s) ≥ 1 || throw(BoundsError(r, minimum(s)))
     st = oftype(first(r), first(r) + s.start-1)
     range(st; step=step(s), length=length(s))
 end
 
-function getindex(r::InfStepRange, s::InfAxes)
-    @_inline_meta
+@inline function getindex(r::InfStepRange, s::InfAxes)
     @boundscheck (step(s) > 0 && first(s) ≥ 1) || throw(BoundsError(r, minimum(s)))
     st = oftype(r.start, r.start + (first(s)-1)*step(r))
     new_step = step(r)*step(s)
     InfStepRange(st,new_step)
 end
 
-function getindex(r::InfStepRange, s::AbstractRange{<:Integer})
-    @_inline_meta
+@inline function getindex(r::InfStepRange, s::AbstractRange{<:Integer})
     @boundscheck isempty(s) || minimum(s) ≥ 1 || throw(BoundsError(r, minimum(s)))
     st = oftype(r.start, r.start + (first(s)-1)*step(r))
     range(st; step=step(r)*step(s), length=length(s))
@@ -403,11 +402,16 @@ intersect(s::StepRange, r::InfStepRange) = intersect(r, s)
 intersect(s::AbstractRange, r::InfStepRange) = intersect(StepRange(s), r)
 intersect(s::InfStepRange, r::AbstractRange) = intersect(s, StepRange(r))
 
-function union(ain::InfRanges, bin::InfRanges)
-    a,b = promote(ain, bin)
-    first(b) ∈ a && iszero(mod(step(b), step(a))) && return a
-    first(a) ∈ b && iszero(mod(step(a), step(b))) && return b
-    throw(ArgumentError("Cannot take union of $a and $b"))
+function union(ain::InfRanges, bin::InfRanges...)
+    ranges = promote(ain, bin...)
+    steps = step.(ranges)
+    firsts = first.(ranges)
+    for r in ranges
+        if all(in(r), firsts) && all(s -> iszero(mod(step(s), step(r))), ranges)
+            return r
+        end
+    end
+    throw(ArgumentError("Cannot take union of $ranges"))
 end
 
 promote_rule(a::Type{InfUnitRange{T1}}, b::Type{InfUnitRange{T2}}) where {T1,T2} =
@@ -510,26 +514,51 @@ broadcast(f, r::Transpose{<:Any,<:InfRanges}, a::Number) = transpose(broadcast(f
 # cumsum(r::InfRanges) = OneToInf() .* (first(r) .+ r) .÷ 2
 cumsum(r::InfRanges) = RangeCumsum(r)
 diff(r::InfRanges) = Fill(step(r),∞)
-diff(r::OneToInf{T}) where T = Ones{T}(∞)
+diff(r::AbstractInfUnitRange{T}) where T = Ones{T}(∞)
 Base.@propagate_inbounds getindex(c::RangeCumsum, kr::OneToInf) = RangeCumsum(c.range[kr])
-getindex(c::RangeCumsum{<:Any,<:OneToInf}, k::Integer) = k * (k+1) ÷ 2
+Base.@propagate_inbounds function getindex(c::RangeCumsum{<:Any,<:OneToInf}, k::Integer)
+    @boundscheck checkbounds(c, k)
+    k * (k+1) ÷ 2
+end
+function union(r1::RangeCumsum{T1, OneToInf{T1}}, r2::RangeCumsum{T2, OneToInf{T2}}) where {T1,T2}
+    T = promote_type(T1, T2)
+    RangeCumsum(OneToInf{T}())
+end
+Base.issorted(r::RangeCumsum{<:Any,<:OneToInf}) = true
+Base.sort(r::RangeCumsum{<:Any,<:OneToInf}) = r
+Base.sort!(r::RangeCumsum{<:Any,<:OneToInf}) = r
 
+getindex(c::RangeCumsum{<:Any,<:OneToInf}, ::InfiniteCardinal{0}) = last(c)
+Base.@propagate_inbounds function getindex(c::RangeCumsum{<:Any,<:AbstractRange}, k::InfiniteCardinal{0})
+    @boundscheck checkbounds(c, k)
+    last(c)
+end
+Base._unsafe_getindex(::IndexStyle, A::RangeCumsum, I::InfiniteCardinal{0}) = last(A)
 # vcat
 
 vcat(a::Number, r::InfRanges) = Vcat(a, r)
 
 throw_inferror() = throw(ArgumentError("vcat is undefined with a leading infinite range"))
-vcat(r::InfRanges) = r
-vcat(r::InfRanges{T}, args::InfRanges{T}...) where {T} = throw_inferror()
-vcat(r::InfRanges, args::InfRanges...) = throw_inferror()
-vcat(r::InfRanges{T}, args::AbstractRange{T}...) where {T} = throw_inferror()
-vcat(r::InfRanges, args::AbstractRange...) = throw_inferror()
-vcat(r::InfRanges{T}, args::AbstractVector{T}...) where {T} = throw_inferror()
-vcat(r::InfRanges, args::AbstractVector...) = throw_inferror()
-vcat(r::InfRanges, ::Union{Number, AbstractVector}...) = throw_inferror()
-vcat(r::AbstractRange{T}, infr::InfRanges{T}) where {T} = Vcat(r, infr)
-vcat(r::AbstractRange, infr::InfRanges) = Vcat(r, infr)
-vcat(v::AbstractVector, infr::InfRanges) = Vcat(v, infr)
+# vcat(r::InfRanges) = r
+# vcat(r::InfRanges{T}, args::InfRanges{T}...) where {T} = throw_inferror()
+# vcat(r::InfRanges, args::InfRanges...) = throw_inferror()
+# vcat(r::InfRanges{T}, args::AbstractRange{T}...) where {T} = throw_inferror()
+# vcat(r::InfRanges, args::AbstractRange...) = throw_inferror()
+# vcat(r::InfRanges{T}, args::AbstractVector{T}...) where {T} = throw_inferror()
+# vcat(r::InfRanges, args::AbstractVector...) = throw_inferror()
+# vcat(r::InfRanges, ::Union{Number, AbstractVector}...) = throw_inferror()
+# vcat(r::AbstractRange{T}, infr::InfRanges{T}) where {T} = Vcat(r, infr)
+# vcat(r::AbstractRange, infr::InfRanges) = Vcat(r, infr)
+# vcat(v::AbstractVector, infr::InfRanges) = Vcat(v, infr)
+
+vcat(r::InfRanges{<:Number}, args::AbstractVector{<:Number}...) = throw_inferror()
+vcat(r::InfRanges{<:Number}) = r
+vcat(r::InfRanges{<:Number}, args::AbstractRange{<:Number}...) = throw_inferror()
+vcat(r::InfRanges{<:Number}, args::InfRanges{<:Number}...) = throw_inferror()
+vcat(r::InfRanges{<:Number}, ::Union{Number, AbstractVector{<:Number}}...) = throw_inferror()
+vcat(r::AbstractRange{T}, infr::InfRanges{T}) where {T<:Number} = Vcat(r, infr)
+vcat(r::AbstractRange{<:Number}, infr::InfRanges{<:Number}) = Vcat(r, infr)
+vcat(v::AbstractVector{<:Number}, infr::InfRanges{<:Number}) = Vcat(v, infr)
 
 ###
 # MemoryLayout
@@ -545,7 +574,7 @@ MemoryLayout(::Type{<:AbstractInfUnitRange}) = LazyLayout()
 
 # from array.jl
 function _step_findfirst(p, r::InfStepRange{T,S}) where {T,S}
-    first(r) <= p.x || return nothing
+    (first(r) <= p.x && step(r) > zero(step(r))) || (first(r) >= p.x && step(r) < zero(step(r))) || return nothing
     d = convert(S, p.x - first(r))
     iszero(d % step(r)) || return nothing
     return d ÷ step(r) + 1
@@ -573,12 +602,34 @@ for op in (:isequal, :(==))
             isinteger(p.x) ? findfirst($op(convert(V, p.x)), r) : nothing
     end
 end
-
+findfirst(::typeof(isone), r::InfRanges{T}) where {T} = findfirst(==(one(T)), r)
+findfirst(::typeof(iszero), r::InfRanges{T}) where {T} = findfirst(==(zero(T)), r)
 
 FillArrays._range_convert(::Type{AbstractVector{T}}, r::InfRanges) where T = convert(AbstractVector{T}, r)
 
-
-permutedims(D::Diagonal{<:Any,<:InfRanges}) = D
+if VERSION <= v"1.9"
+    permutedims(D::Diagonal{<:Any,<:InfRanges}) = D
+end
 copy(D::Diagonal{<:Any,<:InfRanges}) = D
 broadcasted(::LazyArrayStyle{2}, ::typeof(*), a::Number, D::Diagonal{<:Any,<:InfRanges}) = a*D
 broadcasted(::LazyArrayStyle{2}, ::typeof(*), D::Diagonal{<:Any,<:InfRanges}, a::Number) = D*a
+
+function LinearAlgebra.diag(D::Diagonal{<:Any,<:InfRanges}, k::Integer = 0)
+    if k == 0
+        return parent(D)
+    else
+        return Zeros{eltype(D)}(size(D,1)) # infinite vector of zeros
+    end
+end
+
+function inv(D::Diagonal{<:Any, <:InfRanges})
+    d = D.diag 
+    idx = findfirst(iszero, d) 
+    isnothing(idx) || throw(SingularException(idx))
+    return Diagonal(inv.(d))
+end
+
+# bounds-checking
+function Base.checkindex(::Type{Bool}, inds::NTuple{N, AbstractInfUnitRange}, i::AbstractRange{CartesianIndex{N}}) where {N}
+    isempty(i) | checkindex(Bool, inds, first(i))
+end

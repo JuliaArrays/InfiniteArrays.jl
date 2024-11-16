@@ -1,5 +1,5 @@
 using LinearAlgebra, SparseArrays, InfiniteArrays, Infinities, FillArrays, LazyArrays, Statistics, Test, Base64
-using BandedMatrices, LazyBandedMatrices
+using BandedMatrices
 import InfiniteArrays: InfUnitRange, InfStepRange, OneToInf, NotANumber, oneto, unitrange
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport, DualLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
@@ -7,10 +7,7 @@ import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
 using Aqua
 @testset "Project quality" begin
-    Aqua.test_all(InfiniteArrays, ambiguities=false, piracy=false,
-        # only test formatting on VERSION >= v1.7
-        # https://github.com/JuliaTesting/Aqua.jl/issues/105#issuecomment-1551405866
-        project_toml_formatting = VERSION >= v"1.7")
+    Aqua.test_all(InfiniteArrays, ambiguities=false, piracies=false)
 end
 
 @testset "construction" begin
@@ -170,6 +167,10 @@ end
         @test length(2:-.2:-∞) == ℵ₀
         @test length(2.:-.2:-∞) == ℵ₀
 
+        if VERSION >= v"1.7"
+            @test Base.checked_length(1:∞) == length(1:∞)
+        end
+
         @testset "IteratorSize" begin
             @test Base.IteratorSize(1:2:∞) == Base.IsInfinite()
             @test Base.IteratorSize(1:∞) == Base.IsInfinite()
@@ -177,6 +178,11 @@ end
             @test first(s) == 2
             @test first(s) == 3
         end
+    end
+
+    @testset "first" begin
+        @test first(1:4:∞) == 1
+        @test first(1:4:∞, 4) == range(1, step=4, length=4)
     end
 
     @testset "intersect" begin
@@ -214,6 +220,14 @@ end
         @test sort(2:2:∞) ≡ sort!(2:2:∞) ≡ 2:2:∞
         @test_throws ArgumentError sort(2:-2:-∞)
         @test_throws ArgumentError sort!(2:-2:-∞)
+
+        @testset "RangeCumsum" begin
+            r = InfiniteArrays.OneToInf()
+            rs = cumsum(r)
+            @test sort(rs) === sort!(rs) === rs
+            @test @inferred((rs -> Val(issorted(rs)))(rs)) isa Val{true}
+            @test rs[end] ≡ ℵ₀
+        end
     end
     @testset "in" begin
         @test 0 in UInt(0):100:∞
@@ -290,6 +304,13 @@ end
 
     @testset "near-equal ranges" begin
         @test 0.0:0.1:∞ != 0.0f0:0.1f0:∞
+    end
+
+    @testset "constprop in comparing OneToInf" begin
+        r1 = OneToInf{Int8}()
+        r2 = OneToInf{Int16}()
+        v = @inferred ((r1,r2) -> Val(r1 == r2))(r1, r2)
+        @test v isa Val{true}
     end
 
     @testset "comparing InfiniteUnitRanges and OneToInf" begin
@@ -427,6 +448,11 @@ end
         @test_throws ArgumentError (3:∞) ∪ (2:2:∞)
         @test_throws ArgumentError (2:2:∞) ∪ (3:∞)
         @test_throws ArgumentError (2:3:∞) ∪ (2:2:∞)
+
+        @test @inferred(union(1:∞)) ≡ 1:∞
+        @test @inferred(union(1.5:∞)) ≡ 1.5:∞
+        @test @inferred(union(1:∞, 2:∞, 4:∞)) ≡ 1:∞
+        @test @inferred(union(1.5:∞, 0.5:∞, 2.5:2:∞)) ≡ 0.5:1:∞
     end
 
     @testset "adjoint indexing" begin
@@ -892,6 +918,16 @@ end
         @test c[1:6] == a[r[2:7]]
         @test Base.BroadcastStyle(typeof(c)) isa LazyArrayStyle
     end
+
+    @testset "structured matrices" begin
+        r = 1:∞
+        f = Fill(2, ∞)
+        for B in (Bidiagonal(r, r, :U), Tridiagonal(r, r, r), SymTridiagonal(r, r),
+                   Bidiagonal(f, f, :U), Tridiagonal(f, f, f), SymTridiagonal(f, f))
+            B2 = B .+ B
+            @test B2[1:10, 1:10] == 2B[1:10, 1:10]
+        end
+    end
 end
 
 @testset "Cumsum and diff" begin
@@ -901,7 +937,7 @@ end
     @test cumsum(Ones{BigInt}(∞)) ≡ OneToInf{BigInt}()
 
     @test diff(oneto(∞)) ≡ Ones{Int}(∞)
-    @test diff(1:∞) ≡ Fill(1,∞)
+    @test diff(1:∞) ≡ Ones{Int}(∞)
     @test diff(1:2:∞) ≡ Fill(2,∞)
     @test diff(1:2.0:∞) ≡ Fill(2.0,∞)
 
@@ -926,7 +962,19 @@ end
         @test exp.(c)[1:20] == exp.(c[1:20])
     end
 
+    @test cumsum(3:4:∞)[end] ≡ cumsum(3:4:∞)[∞] ≡ cumsum(3:4:∞)[ℵ₀] ≡ RealInfinity()
+    @test cumsum(2:∞)[end] ≡ cumsum(2:∞)[∞] ≡ cumsum(2:∞)[ℵ₀] ≡ cumsum(oneto(∞))[end] ≡ cumsum(oneto(∞))[∞] ≡ cumsum(oneto(∞))[ℵ₀] ≡  ℵ₀
+
+    @test_throws BoundsError cumsum(oneto(∞))[-5]
+
     @test cumsum(1:∞)[2:∞][1:5] == cumsum(1:6)[2:end]
+
+    @testset "union of cumsum" begin
+        r1 = InfiniteArrays.OneToInf{Int8}()
+        r2 = InfiniteArrays.OneToInf{Int16}()
+        rs = union(cumsum(r1), cumsum(r2))
+        @test rs == cumsum(r2)
+    end
 end
 
 @testset "Sub-array" begin
@@ -1065,6 +1113,17 @@ end
     @test searchsorted(factorial.(big(1):∞), 6) == 3:3
     @test searchsortedfirst(factorial.(big(1):∞), 7) == 4
     @test searchsortedlast(factorial.(big(1):∞), 7) == 3
+
+    @testset "Issue #178" begin
+        findfirst(isone, 1:∞) == 1 
+        findfirst(isone, 0:2:∞) === nothing
+        findfirst(isone, -5:∞) == 7
+        findfirst(isone, 2:∞) === nothing 
+        findfirst(iszero, 0:∞) == 1 
+        findfirst(iszero, 5:∞) === nothing 
+        findfirst(iszero, 0.5:∞) === nothing 
+        findfirst(iszero, -5.0:2.5:∞) == 3
+    end
 end
 
 @testset "convert infrange" begin
@@ -1164,4 +1223,48 @@ end
     Base.sprint(show, I(ℵ₀), context=:limit=>true)
 end
 
+@testset "comprehension" begin
+    @test [k * (k+1) for k = 1:∞][1:10] == [k * (k+1) for k = 1:10]
+    @test [k * (k+1) for k = 1:2:∞][1:10] == [k * (k+1) for k = 1:2:20]
+    @test [k * (k+1) for k = 1:2.0:∞][1:10] == [k * (k+1) for k = 1:2.0:20]
+    @test [k * (k+1) for k = 1:2:∞] isa AbstractVector{Int}
+    @test [k * (k+1) for k = 1:2.0:∞] isa AbstractVector{Float64}
+end
+
+@testset "diag" begin
+    D = Diagonal(1:∞)
+    @test @inferred(diag(D)) === 1:∞
+    @test @inferred((D -> diag(D,1))(D)) === Zeros{Int}(ℵ₀)
+    # test for compile-time evaluation of off-diagonals
+    @inferred Val((D -> diag(D,1))(D))
+    # Issue #176 
+    @test inv(D)[1:100,1:100] == Diagonal(inv.(1:∞))[1:100,1:100]
+end
+
+@testset "inf padded" begin
+    v = Vcat(1, Zeros(∞))
+    @test LazyArrays.sub_materialize(view(v, 1:∞))[1:10] == [1; zeros(9)]
+    @test LazyArrays.sub_materialize(view(v, 2:∞))[1:10] == zeros(10)
+    @test v[2:∞] isa Zeros
+    @test v[1:∞] == v
+end
+
+@testset "issue #180" begin
+    @test isnothing(findfirst(==(21), 10:-1:-∞))
+    @test isnothing(findfirst(==(11), 10:-1:-∞))
+    @test findfirst(==(9), 10:-1:-∞) == 2
+    r = 10:-1:-∞
+    v = -20
+    ind = findfirst(==(v), r)
+    @test r[ind] == v
+end
+
 include("test_infconv.jl")
+include("test_block.jl")
+
+@testset "bounds-checking for StepRangeLen{<:CartesianIndex}" begin
+    if VERSION >= v"1.11.0-rc3"
+        D = Diagonal(1:∞)
+        @test checkbounds(Bool, D, diagind(D, IndexCartesian()))
+    end
+end
