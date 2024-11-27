@@ -1,15 +1,19 @@
 module InfiniteArraysBandedMatricesExt
 using InfiniteArrays, BandedMatrices, LinearAlgebra
-using InfiniteArrays.LazyArrays, InfiniteArrays.ArrayLayouts
+using InfiniteArrays.LazyArrays, InfiniteArrays.ArrayLayouts, InfiniteArrays.FillArrays
 
-import Base: BroadcastStyle, size, getindex, similar, copy, *, +, -, /, \, materialize!, copyto!
-import InfiniteArrays: InfIndexRanges, Infinity, PosInfinity, OneToInf
-import ArrayLayouts: sub_materialize, MemoryLayout, sublayout, mulreduce, _bidiag_forwardsub!, triangularlayout
-import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable
+import Base: BroadcastStyle, size, getindex, similar, copy, *, +, -, /, \, materialize!, copyto!, OneTo
+import Base.Broadcast: Broadcasted
+import InfiniteArrays: InfIndexRanges, Infinity, PosInfinity, OneToInf, InfAxes, AbstractInfUnitRange, InfRanges
+import ArrayLayouts: sub_materialize, MemoryLayout, sublayout, mulreduce, _bidiag_forwardsub!, triangularlayout, MatLdivVec
+import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable, AbstractLazyLayout, PaddedColumns
 import BandedMatrices: _BandedMatrix, AbstractBandedMatrix, banded_similar, BandedMatrix, bandedcolumns, BandedColumns
+import FillArrays: AbstractFillMatrix, AbstractFill
 
 const LazyArraysBandedMatricesExt = Base.get_extension(LazyArrays, :LazyArraysBandedMatricesExt)
 const AbstractLazyBandedLayout = LazyArraysBandedMatricesExt.AbstractLazyBandedLayout
+const ApplyBandedLayout = LazyArraysBandedMatricesExt.ApplyBandedLayout
+const BroadcastBandedLayout = LazyArraysBandedMatricesExt.BroadcastBandedLayout
 
 BroadcastStyle(::Type{<:SubArray{<:Any,2,<:AbstractBandedMatrix,<:Tuple{<:InfIndexRanges,<:InfIndexRanges}}})= LazyArrayStyle{2}()
 _BandedMatrix(data::AbstractMatrix{T}, ::Infinity, l, u) where T = _BandedMatrix(data, ℵ₀, l, u)
@@ -405,13 +409,6 @@ _BandedMatrix(::PertToeplitzLayout, A::AbstractMatrix) =
 @inline sub_materialize(::BroadcastBandedLayout, V, ::Tuple{InfAxes,InfAxes}) = V
 @inline sub_materialize(::BandedColumns, V, ::Tuple{InfAxes,InfAxes}) = BandedMatrix(V)
 @inline sub_materialize(::BandedColumns, V, ::Tuple{InfAxes,OneTo{Int}}) = BandedMatrix(V)
-
-sub_materialize(_, V, ::Tuple{BlockedOneTo{Int,<:InfRanges}}) = V
-sub_materialize(::AbstractBlockLayout, V, ::Tuple{BlockedOneTo{Int,<:InfRanges}}) = V
-function sub_materialize(::PaddedColumns, v::AbstractVector{T}, ax::Tuple{BlockedOneTo{Int,<:InfRanges}}) where T
-    dat = paddeddata(v)
-    BlockedVector(Vcat(sub_materialize(dat), Zeros{T}(∞)), ax)
-end
 
 ##
 # UniformScaling
