@@ -208,5 +208,18 @@ end
 
 collect(G::Base.Generator{<:InfRanges}) = BroadcastArray(G.f, G.iter)
 
+# Support PowerBySquaring w/ ∞-arrays
+function ArrayLayouts._power_by_squaring(_, ::NTuple{2,InfiniteCardinal{0}}, A::AbstractMatrix{T}, p::Integer) where T
+   if p < 0
+       inv(A)^(-p)
+   elseif p == 0
+       Eye{T}(∞)
+   elseif p == 1
+       copy(A)
+   else
+       A*A^(p-1)
+   end
+end
+
 
 end # module

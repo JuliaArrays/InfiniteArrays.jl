@@ -1254,3 +1254,6 @@ include("test_block.jl")
         @test checkbounds(Bool, D, diagind(D, IndexCartesian()))
     end
 end
+
+
+include("test_infbanded.jl")
