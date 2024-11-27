@@ -1,9 +1,15 @@
 module InfiniteArraysBandedMatricesExt
-using InfiniteArrays, BandedMatrices
+using InfiniteArrays, BandedMatrices, LinearAlgebra
+using InfiniteArrays.LazyArrays, InfiniteArrays.ArrayLayouts
 
-import Base: BroadcastStyle, size, getindex
-import InfiniteArrays: InfIndexRanges, sub_materialize
-import BandedMatrices: _BandedMatrix
+import Base: BroadcastStyle, size, getindex, similar, copy, *, +, -, /, \, materialize!, copyto!
+import InfiniteArrays: InfIndexRanges, Infinity, PosInfinity, OneToInf
+import ArrayLayouts: sub_materialize, MemoryLayout, sublayout, mulreduce, _bidiag_forwardsub!, triangularlayout
+import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable
+import BandedMatrices: _BandedMatrix, AbstractBandedMatrix, banded_similar, BandedMatrix, bandedcolumns, BandedColumns
+
+const LazyArraysBandedMatricesExt = Base.get_extension(LazyArrays, :LazyArraysBandedMatricesExt)
+const AbstractLazyBandedLayout = LazyArraysBandedMatricesExt.AbstractLazyBandedLayout
 
 BroadcastStyle(::Type{<:SubArray{<:Any,2,<:AbstractBandedMatrix,<:Tuple{<:InfIndexRanges,<:InfIndexRanges}}})= LazyArrayStyle{2}()
 _BandedMatrix(data::AbstractMatrix{T}, ::Infinity, l, u) where T = _BandedMatrix(data, ℵ₀, l, u)
@@ -515,24 +521,17 @@ end
 const InfFill = AbstractFill{<:Any,1,<:Tuple{OneToInf}}
 
 for Typ in (:(LinearAlgebra.Tridiagonal{<:Any,<:InfFill}),
-            :(LinearAlgebra.SymTridiagonal{<:Any,<:InfFill}),
-            :(LazyBandedMatrices.Tridiagonal{<:Any,<:InfFill,<:InfFill,<:InfFill}),
-            :(LazyBandedMatrices.SymTridiagonal{<:Any,<:InfFill,<:InfFill}))
+            :(LinearAlgebra.SymTridiagonal{<:Any,<:InfFill}))
     @eval begin
         MemoryLayout(::Type{<:$Typ}) = TridiagonalToeplitzLayout()
         BroadcastStyle(::Type{<:$Typ}) = LazyArrayStyle{2}()
     end
 end
 
-for Typ in (:(LinearAlgebra.Bidiagonal{<:Any,<:InfFill}),
-            :(LazyBandedMatrices.Bidiagonal{<:Any,<:InfFill,<:InfFill}))
-    @eval begin
-        MemoryLayout(::Type{<:$Typ}) = BidiagonalToeplitzLayout()
-        BroadcastStyle(::Type{<:$Typ}) = LazyArrayStyle{2}()
-    end
-end
+MemoryLayout(::Type{<:Bidiagonal{<:Any,<:InfFill}}) = BidiagonalToeplitzLayout()
+BroadcastStyle(::Type{<:Bidiagonal{<:Any,<:InfFill}}) = LazyArrayStyle{2}()
 
-*(A::LinearAlgebra.Bidiagonal{<:Any,<:InfFill}, B::LinearAlgebra.Bidiagonal{<:Any,<:InfFill}) =
+*(A::Bidiagonal{<:Any,<:InfFill}, B::Bidiagonal{<:Any,<:InfFill}) =
     mul(A, B)
 
 # fall back for Ldiv
