@@ -1256,7 +1256,9 @@ include("test_block.jl")
 end
 
 @testset "Vector * ∞-FillMatrix" begin
-    A = [1+im,2+im] * Ones{Complex{Int}}(1,∞)
+    a = [1+im,2+im]
+    A = a * Ones{Complex{Int}}(1,∞)
+    @test A[:,1:5] == a * ones(1,5)
 end
 
 include("test_infbanded.jl")

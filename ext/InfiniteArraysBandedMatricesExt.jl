@@ -6,12 +6,11 @@ import Base: BroadcastStyle, size, getindex, similar, copy, *, +, -, /, \, mater
 import Base.Broadcast: Broadcasted
 import InfiniteArrays: InfIndexRanges, Infinity, PosInfinity, OneToInf, InfAxes, AbstractInfUnitRange, InfRanges
 import ArrayLayouts: sub_materialize, MemoryLayout, sublayout, mulreduce, _bidiag_forwardsub!, triangularlayout, MatLdivVec
-import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable, AbstractLazyLayout, PaddedColumns, LazyArrayStyle, ApplyLayout
+import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable, AbstractLazyLayout, PaddedColumns, LazyArrayStyle, ApplyLayout, AbstractLazyBandedLayout
 import BandedMatrices: _BandedMatrix, AbstractBandedMatrix, banded_similar, BandedMatrix, bandedcolumns, BandedColumns, bandeddata
 import FillArrays: AbstractFillMatrix, AbstractFill, getindex_value
 
 const LazyArraysBandedMatricesExt = Base.get_extension(LazyArrays, :LazyArraysBandedMatricesExt)
-const AbstractLazyBandedLayout = LazyArraysBandedMatricesExt.AbstractLazyBandedLayout
 const ApplyBandedLayout = LazyArraysBandedMatricesExt.ApplyBandedLayout
 const BroadcastBandedLayout = LazyArraysBandedMatricesExt.BroadcastBandedLayout
 
