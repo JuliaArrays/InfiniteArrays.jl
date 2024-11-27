@@ -619,7 +619,3 @@ end
 function Base.checkindex(::Type{Bool}, inds::NTuple{N, AbstractInfUnitRange}, i::AbstractRange{CartesianIndex{N}}) where {N}
     isempty(i) | checkindex(Bool, inds, first(i))
 end
-
-
-LinearAlgebra._cut_B(x::AbstractVector, ::InfUnitRange) = x
-LinearAlgebra._cut_B(X::AbstractMatrix, ::InfUnitRange) = X
