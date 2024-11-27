@@ -6,9 +6,9 @@ import Base: BroadcastStyle, size, getindex, similar, copy, *, +, -, /, \, mater
 import Base.Broadcast: Broadcasted
 import InfiniteArrays: InfIndexRanges, Infinity, PosInfinity, OneToInf, InfAxes, AbstractInfUnitRange, InfRanges
 import ArrayLayouts: sub_materialize, MemoryLayout, sublayout, mulreduce, _bidiag_forwardsub!, triangularlayout, MatLdivVec
-import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable, AbstractLazyLayout, PaddedColumns
-import BandedMatrices: _BandedMatrix, AbstractBandedMatrix, banded_similar, BandedMatrix, bandedcolumns, BandedColumns
-import FillArrays: AbstractFillMatrix, AbstractFill
+import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable, AbstractLazyLayout, PaddedColumns, LazyArrayStyle, ApplyLayout
+import BandedMatrices: _BandedMatrix, AbstractBandedMatrix, banded_similar, BandedMatrix, bandedcolumns, BandedColumns, bandeddata
+import FillArrays: AbstractFillMatrix, AbstractFill, getindex_value
 
 const LazyArraysBandedMatricesExt = Base.get_extension(LazyArrays, :LazyArraysBandedMatricesExt)
 const AbstractLazyBandedLayout = LazyArraysBandedMatricesExt.AbstractLazyBandedLayout
@@ -517,8 +517,8 @@ end
 
 const InfFill = AbstractFill{<:Any,1,<:Tuple{OneToInf}}
 
-for Typ in (:(LinearAlgebra.Tridiagonal{<:Any,<:InfFill}),
-            :(LinearAlgebra.SymTridiagonal{<:Any,<:InfFill}))
+for Typ in (:(Tridiagonal{<:Any,<:InfFill}),
+            :(SymTridiagonal{<:Any,<:InfFill}))
     @eval begin
         MemoryLayout(::Type{<:$Typ}) = TridiagonalToeplitzLayout()
         BroadcastStyle(::Type{<:$Typ}) = LazyArrayStyle{2}()
