@@ -167,9 +167,7 @@ end
         @test length(2:-.2:-∞) == ℵ₀
         @test length(2.:-.2:-∞) == ℵ₀
 
-        if VERSION >= v"1.7"
-            @test Base.checked_length(1:∞) == length(1:∞)
-        end
+        @test Base.checked_length(1:∞) == length(1:∞)
 
         @testset "IteratorSize" begin
             @test Base.IteratorSize(1:2:∞) == Base.IsInfinite()
@@ -621,9 +619,7 @@ end
     @test D[:,5][1:10] == D[1:10,5]
     @test D[5,:][1:10] == D[5,1:10]
 
-    if VERSION ≥ v"1.7-"
-        @test D^2 isa Diagonal
-    end
+    @test D^2 isa Diagonal
     @test D*D isa Diagonal
     @test MemoryLayout(typeof(D.diag)) == LazyLayout()
     @test MemoryLayout(typeof(D)) == DiagonalLayout{LazyLayout}()
