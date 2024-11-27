@@ -16,11 +16,9 @@ import Base: *, +, -, /, <, ==, >, \, ≤, ≥, (:), @propagate_inbounds,
              to_shape, transpose, unaliascopy, union, unitrange_last, unsafe_convert, unsafe_indices, unsafe_length,
              vcat, zeros
 
-if VERSION < v"1.8-"
-   import Base: _rangestyle
-else
-   import Base: range_start_step_length
-end
+
+import Base: range_start_step_length
+
 if VERSION ≥ v"1.11.0-DEV.21"
    using LinearAlgebra: UpperOrLowerTriangular
 else
@@ -209,11 +207,6 @@ end
 
 
 collect(G::Base.Generator{<:InfRanges}) = BroadcastArray(G.f, G.iter)
-
-if !isdefined(Base, :get_extension)
-    include("../ext/InfiniteArraysStatisticsExt.jl")
-    include("../ext/InfiniteArraysDSPExt.jl")
-end
 
 
 end # module

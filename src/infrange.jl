@@ -29,17 +29,12 @@ _range(a::Real,          ::Nothing,         ::Nothing, len::InfiniteCardinal{0})
 _range(a::AbstractFloat, ::Nothing,         ::Nothing, len::InfiniteCardinal{0}) = _range(a, oftype(a, 1),   nothing, len)
 _range(a::T, st::T, ::Nothing, ::InfiniteCardinal{0}) where T<:IEEEFloat = InfStepRange{T,T}(a, st)
 _range(a::T, st::T, ::Nothing, ::InfiniteCardinal{0}) where T<:AbstractFloat = InfStepRange{T,T}(a, st)
-if VERSION < v"1.8-"
-    _rangestyle(::Ordered, ::ArithmeticWraps, a::T, step::S, len::InfiniteCardinal{0}) where {T,S} = InfStepRange{T,S}(a, step)
-    _rangestyle(::Ordered, ::ArithmeticUnknown, a::T, step::S, len::InfiniteCardinal{0}) where {T,S} = InfStepRange{T,S}(a, step)
-    _rangestyle(::Any, ::Any, a::T, step::S, len::InfiniteCardinal{0}) where {T,S} = InfStepRange{T,S}(a, step)
-else
-    range_start_step_length(a, st, ::InfiniteCardinal{0}) = InfStepRange(a, st)
-    range_start_step_length(a::Real, st::IEEEFloat, len::InfiniteCardinal{0}) = range_start_step_length(promote(a, st)..., len)
-    range_start_step_length(a::IEEEFloat, st::Real, len::InfiniteCardinal{0}) = range_start_step_length(promote(a, st)..., len)
-    range_start_step_length(a::IEEEFloat, st::IEEEFloat, len::InfiniteCardinal{0}) = range_start_step_length(promote(a, st)..., len)
-    range_start_step_length(a::T, st::T, ::InfiniteCardinal{0}) where T<:IEEEFloat = InfStepRange{T,T}(a, st)
-end
+range_start_step_length(a, st, ::InfiniteCardinal{0}) = InfStepRange(a, st)
+range_start_step_length(a::Real, st::IEEEFloat, len::InfiniteCardinal{0}) = range_start_step_length(promote(a, st)..., len)
+range_start_step_length(a::IEEEFloat, st::Real, len::InfiniteCardinal{0}) = range_start_step_length(promote(a, st)..., len)
+range_start_step_length(a::IEEEFloat, st::IEEEFloat, len::InfiniteCardinal{0}) = range_start_step_length(promote(a, st)..., len)
+range_start_step_length(a::T, st::T, ::InfiniteCardinal{0}) where T<:IEEEFloat = InfStepRange{T,T}(a, st)
+
 
 
 # Construct range for rational start=start_n/den, step=step_n/den
@@ -101,16 +96,14 @@ AbstractMatrix{T}(ac::Transpose{<:Any,<:InfRanges}) where T<:Real = transpose(Ab
 copy(ac::AdjOrTrans{<:Any,<:InfRanges}) = ac
 reverse(a::InfRanges) = throw(ArgumentError("Cannot reverse infinite range"))
 
-if VERSION ≥ v"1.7-"
-    Base.range_start_step_length(a::T, st::T, len::PosInfinity) where T<:Union{Float16,Float32,Float64} = InfStepRange(a, st)
-    for op in (:+, :-)
-        @eval $op(a::InfRanges, b::InfRanges) = InfStepRange($op(first(a),first(b)), $op(step(a),step(b)))
-    end
-    broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::InfRanges) = InfStepRange(x*first(r), x*step(r))
-    broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::InfRanges, x::Number) = InfStepRange(first(r)*x, step(r)*x)
-    broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::AbstractFloat, r::InfRanges) = InfStepRange(x*first(r), x*step(r))
-    broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::InfRanges, x::AbstractFloat) = InfStepRange(first(r)*x, step(r)*x)
+Base.range_start_step_length(a::T, st::T, len::PosInfinity) where T<:Union{Float16,Float32,Float64} = InfStepRange(a, st)
+for op in (:+, :-)
+    @eval $op(a::InfRanges, b::InfRanges) = InfStepRange($op(first(a),first(b)), $op(step(a),step(b)))
 end
+broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::InfRanges) = InfStepRange(x*first(r), x*step(r))
+broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::InfRanges, x::Number) = InfStepRange(first(r)*x, step(r)*x)
+broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::AbstractFloat, r::InfRanges) = InfStepRange(x*first(r), x*step(r))
+broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::InfRanges, x::AbstractFloat) = InfStepRange(first(r)*x, step(r)*x)
 
 
 """
@@ -154,9 +147,7 @@ isempty(r::InfRanges) = false
 step(r::InfStepRange) = r.step
 
 length(r::InfRanges) = ℵ₀
-if VERSION >= v"1.7"
-    Base.checked_length(r::InfRanges) = ℵ₀
-end
+Base.checked_length(r::InfRanges) = ℵ₀
 unsafe_length(r::InfRanges) = ℵ₀
 
 first(r::OneToInf{T}) where {T} = oneunit(T)
@@ -604,9 +595,7 @@ findfirst(::typeof(iszero), r::InfRanges{T}) where {T} = findfirst(==(zero(T)), 
 
 FillArrays._range_convert(::Type{AbstractVector{T}}, r::InfRanges) where T = convert(AbstractVector{T}, r)
 
-if VERSION <= v"1.9"
-    permutedims(D::Diagonal{<:Any,<:InfRanges}) = D
-end
+permutedims(D::Diagonal{<:Any,<:InfRanges}) = D
 copy(D::Diagonal{<:Any,<:InfRanges}) = D
 broadcasted(::LazyArrayStyle{2}, ::typeof(*), a::Number, D::Diagonal{<:Any,<:InfRanges}) = a*D
 broadcasted(::LazyArrayStyle{2}, ::typeof(*), D::Diagonal{<:Any,<:InfRanges}, a::Number) = D*a
