@@ -6,13 +6,9 @@ import Base: BroadcastStyle, size, getindex, similar, copy, *, +, -, /, \, mater
 import Base.Broadcast: Broadcasted
 import InfiniteArrays: InfIndexRanges, Infinity, PosInfinity, OneToInf, InfAxes, AbstractInfUnitRange, InfRanges
 import ArrayLayouts: sub_materialize, MemoryLayout, sublayout, mulreduce, _bidiag_forwardsub!, triangularlayout, MatLdivVec
-import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable, AbstractLazyLayout, PaddedColumns, LazyArrayStyle, ApplyLayout, AbstractLazyBandedLayout
+import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable, AbstractLazyLayout, PaddedColumns, LazyArrayStyle, ApplyLayout, AbstractLazyBandedLayout, ApplyBandedLayout, BroadcastBandedLayout
 import BandedMatrices: _BandedMatrix, AbstractBandedMatrix, banded_similar, BandedMatrix, bandedcolumns, BandedColumns, bandeddata
 import FillArrays: AbstractFillMatrix, AbstractFill, getindex_value
-
-const LazyArraysBandedMatricesExt = Base.get_extension(LazyArrays, :LazyArraysBandedMatricesExt)
-const ApplyBandedLayout = LazyArraysBandedMatricesExt.ApplyBandedLayout
-const BroadcastBandedLayout = LazyArraysBandedMatricesExt.BroadcastBandedLayout
 
 BroadcastStyle(::Type{<:SubArray{<:Any,2,<:AbstractBandedMatrix,<:Tuple{<:InfIndexRanges,<:InfIndexRanges}}})= LazyArrayStyle{2}()
 _BandedMatrix(data::AbstractMatrix{T}, ::Infinity, l, u) where T = _BandedMatrix(data, ℵ₀, l, u)
