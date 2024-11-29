@@ -16,7 +16,7 @@ const PertToeplitzLayout = InfiniteArraysBandedMatricesExt.PertToeplitzLayout
 const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesianIndices
 
 using Base: oneto
-using LazyArrays: simplifiable
+using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout
 
 @testset "∞-banded" begin
     @testset "Diagonal and BandedMatrix" begin
@@ -244,7 +244,7 @@ using LazyArrays: simplifiable
             @test A * B isa MulMatrix
             @test B'A isa MulMatrix
 
-            @test all(diag(A[1:6, 1:6]) .=== zeros(6))
+            @test all(diag(A[1:6, 1:6]) .=== zeros(Int,6))
 
             @test (A*B)[1:7, 1:5] ≈ A[1:7, 1:6] * B[1:6, 1:5]
             @test (B'A)[1:5, 1:7] ≈ (B')[1:5, 1:6] * A[1:6, 1:7]

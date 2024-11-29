@@ -1,9 +1,10 @@
 name = "InfiniteArrays"
 uuid = "4858937d-0d70-526a-a4dd-2d5cb5dd786c"
-version = "0.15"
+version = "0.15.0"
 
 [deps]
 ArrayLayouts = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
+BandedMatrices = "aae01518-5342-5314-be14-df237901396f"
 FillArrays = "1a297f60-69ca-5386-bcde-b61e274b549b"
 Infinities = "e1ba4f0e-776d-440f-acd9-e1d2e9742647"
 LazyArrays = "5078a376-72f3-5289-bfd5-ec5146d43c02"
@@ -14,12 +15,17 @@ BandedMatrices = "aae01518-5342-5314-be14-df237901396f"
 DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
+[extensions]
+InfiniteArraysBandedMatricesExt = "BandedMatrices"
+InfiniteArraysDSPExt = "DSP"
+InfiniteArraysStatisticsExt = "Statistics"
+
 [compat]
 Aqua = "0.8"
 ArrayLayouts = "1.8"
 BandedMatrices = "1.0"
-BlockArrays = "1.0"
 Base64 = "1"
+BlockArrays = "1.0"
 DSP = "0.7"
 FillArrays = "1.0"
 Infinities = "0.1.1"
@@ -29,11 +35,6 @@ SparseArrays = "1"
 Statistics = "1"
 Test = "1"
 julia = "1.10"
-
-[extensions]
-InfiniteArraysBandedMatricesExt = "BandedMatrices"
-InfiniteArraysDSPExt = "DSP"
-InfiniteArraysStatisticsExt = "Statistics"
 
 [extras]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
