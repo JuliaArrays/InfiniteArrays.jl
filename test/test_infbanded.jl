@@ -182,4 +182,9 @@ using LazyArrays: simplifiable
         B = PaddedArray(randn(3,3),ℵ₀,ℵ₀)
         @test (A*B)[1:10,1:10] ≈ A[1:10,1:10] * B[1:10,1:10]
     end
+
+    @testset "SubArray broadcasting" begin
+        A = BandedMatrix(2 => 1:∞)
+        @test exp.(A[1:2:∞,1:2:∞])[1:10,1:10] ≈ exp.(A[1:2:20,1:2:20])
+    end
 end
