@@ -82,6 +82,9 @@ using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout
             T = Tridiagonal(Fill(1,∞), Fill(2,∞), Fill(3,∞))
             @test T isa TriToeplitz
             @test (T + 2I)[1:10,1:10] == (2I + T)[1:10,1:10] == T[1:10,1:10] + 2I
+
+            S = SymTridiagonal(Fill(1,∞), Fill(2,∞))
+            @test (S + 2I)[1:10,1:10] == (2I + S)[1:10,1:10] == S[1:10,1:10] + 2I
         end
 
         @testset "constant data" begin
@@ -102,6 +105,11 @@ using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout
             @test A*D isa BroadcastMatrix
             @test simplifiable(*, D, A) == Val(true)
             @test simplifiable(*, A, D) == Val(true)
+        end
+
+        @testset "change bands" begin
+            A = SymTridiagonal(Fill(2,∞), Fill(1,∞))
+            @test BandedMatrix(A, (3,1))[1:5,1:5] == A[1:5,1:5]
         end
     end
 
@@ -133,7 +141,6 @@ using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout
             @test (Adjoint(A) + 2I)[1:10,1:10] == (2I + Adjoint(A))[1:10,1:10] == Adjoint(A)[1:10,1:10] + 2I
         end
 
-
         @testset "InfBanded" begin
             A = _BandedMatrix(Fill(2,4,∞),ℵ₀,2,1)
             B = _BandedMatrix(Fill(3,2,∞),ℵ₀,-1,2)
@@ -141,6 +148,11 @@ using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout
             @test A*A isa PertToeplitz
             @test (A*A)[1:20,1:20] == A[1:20,1:23]*A[1:23,1:20]
             @test (A*B)[1:20,1:20] == A[1:20,1:23]*B[1:23,1:20]
+        end
+
+        @testset "change bands" begin
+            A = BandedMatrix(-2 => Vcat(Float64[], Fill(1/4,∞)), 0 => Vcat([1.0+im,2,3],Fill(0,∞)), 1 => Vcat(Float64[], Fill(1,∞)))
+            @test BandedMatrix(A, (3,1))[1:5,1:5] == A[1:5,1:5]
         end
     end
 
@@ -199,6 +211,14 @@ using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout
 
         A = BandedMatrix{Int}((2 => Vcat([1,2], Fill(2,∞)),), (∞,∞), (0,2))
         @test A[band(2)][1:5] == [1; fill(2,4)]
+        @test A[band(4)] ≡ Zeros{Int}(∞)
+    end
+    
+    @testset "prepad with fill" begin
+        A = BandedMatrix(2 => Zeros(∞))
+        @test A[band(2)][1:10] == Zeros(10)
+        A = BandedMatrix(2 => Ones(∞))
+        @test A[band(2)][1:10] == Ones(10)
     end
 
     @testset "Algebra" begin
@@ -311,5 +331,4 @@ using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout
         @test bandwidths(A + B) == (0, 1)
         @test bandwidths(2 * (A + B)) == (0, 1)
     end
-
 end
