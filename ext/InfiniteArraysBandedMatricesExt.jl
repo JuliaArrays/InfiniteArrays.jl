@@ -5,7 +5,7 @@ using InfiniteArrays.LazyArrays, InfiniteArrays.ArrayLayouts, InfiniteArrays.Fil
 import Base: BroadcastStyle, size, getindex, similar, copy, *, +, -, /, \, materialize!, copyto!, OneTo
 import Base.Broadcast: Broadcasted
 import InfiniteArrays: InfIndexRanges, Infinity, PosInfinity, OneToInf, InfAxes, AbstractInfUnitRange, InfRanges
-import ArrayLayouts: sub_materialize, MemoryLayout, sublayout, mulreduce, _bidiag_forwardsub!, triangularlayout, MatLdivVec
+import ArrayLayouts: sub_materialize, MemoryLayout, sublayout, mulreduce, triangularlayout, MatLdivVec, subdiagonaldata, diagonaldata, supdiagonaldata
 import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable, AbstractLazyLayout, PaddedColumns, LazyArrayStyle, ApplyLayout, AbstractLazyBandedLayout, ApplyBandedLayout, BroadcastBandedLayout
 import BandedMatrices: _BandedMatrix, AbstractBandedMatrix, banded_similar, BandedMatrix, bandedcolumns, BandedColumns, bandeddata
 import FillArrays: AbstractFillMatrix, AbstractFill, getindex_value
@@ -472,37 +472,6 @@ mulreduce(M::Mul{<:DiagonalLayout, <:InfToeplitzLayouts}) = Lmul(M)
 mulreduce(M::Mul{<:InfToeplitzLayouts, <:DiagonalLayout}) = Rmul(M)
 
 
-function _bidiag_forwardsub!(M::Ldiv{<:Any,<:PaddedColumns})
-    A, b_in = M.A, M.B
-    dv = diagonaldata(A)
-    ev = subdiagonaldata(A)
-    b = paddeddata(b_in)
-    N = length(b)
-    b[1] = bj1 = dv[1]\b[1]
-    @inbounds for j = 2:N
-        bj  = b[j]
-        bj -= ev[j - 1] * bj1
-        dvj = dv[j]
-        if iszero(dvj)
-            throw(SingularEbception(j))
-        end
-        bj   = dvj\bj
-        b[j] = bj1 = bj
-    end
-
-    @inbounds for j = N+1:length(b_in)
-        iszero(bj1) && break
-        bj = -ev[j - 1] * bj1
-        dvj = dv[j]
-        if iszero(dvj)
-            throw(SingularEbception(j))
-        end
-        bj   = dvj\bj
-        b_in[j] = bj1 = bj
-    end
-
-    b_in
-end
 
 ###
 # Inf-Toeplitz layout

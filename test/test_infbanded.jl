@@ -14,9 +14,12 @@ const BidiagonalToeplitzLayout = InfiniteArraysBandedMatricesExt.BidiagonalToepl
 const PertToeplitz = InfiniteArraysBandedMatricesExt.PertToeplitz
 const PertToeplitzLayout = InfiniteArraysBandedMatricesExt.PertToeplitzLayout
 const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesianIndices
+const subdiagonalconstant = InfiniteArraysBandedMatricesExt.subdiagonalconstant
+const diagonalconstant = InfiniteArraysBandedMatricesExt.diagonalconstant
+const supdiagonalconstant = InfiniteArraysBandedMatricesExt.supdiagonalconstant
 
 using Base: oneto
-using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout
+using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout, islazy
 
 @testset "∞-banded" begin
     @testset "Diagonal and BandedMatrix" begin
@@ -51,7 +54,7 @@ using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout
         @test A isa InfToeplitz
         @test MemoryLayout(A.data) == ConstRows()
         @test MemoryLayout(A) == BandedToeplitzLayout()
-        @test LazyArrays.islazy(A) == Val(true)
+        @test islazy(A) == Val(true)
 
         V = view(A,:,3:∞)
         @test MemoryLayout(typeof(bandeddata(V))) == ConstRows()
@@ -82,9 +85,14 @@ using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout
             T = Tridiagonal(Fill(1,∞), Fill(2,∞), Fill(3,∞))
             @test T isa TriToeplitz
             @test (T + 2I)[1:10,1:10] == (2I + T)[1:10,1:10] == T[1:10,1:10] + 2I
+            @test BandedMatrix(T, (2,3))[1:10,1:10] == InfToeplitz(T,(3,2))[1:10,1:10] == InfToeplitz(T)[1:10,1:10] == T[1:10,1:10]
+            @test subdiagonalconstant(T) == 1
+            @test diagonalconstant(T) == 2
+            @test supdiagonalconstant(T) == 3
 
             S = SymTridiagonal(Fill(1,∞), Fill(2,∞))
             @test (S + 2I)[1:10,1:10] == (2I + S)[1:10,1:10] == S[1:10,1:10] + 2I
+            @test BandedMatrix(S, (2,3))[1:10,1:10] == S[1:10,1:10]
         end
 
         @testset "constant data" begin
@@ -118,9 +126,11 @@ using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout
             A = BandedMatrix(-2 => Vcat(Float64[], Fill(1/4,∞)), 0 => Vcat([1.0+im,2,3],Fill(0,∞)), 1 => Vcat(Float64[], Fill(1,∞)))
             @test A isa PertToeplitz
             @test MemoryLayout(A) isa PertToeplitzLayout
+
             V = view(A,2:∞,2:∞)
             @test MemoryLayout(V) isa PertToeplitzLayout
             @test BandedMatrix(V) isa PertToeplitz
+            @test islazy(V) == Val(true)
             @test A[2:∞,2:∞] isa PertToeplitz
 
             @test (A + 2I)[1:10,1:10] == (2I + A)[1:10,1:10] == A[1:10,1:10] + 2I
@@ -133,13 +143,17 @@ using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout
             A = SymTridiagonal(Vcat([1,2.], Fill(2.,∞)), Vcat([3.,4.], Fill.(0.5,∞)))
             @test A isa SymTriPertToeplitz
             @test (A + 2I)[1:10,1:10] == (2I + A)[1:10,1:10] == A[1:10,1:10] + 2I
+            @test BandedMatrix(A, (2,3))[1:10,1:10] == A[1:10,1:10]
 
             A = Tridiagonal(Vcat([3.,4.], Fill.(0.5,∞)), Vcat([1,2.], Fill(2.,∞)), Vcat([3.,4.], Fill.(0.5,∞)))
             @test A isa TriPertToeplitz
             @test Adjoint(A) isa AdjTriPertToeplitz
             @test (A + 2I)[1:10,1:10] == (2I + A)[1:10,1:10] == A[1:10,1:10] + 2I
             @test (Adjoint(A) + 2I)[1:10,1:10] == (2I + Adjoint(A))[1:10,1:10] == Adjoint(A)[1:10,1:10] + 2I
+            @test BandedMatrix(A, (2,3))[1:10,1:10] == A[1:10,1:10]
         end
+
+
 
         @testset "InfBanded" begin
             A = _BandedMatrix(Fill(2,4,∞),ℵ₀,2,1)
@@ -213,7 +227,7 @@ using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout
         @test A[band(2)][1:5] == [1; fill(2,4)]
         @test A[band(4)] ≡ Zeros{Int}(∞)
     end
-    
+
     @testset "prepad with fill" begin
         A = BandedMatrix(2 => Zeros(∞))
         @test A[band(2)][1:10] == Zeros(10)
