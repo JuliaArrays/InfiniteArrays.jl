@@ -63,7 +63,7 @@ const TriPertToeplitz{T} = Tridiagonal{T,Vcat{T,1,Tuple{Vector{T},Fill{T,1,Tuple
 const AdjTriPertToeplitz{T} = Adjoint{T,Tridiagonal{T,Vcat{T,1,Tuple{Vector{T},Fill{T,1,Tuple{OneToInf{Int}}}}}}}
 const InfBandedMatrix{T,V<:AbstractMatrix{T}} = BandedMatrix{T,V,OneToInf{Int}}
 
-_prepad(p, a) = Vcat(Zeros(max(p,0)), a)
+_prepad(p, a) = Vcat(Zeros{eltype(a)}(max(p,0)), a)
 _prepad(p, a::Zeros{T,1}) where T = Zeros{T}(length(a)+p)
 _prepad(p, a::Ones{T,1}) where T = Ones{T}(length(a)+p)
 _prepad(p, a::AbstractFill{T,1}) where T = Fill{T}(getindex_value(a), length(a)+p)
@@ -74,7 +74,6 @@ function BandedMatrix{T}(kv::Tuple{Vararg{Pair{<:Integer,<:AbstractVector}}},
                          ::NTuple{2,PosInfinity},
                          (l,u)::NTuple{2,Integer}) where T
     ks = getproperty.(kv, :first)
-    l,u = -minimum(ks),maximum(ks)
     rws = Vcat(permutedims.(_prepad.(ks,getproperty.(kv, :second)))...)
     c = zeros(T, l+u+1, length(ks))
     for (k,j) in zip(u .- ks .+ 1,1:length(ks))
@@ -425,8 +424,8 @@ _default_banded_broadcast(bc::Broadcasted, ::Tuple{<:OneToInf,<:Any}) = copy(Bro
 # Banded * Banded
 ###
 
-BandedMatrix{T}(::UndefInitializer, axes::Tuple{OneToInf{Int},OneTo{Int}}, lu::NTuple{2,Integer}) where T =
-    BandedMatrix{T}(undef, map(length,axes), lu)
+BandedMatrix{T}(::UndefInitializer, axes::Tuple{OneToInf{Int},OneTo{Int}}, lu::NTuple{2,Integer}) where T = BandedMatrix{T}(undef, map(length,axes), lu)
+BandedMatrix{T}(::UndefInitializer, (m,n)::Tuple{Infinity,Int}, lu::NTuple{2,Integer}) where T = BandedMatrix{T}(undef, (ℵ₀,n), lu)
 
 similar(M::MulAdd{<:AbstractBandedLayout,<:AbstractBandedLayout}, ::Type{T}, axes::Tuple{OneTo{Int},OneToInf{Int}}) where T =
     transpose(BandedMatrix{T}(undef, reverse(axes), reverse(bandwidths(M))))

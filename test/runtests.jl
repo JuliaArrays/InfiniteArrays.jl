@@ -1260,7 +1260,8 @@ end
     A = a * Ones{Complex{Int}}(1,∞)
     @test A[:,1:5] == a * ones(1,5)
 
-    a*permutedims(1:∞)
+    @test (a*permutedims(1:∞))[:,1:5] == a*(1:5)'
+    @test (a*Hcat(Zeros(1,2), permutedims(1:∞)))[1,1:5] == (a*Vcat(Hcat(Zeros(1,2), permutedims(1:∞))))[1,1:5]
 end
 
 include("test_infbanded.jl")
