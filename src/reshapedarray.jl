@@ -2,7 +2,7 @@
 
 using  Base.MultiplicativeInverses: SignedMultiplicativeInverse
 
-struct ReshapedArray{T,N,P<:AbstractArray,DIMS<:Tuple,MI<:Tuple{Vararg{SignedMultiplicativeInverse{Int}}}} <: AbstractArray{T,N}
+struct ReshapedArray{T,N,P<:AbstractArray,DIMS<:Tuple,MI<:Tuple{Vararg{SignedMultiplicativeInverse{Int}}}} <: LayoutArray{T,N}
     parent::P
     dims::DIMS
     mi::MI
