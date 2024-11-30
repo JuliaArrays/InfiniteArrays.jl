@@ -4,7 +4,7 @@ using InfiniteArrays.LazyArrays, InfiniteArrays.ArrayLayouts, InfiniteArrays.Fil
 
 import Base: BroadcastStyle, size, getindex, similar, copy, *, +, -, /, \, materialize!, copyto!, OneTo
 import Base.Broadcast: Broadcasted
-import InfiniteArrays: InfIndexRanges, Infinity, PosInfinity, OneToInf, InfAxes, AbstractInfUnitRange, InfRanges
+import InfiniteArrays: InfIndexRanges, Infinity, PosInfinity, OneToInf, InfAxes, AbstractInfUnitRange, InfRanges, InfBaseToeplitzLayouts
 import ArrayLayouts: sub_materialize, MemoryLayout, sublayout, mulreduce, triangularlayout, MatLdivVec, subdiagonaldata, diagonaldata, supdiagonaldata
 import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable, AbstractLazyLayout, PaddedColumns, LazyArrayStyle, ApplyLayout, AbstractLazyBandedLayout, ApplyBandedLayout, BroadcastBandedLayout
 import BandedMatrices: _BandedMatrix, AbstractBandedMatrix, banded_similar, BandedMatrix, bandedcolumns, BandedColumns, bandeddata
@@ -355,29 +355,17 @@ for Typ in (:ConstRows, :PertConstRows)
     end
 end
 
-"""
-    TridiagonalToeplitzLayout
 
-represents a matrix which is tridiagonal and toeplitz. Must support
-`subdiagonalconstant`, `diagonalconstant`, `supdiagonalconstant`.
-"""
-struct TridiagonalToeplitzLayout <: AbstractLazyBandedLayout end
 const BandedToeplitzLayout = BandedColumns{ConstRows}
 const PertToeplitzLayout = BandedColumns{PertConstRows}
 const PertTriangularToeplitzLayout{UPLO,UNIT} = TriangularLayout{UPLO,UNIT,BandedColumns{PertConstRows}}
-struct BidiagonalToeplitzLayout <: AbstractLazyBandedLayout end
-struct PertBidiagonalToeplitzLayout <: AbstractLazyBandedLayout end
-struct PertTridiagonalToeplitzLayout <: AbstractLazyBandedLayout end
 
-const InfToeplitzLayouts = Union{TridiagonalToeplitzLayout, BandedToeplitzLayout, BidiagonalToeplitzLayout,
-                                 PertToeplitzLayout, PertTriangularToeplitzLayout, PertBidiagonalToeplitzLayout, PertTridiagonalToeplitzLayout}
-
-subdiagonalconstant(A) = getindex_value(subdiagonaldata(A))
-diagonalconstant(A) = getindex_value(diagonaldata(A))
-supdiagonalconstant(A) = getindex_value(supdiagonaldata(A))
+const InfBandedToeplitzLayouts = Union{BandedToeplitzLayout, PertToeplitzLayout, PertTriangularToeplitzLayout}
+const InfToeplitzLayouts = Union{InfBaseToeplitzLayouts, InfBandedToeplitzLayouts}
 
 
-islazy_layout(::InfToeplitzLayouts) = Val(true)
+
+islazy_layout(::InfBandedToeplitzLayouts) = Val(true)
 islazy(::BandedMatrix{<:Any,<:Any,OneToInf{Int}}) = Val(true)
 
 
@@ -399,8 +387,6 @@ _BandedMatrix(::PertToeplitzLayout, A::AbstractMatrix) =
 # end
 
 
-@inline sub_materialize(::ApplyBandedLayout{typeof(*)}, V, ::Tuple{InfAxes,InfAxes}) = V
-@inline sub_materialize(::BroadcastBandedLayout, V, ::Tuple{InfAxes,InfAxes}) = V
 @inline sub_materialize(::BandedColumns, V, ::Tuple{InfAxes,InfAxes}) = BandedMatrix(V)
 @inline sub_materialize(::BandedColumns, V, ::Tuple{InfAxes,OneTo{Int}}) = BandedMatrix(V)
 
@@ -471,33 +457,6 @@ simplifiable(::Mul{<:InfToeplitzLayouts, <:DiagonalLayout}) = Val(true)
 mulreduce(M::Mul{<:DiagonalLayout, <:InfToeplitzLayouts}) = Lmul(M)
 mulreduce(M::Mul{<:InfToeplitzLayouts, <:DiagonalLayout}) = Rmul(M)
 
-
-
-###
-# Inf-Toeplitz layout
-# this could possibly be avoided via an InfFillLayout
-###
-
-const InfFill = AbstractFill{<:Any,1,<:Tuple{OneToInf}}
-
-for Typ in (:(Tridiagonal{<:Any,<:InfFill}),
-            :(SymTridiagonal{<:Any,<:InfFill}))
-    @eval begin
-        MemoryLayout(::Type{<:$Typ}) = TridiagonalToeplitzLayout()
-        BroadcastStyle(::Type{<:$Typ}) = LazyArrayStyle{2}()
-    end
-end
-
-MemoryLayout(::Type{<:Bidiagonal{<:Any,<:InfFill}}) = BidiagonalToeplitzLayout()
-BroadcastStyle(::Type{<:Bidiagonal{<:Any,<:InfFill}}) = LazyArrayStyle{2}()
-
-*(A::Bidiagonal{<:Any,<:InfFill}, B::Bidiagonal{<:Any,<:InfFill}) =
-    mul(A, B)
-
-# fall back for Ldiv
-triangularlayout(::Type{<:TriangularLayout{UPLO,'N'}}, ::TridiagonalToeplitzLayout) where UPLO = BidiagonalToeplitzLayout()
-materialize!(L::MatLdivVec{BidiagonalToeplitzLayout,Lay}) where Lay = materialize!(Ldiv{BidiagonalLayout{FillLayout,FillLayout},Lay}(L.A, L.B))
-copyto!(dest::AbstractArray, L::Ldiv{BidiagonalToeplitzLayout,Lay}) where Lay = copyto!(dest, Ldiv{BidiagonalLayout{FillLayout,FillLayout},Lay}(L.A, L.B))
 
 
 # copy for AdjOrTrans
