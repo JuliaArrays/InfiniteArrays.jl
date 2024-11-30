@@ -2,10 +2,10 @@ module InfiniteArraysBlockArraysExt
 using InfiniteArrays, BlockArrays
 using InfiniteArrays.ArrayLayouts, InfiniteArrays.LazyArrays, InfiniteArrays.LinearAlgebra
 
-import Base: length, size, axes, BroadcastStyle
+import Base: length, size, axes, BroadcastStyle, copy, +, -
 import Base.Broadcast: Broadcasted
 import ArrayLayouts: sub_materialize, axes_print_matrix_row
-import InfiniteArrays: OneToInf, PosInfinity, InfRanges, RealInfinity, Infinity, InfStepRange
+import InfiniteArrays: OneToInf, PosInfinity, InfRanges, RealInfinity, Infinity, InfStepRange, TridiagonalToeplitzLayout
 import BlockArrays: AbstractBlockLayout, sizes_from_blocks, BlockTridiagonal, OneToCumsum, BlockSlice, AbstractBlockedUnitRange,
                     BlockLayout
 import LazyArrays: PaddedColumns
@@ -65,10 +65,6 @@ function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractA
     convert(AbstractArray{promote_type(T,V),N}, a)
 end
 
-_block_interlace_axes(::Int, ax::Tuple{BlockedOneTo{Int,OneToInf{Int}}}...) = (blockedrange(Fill(length(ax), ∞)),)
-
-_block_interlace_axes(nbc::Int, ax::NTuple{2,BlockedOneTo{Int,OneToInf{Int}}}...) =
-    (blockedrange(Fill(length(ax) ÷ nbc, ∞)),blockedrange(Fill(mod1(length(ax),nbc), ∞)))
 
 #######
 # block broadcasted
