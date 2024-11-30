@@ -1,3 +1,12 @@
+const ConstRowMatrix{T} = ApplyMatrix{T,typeof(*),<:Tuple{<:AbstractVector,<:AbstractFillMatrix{<:Any,Tuple{OneTo{Int},OneToInf{Int}}}}}
+const PertConstRowMatrix{T} = Hcat{T,<:Tuple{Array{T},<:ConstRowMatrix{T}}}
+const TriToeplitz{T} = Tridiagonal{T,Fill{T,1,Tuple{OneToInf{Int}}}}
+
+const SymTriPertToeplitz{T} = SymTridiagonal{T,Vcat{T,1,Tuple{Vector{T},Fill{T,1,Tuple{OneToInf{Int}}}}}}
+const TriPertToeplitz{T} = Tridiagonal{T,Vcat{T,1,Tuple{Vector{T},Fill{T,1,Tuple{OneToInf{Int}}}}}}
+const AdjTriPertToeplitz{T} = Adjoint{T,Tridiagonal{T,Vcat{T,1,Tuple{Vector{T},Fill{T,1,Tuple{OneToInf{Int}}}}}}}
+
+
 """
     TridiagonalToeplitzLayout
 
@@ -49,3 +58,52 @@ triangularlayout(::Type{<:TriangularLayout{UPLO,'N'}}, ::TridiagonalToeplitzLayo
 materialize!(L::MatLdivVec{BidiagonalToeplitzLayout,Lay}) where Lay = materialize!(Ldiv{BidiagonalLayout{FillLayout,FillLayout},Lay}(L.A, L.B))
 copyto!(dest::AbstractArray, L::Ldiv{BidiagonalToeplitzLayout,Lay}) where Lay = copyto!(dest, Ldiv{BidiagonalLayout{FillLayout,FillLayout},Lay}(L.A, L.B))
 
+
+
+for op in (:-, :+)
+    @eval begin
+        function $op(A::SymTriPertToeplitz{T}, λ::UniformScaling) where T
+            TV = promote_type(T,eltype(λ))
+            dv = Vcat(convert.(AbstractVector{TV}, A.dv.args)...)
+            ev = Vcat(convert.(AbstractVector{TV}, A.ev.args)...)
+            SymTridiagonal(broadcast($op, dv, Ref(λ.λ)), ev)
+        end
+        function $op(λ::UniformScaling, A::SymTriPertToeplitz{V}) where V
+            TV = promote_type(eltype(λ),V)
+            SymTridiagonal(convert(AbstractVector{TV}, broadcast($op, Ref(λ.λ), A.dv)),
+                           convert(AbstractVector{TV}, broadcast($op, A.ev)))
+        end
+        function $op(A::SymTridiagonal{T,<:AbstractFill}, λ::UniformScaling) where T
+            TV = promote_type(T,eltype(λ))
+            SymTridiagonal(convert(AbstractVector{TV}, broadcast($op, A.dv, Ref(λ.λ))),
+                           convert(AbstractVector{TV}, A.ev))
+        end
+
+        function $op(A::TriPertToeplitz{T}, λ::UniformScaling) where T
+            TV = promote_type(T,eltype(λ))
+            Tridiagonal(Vcat(convert.(AbstractVector{TV}, A.dl.args)...),
+                        Vcat(convert.(AbstractVector{TV}, broadcast($op, A.d, λ.λ).args)...),
+                        Vcat(convert.(AbstractVector{TV}, A.du.args)...))
+        end
+        function $op(λ::UniformScaling, A::TriPertToeplitz{V}) where V
+            TV = promote_type(eltype(λ),V)
+            Tridiagonal(Vcat(convert.(AbstractVector{TV}, broadcast($op, A.dl.args))...),
+                        Vcat(convert.(AbstractVector{TV}, broadcast($op, λ.λ, A.d).args)...),
+                        Vcat(convert.(AbstractVector{TV}, broadcast($op, A.du.args))...))
+        end
+        function $op(adjA::AdjTriPertToeplitz{T}, λ::UniformScaling) where T
+            A = parent(adjA)
+            TV = promote_type(T,eltype(λ))
+            Tridiagonal(Vcat(convert.(AbstractVector{TV}, A.du.args)...),
+                        Vcat(convert.(AbstractVector{TV}, broadcast($op, A.d, λ.λ).args)...),
+                        Vcat(convert.(AbstractVector{TV}, A.dl.args)...))
+        end
+        function $op(λ::UniformScaling, adjA::AdjTriPertToeplitz{V}) where V
+            A = parent(adjA)
+            TV = promote_type(eltype(λ),V)
+            Tridiagonal(Vcat(convert.(AbstractVector{TV}, broadcast($op, A.du.args))...),
+                        Vcat(convert.(AbstractVector{TV}, broadcast($op, λ.λ, A.d).args)...),
+                        Vcat(convert.(AbstractVector{TV}, broadcast($op, A.dl.args))...))
+        end
+    end
+end

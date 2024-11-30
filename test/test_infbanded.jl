@@ -1,25 +1,16 @@
 using ArrayLayouts, InfiniteArrays, BandedMatrices, FillArrays, LazyArrays, Test
 import BandedMatrices: _BandedMatrix, bandeddata
+import InfiniteArrays: TridiagonalToeplitzLayout, BidiagonalToeplitzLayout, TriPertToeplitz, SymTriPertToeplitz, TriToeplitz, ConstRows, SymTriPertToeplitz, AdjTriPertToeplitz, subdiagonalconstant, diagonalconstant, supdiagonalconstant
+using Base: oneto
+using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout, islazy
 
 const InfiniteArraysBandedMatricesExt = Base.get_extension(InfiniteArrays, :InfiniteArraysBandedMatricesExt)
 const InfToeplitz = InfiniteArraysBandedMatricesExt.InfToeplitz
-const TriToeplitz = InfiniteArraysBandedMatricesExt.TriToeplitz
-const SymTriPertToeplitz = InfiniteArraysBandedMatricesExt.SymTriPertToeplitz
-const TriPertToeplitz = InfiniteArraysBandedMatricesExt.TriPertToeplitz
-const AdjTriPertToeplitz = InfiniteArraysBandedMatricesExt.AdjTriPertToeplitz
-const ConstRows = InfiniteArraysBandedMatricesExt.ConstRows
 const BandedToeplitzLayout = InfiniteArraysBandedMatricesExt.BandedToeplitzLayout
-const TridiagonalToeplitzLayout = InfiniteArraysBandedMatricesExt.TridiagonalToeplitzLayout
-const BidiagonalToeplitzLayout = InfiniteArraysBandedMatricesExt.BidiagonalToeplitzLayout
 const PertToeplitz = InfiniteArraysBandedMatricesExt.PertToeplitz
 const PertToeplitzLayout = InfiniteArraysBandedMatricesExt.PertToeplitzLayout
 const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesianIndices
-const subdiagonalconstant = InfiniteArraysBandedMatricesExt.subdiagonalconstant
-const diagonalconstant = InfiniteArraysBandedMatricesExt.diagonalconstant
-const supdiagonalconstant = InfiniteArraysBandedMatricesExt.supdiagonalconstant
 
-using Base: oneto
-using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout, islazy
 
 @testset "∞-banded" begin
     @testset "Diagonal and BandedMatrix" begin

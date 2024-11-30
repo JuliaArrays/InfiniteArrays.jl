@@ -32,7 +32,7 @@ import ArrayLayouts: AbstractBandedLayout, LayoutMatrix, LayoutVecOrMat, LayoutV
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, DefaultArrayStyle, axistype, broadcasted
 
-import FillArrays: AbstractFill, Eye, Fill, Ones, RectDiagonal, Zeros, fill_reshape, getindex_value
+import FillArrays: AbstractFill, Eye, Fill, Ones, RectDiagonal, Zeros, fill_reshape, getindex_value, AbstractFillMatrix
 
 import Infinities: InfiniteCardinal, Infinity, ∞
 
