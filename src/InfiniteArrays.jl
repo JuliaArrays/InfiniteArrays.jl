@@ -14,10 +14,7 @@ import Base: *, +, -, /, <, ==, >, \, ≤, ≥, (:), @propagate_inbounds,
              searchsortedfirst, searchsortedlast, setindex!, show, show_circular, show_delim_array, sign,
              signbit, similar, size, sort, sort!, step, sum, tail,
              to_shape, transpose, unaliascopy, union, unitrange_last, unsafe_convert, unsafe_indices, unsafe_length,
-             vcat, zeros
-
-
-import Base: range_start_step_length
+             vcat, zeros, copyto!, range_start_step_length
 
 if VERSION ≥ v"1.11.0-DEV.21"
    using LinearAlgebra: UpperOrLowerTriangular
@@ -31,16 +28,18 @@ end
 
 using Base.Broadcast
 import ArrayLayouts: AbstractBandedLayout, LayoutMatrix, LayoutVecOrMat, LayoutVecOrMats, LayoutVector, MemoryLayout,
-                     RangeCumsum, UnknownLayout, reshapedlayout, sub_materialize, sublayout
+                     RangeCumsum, UnknownLayout, reshapedlayout, sub_materialize, materialize!, sublayout, MatLdivVec,
+                     subdiagonaldata, diagonaldata, supdiagonaldata, triangularlayout
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, DefaultArrayStyle, axistype, broadcasted
 
-import FillArrays: AbstractFill, Eye, Fill, Ones, RectDiagonal, Zeros, fill_reshape, getindex_value
+import FillArrays: AbstractFill, Eye, Fill, Ones, RectDiagonal, Zeros, fill_reshape, getindex_value, AbstractFillMatrix
 
 import Infinities: InfiniteCardinal, Infinity, ∞
 
-import LazyArrays: AbstractCachedVector, ApplyLayout, CachedArray, CachedVector, InvColumnLayout,
-                   LazyArrayStyle, LazyLayout, LazyMatrix, PaddedColumns, _padded_sub_materialize, sub_paddeddata
+import LazyArrays: AbstractLazyLayout, AbstractCachedVector, ApplyLayout, CachedArray, CachedVector, InvColumnLayout, AbstractLazyBandedLayout,
+                   LazyArrayStyle, LazyLayout, LazyMatrix, PaddedColumns, _padded_sub_materialize, sub_paddeddata,
+                   ApplyBandedLayout, BroadcastBandedLayout, islazy_layout
 
 import LinearAlgebra: AdjOrTrans, HermOrSym, diag, norm, norm1, norm2, normp
 
@@ -220,6 +219,8 @@ function ArrayLayouts._power_by_squaring(_, ::NTuple{2,InfiniteCardinal{0}}, A::
        A*A^(p-1)
    end
 end
+
+include("inftoeplitz.jl")
 
 
 end # module
