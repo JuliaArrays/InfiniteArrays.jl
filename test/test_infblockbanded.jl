@@ -1,4 +1,3 @@
-const BlockTriPertToeplitz = InfiniteArraysBlockArraysExt.BlockTriPertToeplitz
 
 @testset "BlockBanded" begin
             a = b = c = 0.0

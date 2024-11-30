@@ -5,7 +5,7 @@ using LazyArrays: LazyArrayStyle
 using BlockArrays: BlockTridiagonal
 
 const InfiniteArraysBlockArraysExt = Base.get_extension(InfiniteArrays, :InfiniteArraysBlockArraysExt)
-
+const BlockTriPertToeplitz = InfiniteArraysBlockArraysExt.BlockTriPertToeplitz
 
 
 
