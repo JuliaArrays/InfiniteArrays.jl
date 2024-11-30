@@ -72,16 +72,19 @@ struct InfUnitRange{T<:Real} <: AbstractInfUnitRange{T}
     start::T
 end
 
-
 InfUnitRange(a::InfUnitRange) = a
 InfUnitRange{T}(a::AbstractInfUnitRange) where T<:Real = InfUnitRange{T}(first(a))
 InfUnitRange(a::AbstractInfUnitRange{T}) where T<:Real = InfUnitRange{T}(first(a))
 unitrange(a::AbstractInfUnitRange) = InfUnitRange(a)
 
-AbstractArray{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
-AbstractVector{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
+for TYPE in (:AbstractArray, :AbstractVector)
+    @eval $TYPE{T}(a::InfUnitRange) where T<:Integer = InfUnitRange{T}(a.start)
+    @eval $TYPE{T}(a::InfUnitRange) where T = InfStepRange(T(a.start), one(T))
+end
 AbstractArray{T}(a::InfStepRange) where T<:Real = InfStepRange(convert(T,a.start), convert(T,a.step))
 AbstractVector{T}(a::InfStepRange) where T<:Real = InfStepRange(convert(T,a.start), convert(T,a.step))
+elconvert(::Type{T}, r::AbstractInfUnitRange) where T = AbstractArray{T}(r)
+elconvert(::Type{T}, r::InfStepRange) where T = AbstractArray{T}(r)
 
 const InfRanges{T} = Union{InfStepRange{T},AbstractInfUnitRange{T}}
 const InfAxes = Union{InfRanges{<:Integer},Slice{<:AbstractInfUnitRange{<:Integer}},IdentityUnitRange{<:AbstractInfUnitRange{<:Integer}}}
@@ -132,8 +135,8 @@ end
 
 AbstractArray{T}(a::OneToInf) where T<:Integer = OneToInf{T}()
 AbstractVector{T}(a::OneToInf) where T<:Integer = OneToInf{T}()
-AbstractArray{T}(a::OneToInf) where T<:Real = InfUnitRange{T}(a)
-AbstractVector{T}(a::OneToInf) where T<:Real = InfUnitRange{T}(a)
+AbstractArray{T}(a::OneToInf) where T<:Real = InfStepRange(one(T),one(T))
+AbstractVector{T}(a::OneToInf) where T<:Real = InfStepRange(one(T),one(T))
 
 
 ## interface implementations
