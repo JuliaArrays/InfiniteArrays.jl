@@ -134,8 +134,29 @@ const InfiniteArraysBlockArraysExt = Base.get_extension(InfiniteArrays, :Infinit
         #         (n -> Diagonal(((n+2).+(0:n)))/ (2n + 2)).(0:∞),
         #         Zeros.(2:∞,1:∞))
     end
-    
+
     @testset "findblock at +∞, HarmonicOrthogonalPolynomials#88" begin
         @test findblock(blockedrange(1:2:∞), RealInfinity()) == Block(ℵ₀)
-    end    
+    end
+
+    @testset "BlockTridiagonal Pert Toeplitz" begin
+        A = BlockTridiagonal(Vcat([fill(1.0, 2, 1), Matrix(1.0I, 2, 2), Matrix(1.0I, 2, 2), Matrix(1.0I, 2, 2)], Fill(Matrix(1.0I, 2, 2), ∞)),
+                                Vcat([zeros(1, 1)], Fill(zeros(2, 2), ∞)),
+                                Vcat([fill(1.0, 1, 2), Matrix(1.0I, 2, 2)], Fill(Matrix(1.0I, 2, 2), ∞)))
+
+        @test A isa BlockTriPertToeplitz
+        @test A[Block.(1:2), Block(1)] == A[1:3, 1:1] == reshape([0.0, 1.0, 1.0], 3, 1)
+
+        @test (A-I)[1:100, 1:100] == A[1:100, 1:100] - I
+        @test (A+I)[1:100, 1:100] == A[1:100, 1:100] + I
+        @test (I+A)[1:100, 1:100] == I + A[1:100, 1:100]
+        @test (I-A)[1:100, 1:100] == I - A[1:100, 1:100]
+
+        @test (A-im*I)[1:100, 1:100] == A[1:100, 1:100] - im * I
+        @test (A+im*I)[1:100, 1:100] == A[1:100, 1:100] + im * I
+        @test (im*I+A)[1:100, 1:100] == im * I + A[1:100, 1:100]
+        @test (im*I-A)[1:100, 1:100] == im * I - A[1:100, 1:100]
+
+        @test BlockTridiagonal(A')[Block.(1:10),Block.(1:10)] == A[Block.(1:10),Block.(1:10)]'
+    end
 end
