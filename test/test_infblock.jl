@@ -1,4 +1,4 @@
-using InfiniteArrays, BlockArrays, LazyArrays, Test
+using InfiniteArrays, BlockArrays, ArrayLayouts, LazyArrays, Test
 using InfiniteArrays: OneToInf, RealInfinity
 using Base: oneto
 using LazyArrays: LazyArrayStyle
