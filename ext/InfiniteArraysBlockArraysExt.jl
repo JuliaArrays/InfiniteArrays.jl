@@ -1,7 +1,14 @@
 module InfiniteArraysBlockArraysExt
 using InfiniteArrays, BlockArrays
-using InfiniteArrays.ArrayLayouts, InfiniteArrays.LazyArrays
-import ArrayLayouts: sub_materialize
+using InfiniteArrays.ArrayLayouts, InfiniteArrays.LazyArrays, InfiniteArrays.LinearAlgebra
+
+import Base: length, size, axes, BroadcastStyle
+import Base.Broadcast: Broadcasted
+import ArrayLayouts: sub_materialize, axes_print_matrix_row
+import InfiniteArrays: OneToInf, PosInfinity, InfRanges, RealInfinity, Infinity, InfStepRange
+import BlockArrays: AbstractBlockLayout, sizes_from_blocks, BlockTridiagonal, OneToCumsum, BlockSlice, AbstractBlockedUnitRange,
+                    BlockLayout
+import LazyArrays: PaddedColumns
 
 const OneToInfCumsum = RangeCumsum{Int,OneToInf{Int}}
 
