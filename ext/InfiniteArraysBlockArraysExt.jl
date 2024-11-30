@@ -8,7 +8,7 @@ import ArrayLayouts: sub_materialize, axes_print_matrix_row
 import InfiniteArrays: OneToInf, PosInfinity, InfRanges, RealInfinity, Infinity, InfStepRange, TridiagonalToeplitzLayout
 import BlockArrays: AbstractBlockLayout, sizes_from_blocks, BlockTridiagonal, OneToCumsum, BlockSlice, AbstractBlockedUnitRange,
                     BlockLayout
-import LazyArrays: PaddedColumns
+import LazyArrays: PaddedColumns, LazyArrayStyle
 
 const OneToInfCumsum = RangeCumsum{Int,OneToInf{Int}}
 
