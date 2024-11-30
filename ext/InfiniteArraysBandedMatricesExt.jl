@@ -4,7 +4,7 @@ using InfiniteArrays.LazyArrays, InfiniteArrays.ArrayLayouts, InfiniteArrays.Fil
 
 import Base: BroadcastStyle, size, getindex, similar, copy, *, +, -, /, \, materialize!, copyto!, OneTo
 import Base.Broadcast: Broadcasted
-import InfiniteArrays: InfIndexRanges, Infinity, PosInfinity, OneToInf, InfAxes, AbstractInfUnitRange, InfRanges
+import InfiniteArrays: InfIndexRanges, Infinity, PosInfinity, OneToInf, InfAxes, AbstractInfUnitRange, InfRanges, InfBaseToeplitzLayouts, ConstRowMatrix, PertConstRowMatrix, SymTriPertToeplitz, TriPertToeplitz, ConstRows, PertConstRows
 import ArrayLayouts: sub_materialize, MemoryLayout, sublayout, mulreduce, triangularlayout, MatLdivVec, subdiagonaldata, diagonaldata, supdiagonaldata
 import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable, AbstractLazyLayout, PaddedColumns, LazyArrayStyle, ApplyLayout, AbstractLazyBandedLayout, ApplyBandedLayout, BroadcastBandedLayout
 import BandedMatrices: _BandedMatrix, AbstractBandedMatrix, banded_similar, BandedMatrix, bandedcolumns, BandedColumns, bandeddata
@@ -51,17 +51,10 @@ sub_materialize(_, V::SubArray{<:Any,1,<:AbstractMatrix,Tuple{InfBandCartesianIn
 
 
 
-
-const TriToeplitz{T} = Tridiagonal{T,Fill{T,1,Tuple{OneToInf{Int}}}}
-const ConstRowMatrix{T} = ApplyMatrix{T,typeof(*),<:Tuple{<:AbstractVector,<:AbstractFillMatrix{<:Any,Tuple{OneTo{Int},OneToInf{Int}}}}}
-const PertConstRowMatrix{T} = Hcat{T,<:Tuple{Array{T},<:ConstRowMatrix{T}}}
-const InfToeplitz{T} = BandedMatrix{T,<:ConstRowMatrix{T},OneToInf{Int}}
-const PertToeplitz{T} = BandedMatrix{T,<:PertConstRowMatrix{T},OneToInf{Int}}
-
-const SymTriPertToeplitz{T} = SymTridiagonal{T,Vcat{T,1,Tuple{Vector{T},Fill{T,1,Tuple{OneToInf{Int}}}}}}
-const TriPertToeplitz{T} = Tridiagonal{T,Vcat{T,1,Tuple{Vector{T},Fill{T,1,Tuple{OneToInf{Int}}}}}}
-const AdjTriPertToeplitz{T} = Adjoint{T,Tridiagonal{T,Vcat{T,1,Tuple{Vector{T},Fill{T,1,Tuple{OneToInf{Int}}}}}}}
 const InfBandedMatrix{T,V<:AbstractMatrix{T}} = BandedMatrix{T,V,OneToInf{Int}}
+const InfToeplitz{T} = InfBandedMatrix{T,<:ConstRowMatrix{T}}
+const PertToeplitz{T} = InfBandedMatrix{T,<:PertConstRowMatrix{T}}
+    
 
 _prepad(p, a) = Vcat(Zeros{eltype(a)}(max(p,0)), a)
 _prepad(p, a::Zeros{T,1}) where T = Zeros{T}(length(a)+p)
@@ -157,50 +150,6 @@ end
 
 for op in (:-, :+)
     @eval begin
-        function $op(A::SymTriPertToeplitz{T}, λ::UniformScaling) where T
-            TV = promote_type(T,eltype(λ))
-            dv = Vcat(convert.(AbstractVector{TV}, A.dv.args)...)
-            ev = Vcat(convert.(AbstractVector{TV}, A.ev.args)...)
-            SymTridiagonal(broadcast($op, dv, Ref(λ.λ)), ev)
-        end
-        function $op(λ::UniformScaling, A::SymTriPertToeplitz{V}) where V
-            TV = promote_type(eltype(λ),V)
-            SymTridiagonal(convert(AbstractVector{TV}, broadcast($op, Ref(λ.λ), A.dv)),
-                           convert(AbstractVector{TV}, broadcast($op, A.ev)))
-        end
-        function $op(A::SymTridiagonal{T,<:AbstractFill}, λ::UniformScaling) where T
-            TV = promote_type(T,eltype(λ))
-            SymTridiagonal(convert(AbstractVector{TV}, broadcast($op, A.dv, Ref(λ.λ))),
-                           convert(AbstractVector{TV}, A.ev))
-        end
-
-        function $op(A::TriPertToeplitz{T}, λ::UniformScaling) where T
-            TV = promote_type(T,eltype(λ))
-            Tridiagonal(Vcat(convert.(AbstractVector{TV}, A.dl.args)...),
-                        Vcat(convert.(AbstractVector{TV}, broadcast($op, A.d, λ.λ).args)...),
-                        Vcat(convert.(AbstractVector{TV}, A.du.args)...))
-        end
-        function $op(λ::UniformScaling, A::TriPertToeplitz{V}) where V
-            TV = promote_type(eltype(λ),V)
-            Tridiagonal(Vcat(convert.(AbstractVector{TV}, broadcast($op, A.dl.args))...),
-                        Vcat(convert.(AbstractVector{TV}, broadcast($op, λ.λ, A.d).args)...),
-                        Vcat(convert.(AbstractVector{TV}, broadcast($op, A.du.args))...))
-        end
-        function $op(adjA::AdjTriPertToeplitz{T}, λ::UniformScaling) where T
-            A = parent(adjA)
-            TV = promote_type(T,eltype(λ))
-            Tridiagonal(Vcat(convert.(AbstractVector{TV}, A.du.args)...),
-                        Vcat(convert.(AbstractVector{TV}, broadcast($op, A.d, λ.λ).args)...),
-                        Vcat(convert.(AbstractVector{TV}, A.dl.args)...))
-        end
-        function $op(λ::UniformScaling, adjA::AdjTriPertToeplitz{V}) where V
-            A = parent(adjA)
-            TV = promote_type(eltype(λ),V)
-            Tridiagonal(Vcat(convert.(AbstractVector{TV}, broadcast($op, A.du.args))...),
-                        Vcat(convert.(AbstractVector{TV}, broadcast($op, λ.λ, A.d).args)...),
-                        Vcat(convert.(AbstractVector{TV}, broadcast($op, A.dl.args))...))
-        end
-
         function $op(λ::UniformScaling, A::InfToeplitz{V}) where V
             l,u = bandwidths(A)
             TV = promote_type(eltype(λ),V)
@@ -339,10 +288,6 @@ ConstRowMatrix(A::AbstractMatrix{T}) where T = ApplyMatrix(*, A[:,1], Ones{T}(1,
 PertConstRowMatrix(A::AbstractMatrix{T}) where T =
     Hcat(_pertdata(A), ApplyMatrix(*, _constrows(A), Ones{T}(1,size(A,2))))
 
-struct ConstRows <: AbstractLazyLayout end
-struct PertConstRows <: AbstractLazyLayout end
-MemoryLayout(::Type{<:ConstRowMatrix}) = ConstRows()
-MemoryLayout(::Type{<:PertConstRowMatrix}) = PertConstRows()
 bandedcolumns(::ConstRows) = BandedToeplitzLayout()
 bandedcolumns(::PertConstRows) = PertToeplitzLayout()
 sublayout(::ConstRows, inds...) = sublayout(ApplyLayout{typeof(*)}(), inds...)
@@ -355,29 +300,17 @@ for Typ in (:ConstRows, :PertConstRows)
     end
 end
 
-"""
-    TridiagonalToeplitzLayout
 
-represents a matrix which is tridiagonal and toeplitz. Must support
-`subdiagonalconstant`, `diagonalconstant`, `supdiagonalconstant`.
-"""
-struct TridiagonalToeplitzLayout <: AbstractLazyBandedLayout end
 const BandedToeplitzLayout = BandedColumns{ConstRows}
 const PertToeplitzLayout = BandedColumns{PertConstRows}
 const PertTriangularToeplitzLayout{UPLO,UNIT} = TriangularLayout{UPLO,UNIT,BandedColumns{PertConstRows}}
-struct BidiagonalToeplitzLayout <: AbstractLazyBandedLayout end
-struct PertBidiagonalToeplitzLayout <: AbstractLazyBandedLayout end
-struct PertTridiagonalToeplitzLayout <: AbstractLazyBandedLayout end
 
-const InfToeplitzLayouts = Union{TridiagonalToeplitzLayout, BandedToeplitzLayout, BidiagonalToeplitzLayout,
-                                 PertToeplitzLayout, PertTriangularToeplitzLayout, PertBidiagonalToeplitzLayout, PertTridiagonalToeplitzLayout}
-
-subdiagonalconstant(A) = getindex_value(subdiagonaldata(A))
-diagonalconstant(A) = getindex_value(diagonaldata(A))
-supdiagonalconstant(A) = getindex_value(supdiagonaldata(A))
+const InfBandedToeplitzLayouts = Union{BandedToeplitzLayout, PertToeplitzLayout, PertTriangularToeplitzLayout}
+const InfToeplitzLayouts = Union{InfBaseToeplitzLayouts, InfBandedToeplitzLayouts}
 
 
-islazy_layout(::InfToeplitzLayouts) = Val(true)
+
+islazy_layout(::InfBandedToeplitzLayouts) = Val(true)
 islazy(::BandedMatrix{<:Any,<:Any,OneToInf{Int}}) = Val(true)
 
 
@@ -399,8 +332,6 @@ _BandedMatrix(::PertToeplitzLayout, A::AbstractMatrix) =
 # end
 
 
-@inline sub_materialize(::ApplyBandedLayout{typeof(*)}, V, ::Tuple{InfAxes,InfAxes}) = V
-@inline sub_materialize(::BroadcastBandedLayout, V, ::Tuple{InfAxes,InfAxes}) = V
 @inline sub_materialize(::BandedColumns, V, ::Tuple{InfAxes,InfAxes}) = BandedMatrix(V)
 @inline sub_materialize(::BandedColumns, V, ::Tuple{InfAxes,OneTo{Int}}) = BandedMatrix(V)
 
@@ -471,33 +402,6 @@ simplifiable(::Mul{<:InfToeplitzLayouts, <:DiagonalLayout}) = Val(true)
 mulreduce(M::Mul{<:DiagonalLayout, <:InfToeplitzLayouts}) = Lmul(M)
 mulreduce(M::Mul{<:InfToeplitzLayouts, <:DiagonalLayout}) = Rmul(M)
 
-
-
-###
-# Inf-Toeplitz layout
-# this could possibly be avoided via an InfFillLayout
-###
-
-const InfFill = AbstractFill{<:Any,1,<:Tuple{OneToInf}}
-
-for Typ in (:(Tridiagonal{<:Any,<:InfFill}),
-            :(SymTridiagonal{<:Any,<:InfFill}))
-    @eval begin
-        MemoryLayout(::Type{<:$Typ}) = TridiagonalToeplitzLayout()
-        BroadcastStyle(::Type{<:$Typ}) = LazyArrayStyle{2}()
-    end
-end
-
-MemoryLayout(::Type{<:Bidiagonal{<:Any,<:InfFill}}) = BidiagonalToeplitzLayout()
-BroadcastStyle(::Type{<:Bidiagonal{<:Any,<:InfFill}}) = LazyArrayStyle{2}()
-
-*(A::Bidiagonal{<:Any,<:InfFill}, B::Bidiagonal{<:Any,<:InfFill}) =
-    mul(A, B)
-
-# fall back for Ldiv
-triangularlayout(::Type{<:TriangularLayout{UPLO,'N'}}, ::TridiagonalToeplitzLayout) where UPLO = BidiagonalToeplitzLayout()
-materialize!(L::MatLdivVec{BidiagonalToeplitzLayout,Lay}) where Lay = materialize!(Ldiv{BidiagonalLayout{FillLayout,FillLayout},Lay}(L.A, L.B))
-copyto!(dest::AbstractArray, L::Ldiv{BidiagonalToeplitzLayout,Lay}) where Lay = copyto!(dest, Ldiv{BidiagonalLayout{FillLayout,FillLayout},Lay}(L.A, L.B))
 
 
 # copy for AdjOrTrans

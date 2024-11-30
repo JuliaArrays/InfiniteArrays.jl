@@ -1,25 +1,16 @@
 using ArrayLayouts, InfiniteArrays, BandedMatrices, FillArrays, LazyArrays, Test
 import BandedMatrices: _BandedMatrix, bandeddata
+import InfiniteArrays: TridiagonalToeplitzLayout, BidiagonalToeplitzLayout, TriPertToeplitz, SymTriPertToeplitz, TriToeplitz, ConstRows, SymTriPertToeplitz, AdjTriPertToeplitz, subdiagonalconstant, diagonalconstant, supdiagonalconstant
+using Base: oneto
+using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout, islazy
 
 const InfiniteArraysBandedMatricesExt = Base.get_extension(InfiniteArrays, :InfiniteArraysBandedMatricesExt)
 const InfToeplitz = InfiniteArraysBandedMatricesExt.InfToeplitz
-const TriToeplitz = InfiniteArraysBandedMatricesExt.TriToeplitz
-const SymTriPertToeplitz = InfiniteArraysBandedMatricesExt.SymTriPertToeplitz
-const TriPertToeplitz = InfiniteArraysBandedMatricesExt.TriPertToeplitz
-const AdjTriPertToeplitz = InfiniteArraysBandedMatricesExt.AdjTriPertToeplitz
-const ConstRows = InfiniteArraysBandedMatricesExt.ConstRows
 const BandedToeplitzLayout = InfiniteArraysBandedMatricesExt.BandedToeplitzLayout
-const TridiagonalToeplitzLayout = InfiniteArraysBandedMatricesExt.TridiagonalToeplitzLayout
-const BidiagonalToeplitzLayout = InfiniteArraysBandedMatricesExt.BidiagonalToeplitzLayout
 const PertToeplitz = InfiniteArraysBandedMatricesExt.PertToeplitz
 const PertToeplitzLayout = InfiniteArraysBandedMatricesExt.PertToeplitzLayout
 const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesianIndices
-const subdiagonalconstant = InfiniteArraysBandedMatricesExt.subdiagonalconstant
-const diagonalconstant = InfiniteArraysBandedMatricesExt.diagonalconstant
-const supdiagonalconstant = InfiniteArraysBandedMatricesExt.supdiagonalconstant
 
-using Base: oneto
-using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout, islazy
 
 @testset "∞-banded" begin
     @testset "Diagonal and BandedMatrix" begin
@@ -93,6 +84,11 @@ using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout, islazy
             S = SymTridiagonal(Fill(1,∞), Fill(2,∞))
             @test (S + 2I)[1:10,1:10] == (2I + S)[1:10,1:10] == S[1:10,1:10] + 2I
             @test BandedMatrix(S, (2,3))[1:10,1:10] == S[1:10,1:10]
+
+            B = Bidiagonal(Fill(1,∞), Fill(2,∞), :U)
+            @test (B*B)[1:10,1:10] == B[1:10,1:11] * B[1:11,1:10]
+
+            @test (B \ [1:10; zeros(∞)])[1:10] == B[1:10,1:10] \ (1:10)
         end
 
         @testset "constant data" begin
@@ -211,13 +207,16 @@ using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout, islazy
 
     @testset "SubArray broadcasting" begin
         A = BandedMatrix(2 => 1:∞)
-        @test exp.(A[1:2:∞,1:2:∞])[1:10,1:10] ≈ exp.(A[1:2:20,1:2:20])
+        @test exp.(A[1:2:∞,1:2:∞])[1:10,1:10] ≈ exp.(A)[1:2:20,1:2:20] ≈ exp.(A[1:2:20,1:2:20])
         @test A[band(2)][1:5] == 1:5
         @test _BandedMatrix((1:∞)', ∞, -1,1)[band(1)][1:5] == 2:6
         @test exp.(view(A,band(2)))[1:10] ≈ exp.(1:10)
 
         @test BandedMatrices.banded_similar(Int, (∞,5), (1,1)) isa BandedMatrix
         @test BandedMatrices.banded_similar(Int, (5,∞), (1,1)) isa Adjoint{<:Any,<:BandedMatrix}
+
+        @test (A+A)[2:∞,3:∞] isa SubArray
+        @test (A*A)[2:∞,3:∞] isa SubArray
 
         A = BandedMatrix{Int}((2 => 1:∞,), (∞,∞), (0,2))
         @test eltype(A) == Int
@@ -344,5 +343,11 @@ using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout, islazy
         @test MemoryLayout(2 * (A + B)) isa BroadcastBandedLayout{typeof(*)}
         @test bandwidths(A + B) == (0, 1)
         @test bandwidths(2 * (A + B)) == (0, 1)
+    end
+    
+
+    @testset "Upper-TriToep" begin
+        U = UpperTriangular(Tridiagonal(Fill(1,∞), Fill(2,∞), Fill(3,∞)))
+        @test MemoryLayout(U) isa BidiagonalToeplitzLayout
     end
 end
