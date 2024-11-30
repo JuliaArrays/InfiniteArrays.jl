@@ -1,5 +1,12 @@
 const ConstRowMatrix{T} = ApplyMatrix{T,typeof(*),<:Tuple{<:AbstractVector,<:AbstractFillMatrix{<:Any,Tuple{OneTo{Int},OneToInf{Int}}}}}
 const PertConstRowMatrix{T} = Hcat{T,<:Tuple{Array{T},<:ConstRowMatrix{T}}}
+
+struct ConstRows <: AbstractLazyLayout end
+struct PertConstRows <: AbstractLazyLayout end
+MemoryLayout(::Type{<:ConstRowMatrix}) = ConstRows()
+MemoryLayout(::Type{<:PertConstRowMatrix}) = PertConstRows()
+
+
 const TriToeplitz{T} = Tridiagonal{T,Fill{T,1,Tuple{OneToInf{Int}}}}
 
 const SymTriPertToeplitz{T} = SymTridiagonal{T,Vcat{T,1,Tuple{Vector{T},Fill{T,1,Tuple{OneToInf{Int}}}}}}

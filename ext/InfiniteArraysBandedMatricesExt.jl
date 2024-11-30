@@ -4,7 +4,7 @@ using InfiniteArrays.LazyArrays, InfiniteArrays.ArrayLayouts, InfiniteArrays.Fil
 
 import Base: BroadcastStyle, size, getindex, similar, copy, *, +, -, /, \, materialize!, copyto!, OneTo
 import Base.Broadcast: Broadcasted
-import InfiniteArrays: InfIndexRanges, Infinity, PosInfinity, OneToInf, InfAxes, AbstractInfUnitRange, InfRanges, InfBaseToeplitzLayouts, ConstRowMatrix, PertConstRowMatrix, SymTriPertToeplitz, TriPertToeplitz
+import InfiniteArrays: InfIndexRanges, Infinity, PosInfinity, OneToInf, InfAxes, AbstractInfUnitRange, InfRanges, InfBaseToeplitzLayouts, ConstRowMatrix, PertConstRowMatrix, SymTriPertToeplitz, TriPertToeplitz, ConstRows, PertConstRows
 import ArrayLayouts: sub_materialize, MemoryLayout, sublayout, mulreduce, triangularlayout, MatLdivVec, subdiagonaldata, diagonaldata, supdiagonaldata
 import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable, AbstractLazyLayout, PaddedColumns, LazyArrayStyle, ApplyLayout, AbstractLazyBandedLayout, ApplyBandedLayout, BroadcastBandedLayout
 import BandedMatrices: _BandedMatrix, AbstractBandedMatrix, banded_similar, BandedMatrix, bandedcolumns, BandedColumns, bandeddata
@@ -288,10 +288,6 @@ ConstRowMatrix(A::AbstractMatrix{T}) where T = ApplyMatrix(*, A[:,1], Ones{T}(1,
 PertConstRowMatrix(A::AbstractMatrix{T}) where T =
     Hcat(_pertdata(A), ApplyMatrix(*, _constrows(A), Ones{T}(1,size(A,2))))
 
-struct ConstRows <: AbstractLazyLayout end
-struct PertConstRows <: AbstractLazyLayout end
-MemoryLayout(::Type{<:ConstRowMatrix}) = ConstRows()
-MemoryLayout(::Type{<:PertConstRowMatrix}) = PertConstRows()
 bandedcolumns(::ConstRows) = BandedToeplitzLayout()
 bandedcolumns(::PertConstRows) = PertToeplitzLayout()
 sublayout(::ConstRows, inds...) = sublayout(ApplyLayout{typeof(*)}(), inds...)

@@ -36,7 +36,7 @@ import FillArrays: AbstractFill, Eye, Fill, Ones, RectDiagonal, Zeros, fill_resh
 
 import Infinities: InfiniteCardinal, Infinity, ∞
 
-import LazyArrays: AbstractCachedVector, ApplyLayout, CachedArray, CachedVector, InvColumnLayout, AbstractLazyBandedLayout,
+import LazyArrays: AbstractLazyLayout, AbstractCachedVector, ApplyLayout, CachedArray, CachedVector, InvColumnLayout, AbstractLazyBandedLayout,
                    LazyArrayStyle, LazyLayout, LazyMatrix, PaddedColumns, _padded_sub_materialize, sub_paddeddata,
                    ApplyBandedLayout, BroadcastBandedLayout
 
