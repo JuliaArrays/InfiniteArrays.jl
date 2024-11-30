@@ -28,8 +28,8 @@ end
 
 using Base.Broadcast
 import ArrayLayouts: AbstractBandedLayout, LayoutMatrix, LayoutVecOrMat, LayoutVecOrMats, LayoutVector, MemoryLayout,
-                     RangeCumsum, UnknownLayout, reshapedlayout, sub_materialize, sublayout, MatLdivVec,
-                     subdiagonaldata, diagonaldata, supdiagonaldata
+                     RangeCumsum, UnknownLayout, reshapedlayout, sub_materialize, materialize!, sublayout, MatLdivVec,
+                     subdiagonaldata, diagonaldata, supdiagonaldata, triangularlayout
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, DefaultArrayStyle, axistype, broadcasted
 
@@ -39,7 +39,7 @@ import Infinities: InfiniteCardinal, Infinity, ∞
 
 import LazyArrays: AbstractLazyLayout, AbstractCachedVector, ApplyLayout, CachedArray, CachedVector, InvColumnLayout, AbstractLazyBandedLayout,
                    LazyArrayStyle, LazyLayout, LazyMatrix, PaddedColumns, _padded_sub_materialize, sub_paddeddata,
-                   ApplyBandedLayout, BroadcastBandedLayout
+                   ApplyBandedLayout, BroadcastBandedLayout, islazy_layout
 
 import LinearAlgebra: AdjOrTrans, HermOrSym, diag, norm, norm1, norm2, normp
 

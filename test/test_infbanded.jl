@@ -84,6 +84,11 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
             S = SymTridiagonal(Fill(1,∞), Fill(2,∞))
             @test (S + 2I)[1:10,1:10] == (2I + S)[1:10,1:10] == S[1:10,1:10] + 2I
             @test BandedMatrix(S, (2,3))[1:10,1:10] == S[1:10,1:10]
+
+            B = Bidiagonal(Fill(1,∞), Fill(2,∞), :U)
+            @test (B*B)[1:10,1:10] == B[1:10,1:11] * B[1:11,1:10]
+
+            @test (B \ [1:10; zeros(∞)])[1:10] == B[1:10,1:10] \ (1:10)
         end
 
         @testset "constant data" begin
@@ -202,13 +207,16 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
 
     @testset "SubArray broadcasting" begin
         A = BandedMatrix(2 => 1:∞)
-        @test exp.(A[1:2:∞,1:2:∞])[1:10,1:10] ≈ exp.(A[1:2:20,1:2:20])
+        @test exp.(A[1:2:∞,1:2:∞])[1:10,1:10] ≈ exp.(A)[1:2:20,1:2:20] ≈ exp.(A[1:2:20,1:2:20])
         @test A[band(2)][1:5] == 1:5
         @test _BandedMatrix((1:∞)', ∞, -1,1)[band(1)][1:5] == 2:6
         @test exp.(view(A,band(2)))[1:10] ≈ exp.(1:10)
 
         @test BandedMatrices.banded_similar(Int, (∞,5), (1,1)) isa BandedMatrix
         @test BandedMatrices.banded_similar(Int, (5,∞), (1,1)) isa Adjoint{<:Any,<:BandedMatrix}
+
+        @test (A+A)[2:∞,3:∞] isa SubArray
+        @test (A*A)[2:∞,3:∞] isa SubArray
 
         A = BandedMatrix{Int}((2 => 1:∞,), (∞,∞), (0,2))
         @test eltype(A) == Int
