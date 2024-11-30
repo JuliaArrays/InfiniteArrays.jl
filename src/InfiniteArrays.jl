@@ -28,7 +28,8 @@ end
 
 using Base.Broadcast
 import ArrayLayouts: AbstractBandedLayout, LayoutMatrix, LayoutVecOrMat, LayoutVecOrMats, LayoutVector, MemoryLayout,
-                     RangeCumsum, UnknownLayout, reshapedlayout, sub_materialize, sublayout, MatLdivVec
+                     RangeCumsum, UnknownLayout, reshapedlayout, sub_materialize, sublayout, MatLdivVec,
+                     subdiagonaldata, diagonaldata, supdiagonaldata
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, DefaultArrayStyle, axistype, broadcasted
 
