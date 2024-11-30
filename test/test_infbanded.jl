@@ -344,4 +344,10 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
         @test bandwidths(A + B) == (0, 1)
         @test bandwidths(2 * (A + B)) == (0, 1)
     end
+    
+
+    @testset "Upper-TriToep" begin
+        U = UpperTriangular(Tridiagonal(Fill(1,∞), Fill(2,∞), Fill(3,∞)))
+        @test MemoryLayout(U) isa BidiagonalToeplitzLayout
+    end
 end
