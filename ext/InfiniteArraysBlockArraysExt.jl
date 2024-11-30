@@ -38,10 +38,7 @@ sizes_from_blocks(A::AbstractVector, ::Tuple{OneToInf{Int}}) = (map(length,A),)
 length(::BlockedOneTo{Int,<:InfRanges}) = ℵ₀
 
 const OneToInfBlocks = BlockedOneTo{Int,OneToInfCumsum}
-const OneToBlocks = BlockedOneTo{Int,OneToCumsum}
-
 axes(a::OneToInfBlocks) = (a,)
-axes(a::OneToBlocks) = (a,)
 
 
 sub_materialize(_, V, ::Tuple{BlockedOneTo{Int,<:InfRanges}}) = V
@@ -51,7 +48,7 @@ function sub_materialize(::PaddedColumns, v::AbstractVector{T}, ax::Tuple{Blocke
     BlockedVector(Vcat(sub_materialize(dat), Zeros{T}(∞)), ax)
 end
 
-BlockArrays.dimlength(start, ::Infinity) = ℵ₀
+# BlockArrays.dimlength(start, ::Infinity) = ℵ₀
 
 function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Ones{T,1,Tuple{OneToInfBlocks}},AbstractArray{V,N}}}) where {N,T,V}
     a,b = bc.args

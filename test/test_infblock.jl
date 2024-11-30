@@ -157,6 +157,19 @@ const BlockTriPertToeplitz = InfiniteArraysBlockArraysExt.BlockTriPertToeplitz
         @test (im*I+A)[1:100, 1:100] == im * I + A[1:100, 1:100]
         @test (im*I-A)[1:100, 1:100] == im * I - A[1:100, 1:100]
 
+        @test (A'-I)[1:100, 1:100] == A'[1:100, 1:100] - I
+        @test (A'+I)[1:100, 1:100] == A'[1:100, 1:100] + I
+        @test (I+A')[1:100, 1:100] == I + A'[1:100, 1:100]
+        @test (I-A')[1:100, 1:100] == I - A'[1:100, 1:100]
+
         @test BlockTridiagonal(A')[Block.(1:10),Block.(1:10)] == A[Block.(1:10),Block.(1:10)]'
+    end
+
+    @testset "Bi/Diagonal mortar" begin
+        A = mortar(Diagonal(Fill([1 2; 3 4], ∞)))
+        @test A[Block(1,1)] == [1 2; 3 4]
+
+        B = mortar(Bidiagonal(Fill([1 2; 3 4], ∞), Fill([1 2; 3 4], ∞), :U))
+        @test B[Block(1,1)] == [1 2; 3 4]
     end
 end
