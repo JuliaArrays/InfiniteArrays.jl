@@ -1245,8 +1245,6 @@ end
     @test r[ind] == v
 end
 
-include("test_infconv.jl")
-include("test_block.jl")
 
 @testset "bounds-checking for StepRangeLen{<:CartesianIndex}" begin
     if VERSION >= v"1.11.0-rc3"
@@ -1259,9 +1257,11 @@ end
     a = [1+im,2+im]
     A = a * Ones{Complex{Int}}(1,∞)
     @test A[:,1:5] == a * ones(1,5)
-
+    
     @test (a*permutedims(1:∞))[:,1:5] == a*(1:5)'
     @test (a*Hcat(Zeros(1,2), permutedims(1:∞)))[1,1:5] == (a*Vcat(Hcat(Zeros(1,2), permutedims(1:∞))))[1,1:5]
 end
 
+include("test_infconv.jl")
+include("test_infblock.jl")
 include("test_infbanded.jl")
