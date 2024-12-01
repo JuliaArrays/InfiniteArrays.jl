@@ -1265,3 +1265,4 @@ end
 include("test_infconv.jl")
 include("test_infblock.jl")
 include("test_infbanded.jl")
+include("test_infblockbanded.jl")
