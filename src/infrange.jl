@@ -286,7 +286,6 @@ end
 
 # views may preserve InfStepRanges
 Base.@propagate_inbounds Base.view(r::InfStepRange, i::AbstractUnitRange{<:Integer}) = r[i]
-Base.@propagate_inbounds Base.view(r::InfStepRange, i::AbstractInfUnitRange{<:Integer}) = r[i]
 Base.@propagate_inbounds Base.view(r::InfStepRange, i::InfStepRange{<:Integer}) = r[i]
 Base.@propagate_inbounds Base.view(r::InfStepRange, i::StepRange{<:Integer}) = r[i]
 
