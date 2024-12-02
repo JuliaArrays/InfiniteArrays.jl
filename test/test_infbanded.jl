@@ -1,6 +1,8 @@
 using ArrayLayouts, InfiniteArrays, BandedMatrices, FillArrays, LazyArrays, Test
 import BandedMatrices: _BandedMatrix, bandeddata
-import InfiniteArrays: TridiagonalToeplitzLayout, BidiagonalToeplitzLayout, TriPertToeplitz, SymTriPertToeplitz, TriToeplitz, ConstRows, SymTriPertToeplitz, AdjTriPertToeplitz, subdiagonalconstant, diagonalconstant, supdiagonalconstant
+import InfiniteArrays: TridiagonalToeplitzLayout, BidiagonalToeplitzLayout, TriPertToeplitz, SymTriPertToeplitz,
+                        TriToeplitz, ConstRows, SymTriPertToeplitz, AdjTriPertToeplitz, subdiagonalconstant,
+                        diagonalconstant, supdiagonalconstant, PertTridiagonalToeplitzLayout
 using Base: oneto
 using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout, islazy
 
@@ -138,6 +140,7 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
         @testset "TriPert" begin
             A = SymTridiagonal(Vcat([1,2.], Fill(2.,∞)), Vcat([3.,4.], Fill.(0.5,∞)))
             @test A isa SymTriPertToeplitz
+            @test MemoryLayout(A) isa PertTridiagonalToeplitzLayout
             @test (A + 2I)[1:10,1:10] == (2I + A)[1:10,1:10] == A[1:10,1:10] + 2I
             @test BandedMatrix(A, (2,3))[1:10,1:10] == A[1:10,1:10]
 
@@ -349,5 +352,23 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
     @testset "Upper-TriToep" begin
         U = UpperTriangular(Tridiagonal(Fill(1,∞), Fill(2,∞), Fill(3,∞)))
         @test MemoryLayout(U) isa BidiagonalToeplitzLayout
+    end
+
+    @testset "padded column" begin
+        A = BandedMatrix(1 => Fill(2im,∞), 2 => Fill(-1,∞), 3 => Fill(2,∞), -2 => Fill(-4,∞), -3 => Fill(-2im,∞))
+        @test MemoryLayout(A[:,5]) isa LazyArrays.PaddedColumns
+        @test MemoryLayout(A[5,:]) isa LazyArrays.PaddedColumns
+
+        @test MemoryLayout((A*A)[:,5]) isa LazyArrays.PaddedColumns
+        @test MemoryLayout((A*A)[5,:]) isa LazyArrays.PaddedColumns
+
+        V = Vcat(Zeros(1,∞), A)
+        @test MemoryLayout(V[:,5]) isa LazyArrays.PaddedColumns
+        @test MemoryLayout(V[5,:]) isa LazyArrays.PaddedColumns
+    end 
+
+    @testset "Default broadcasted" begin
+        A = BandedMatrix(1 => Fill(2im,∞), 2 => Fill(-1,∞), 3 => Fill(2,∞), -2 => Fill(-4,∞), -3 => Fill(-2im,∞))
+        @test copy(Base.broadcasted(BandedMatrices.BandedStyle(), exp,A))[1:10,1:10] == exp.(A[1:10,1:10])
     end
 end

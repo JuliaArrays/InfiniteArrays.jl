@@ -114,3 +114,10 @@ for op in (:-, :+)
         end
     end
 end
+
+MemoryLayout(::Type{<:SymTriPertToeplitz}) = PertTridiagonalToeplitzLayout()
+
+sublayout(::ApplyBandedLayout, ::Type{<:Tuple{KR,Integer}}) where {KR<:InfAxes} =
+    sublayout(PaddedColumns{UnknownLayout}(), Tuple{KR})
+sublayout(::ApplyBandedLayout, ::Type{<:Tuple{Integer,JR}}) where {JR<:InfAxes} =
+    sublayout(PaddedColumns{UnknownLayout}(), Tuple{JR})
