@@ -284,6 +284,11 @@ function getindex(Ac::AdjOrTrans{<:Any,<:InfRanges}, k::Integer, j::InfAxes)
     parent(Ac)[j]
 end
 
+# views may preserve InfStepRanges
+Base.@propagate_inbounds Base.view(r::InfStepRange, i::AbstractUnitRange{<:Integer}) = r[i]
+Base.@propagate_inbounds Base.view(r::InfStepRange, i::AbstractInfUnitRange{<:Integer}) = r[i]
+Base.@propagate_inbounds Base.view(r::InfStepRange, i::InfStepRange{<:Integer}) = r[i]
+Base.@propagate_inbounds Base.view(r::InfStepRange, i::StepRange{<:Integer}) = r[i]
 
 show(io::IO, r::InfUnitRange) = print(io, repr(first(r)), ':', repr(∞))
 show(io::IO, r::OneToInf{Int}) = print(io, "OneToInf()")
