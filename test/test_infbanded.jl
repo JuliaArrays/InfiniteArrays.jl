@@ -138,6 +138,7 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
         @testset "TriPert" begin
             A = SymTridiagonal(Vcat([1,2.], Fill(2.,∞)), Vcat([3.,4.], Fill.(0.5,∞)))
             @test A isa SymTriPertToeplitz
+            @test MemoryLayout(A) isa PertTridiagonalToeplitzLayout
             @test (A + 2I)[1:10,1:10] == (2I + A)[1:10,1:10] == A[1:10,1:10] + 2I
             @test BandedMatrix(A, (2,3))[1:10,1:10] == A[1:10,1:10]
 
