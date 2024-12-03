@@ -6,8 +6,10 @@ import BandedMatrices: _BandedMatrix, BandedColumns
 import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
 using Aqua
+downstream_test = "--downstream_integration_test" in ARGS
 @testset "Project quality" begin
-    Aqua.test_all(InfiniteArrays, ambiguities=false, piracies=false)
+    Aqua.test_all(InfiniteArrays, ambiguities=false, piracies=false,
+        stale_deps=!downstream_test)
 end
 
 @testset "construction" begin
