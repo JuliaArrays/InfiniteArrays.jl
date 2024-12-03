@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - backport**
     paths-ignore:
       - 'LICENSE'
       - 'README.md'
