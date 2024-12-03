@@ -7,6 +7,7 @@
 [![Build Status](https://github.com/JuliaArrays/InfiniteArrays.jl/workflows/CI/badge.svg)](https://github.com/JuliaArrays/InfiniteArrays.jl/actions)
 [![codecov](https://codecov.io/gh/JuliaArrays/InfiniteArrays.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaArrays/InfiniteArrays.jl)
 [![PkgEval][pkgeval-img]][pkgeval-url]
+[![version](https://juliahub.com/docs/General/InfiniteArrays/stable/version.svg)](https://juliahub.com/ui/Packages/General/InfiniteArrays)
 
 
 A Julia package for representing arrays with infinite dimension sizes, designed to work
