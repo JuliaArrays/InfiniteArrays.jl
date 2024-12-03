@@ -391,6 +391,16 @@ end
         @test (1:-1:-∞)[1:∞] == 1:-1:-∞
     end
 
+    @testset "view(InfStepRange, inf-range)" begin
+        r = 2:5:∞
+        @test view(r, axes(r,1)) === r
+        @test view(r, 1:1:∞) === r
+        @test view(r, 2:2:∞) === 7:10:∞
+        r2 = 2:5:10_000 # arbitrary high upper cutoff
+        @test view(r, 4:10) == view(r2, 4:10)
+        @test view(r, 4:7:50) == view(r2, 4:7:50)
+    end
+
     @testset "OneToInf" begin
         r = OneToInf()
         @test !isempty(r)
