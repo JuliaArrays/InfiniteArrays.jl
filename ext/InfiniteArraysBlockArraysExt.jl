@@ -2,10 +2,10 @@ module InfiniteArraysBlockArraysExt
 using InfiniteArrays, BlockArrays
 using InfiniteArrays.ArrayLayouts, InfiniteArrays.LazyArrays, InfiniteArrays.LinearAlgebra
 
-import Base: length, size, axes, BroadcastStyle, copy, +, -
+import Base: length, size, axes, BroadcastStyle, copy, +, -, maximum, OneTo
 import Base.Broadcast: Broadcasted
 import ArrayLayouts: sub_materialize, axes_print_matrix_row
-import InfiniteArrays: OneToInf, PosInfinity, InfRanges, RealInfinity, Infinity, InfStepRange, TridiagonalToeplitzLayout
+import InfiniteArrays: OneToInf, PosInfinity, InfRanges, RealInfinity, Infinity, InfStepRange, TridiagonalToeplitzLayout, InfiniteCardinal
 import BlockArrays: AbstractBlockLayout, sizes_from_blocks, BlockTridiagonal, OneToCumsum, BlockSlice, AbstractBlockedUnitRange,
                     BlockLayout
 import LazyArrays: PaddedColumns, LazyArrayStyle
@@ -27,6 +27,8 @@ BlockArrays.sortedunion(a::OneToInfCumsum, ::OneToInfCumsum) = a
 BlockArrays.blocklasts(a::InfRanges) = Fill(length(a),1)
 
 BlockArrays.findblock(::BlockedOneTo, ::RealInfinity) = Block(ℵ₀)
+
+maximum(::BlockRange{1, Tuple{OneTo{InfiniteCardinal{0}}}}) = Block(ℵ₀)
 
 function BlockArrays.sortedunion(a::Vcat{Int,1,<:Tuple{Union{Int,AbstractVector{Int}},<:AbstractRange}},
                                  b::Vcat{Int,1,<:Tuple{Union{Int,AbstractVector{Int}},<:AbstractRange}})
