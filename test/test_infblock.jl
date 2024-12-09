@@ -139,6 +139,11 @@ const BlockTriPertToeplitz = InfiniteArraysBlockArraysExt.BlockTriPertToeplitz
         @test findblock(blockedrange(1:2:∞), RealInfinity()) == Block(ℵ₀)
     end
 
+    @testset "maximum of Inf Block Range" begin
+        # See https://github.com/JuliaApproximation/HarmonicOrthogonalPolynomials.jl/pull/89
+        @test maximum(Block.(Base.OneTo(Integer(+∞)))) == Block(ℵ₀)
+    end
+
     @testset "BlockTridiagonal Pert Toeplitz" begin
         A = BlockTridiagonal(Vcat([fill(1.0, 2, 1), Matrix(1.0I, 2, 2), Matrix(1.0I, 2, 2), Matrix(1.0I, 2, 2)], Fill(Matrix(1.0I, 2, 2), ∞)),
                                 Vcat([zeros(1, 1)], Fill(zeros(2, 2), ∞)),
