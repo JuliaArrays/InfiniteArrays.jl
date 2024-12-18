@@ -52,8 +52,11 @@ const BlockTriPertToeplitz = InfiniteArraysBlockArraysExt.BlockTriPertToeplitz
     end
 
     @testset "padded" begin
-        c = BlockedArray([1; zeros(∞)], Vcat(2, Fill(3, ∞)))
+        c = BlockedArray([1; 0; 2; zeros(∞)], Vcat(2, Fill(3, ∞)))
         @test c + c isa BlockedVector
+        @test MemoryLayout(c) isa LazyArrays.PaddedColumns
+        @test MemoryLayout(c[Block.(2:∞)]) isa LazyArrays.PaddedColumns
+        @test c[Block.(2:∞)][Block(1)] == [2,0,0]
     end
 
 
