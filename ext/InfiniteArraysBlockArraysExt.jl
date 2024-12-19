@@ -4,11 +4,10 @@ using InfiniteArrays.ArrayLayouts, InfiniteArrays.LazyArrays, InfiniteArrays.Lin
 
 import Base: length, size, axes, BroadcastStyle, copy, +, -, maximum, OneTo
 import Base.Broadcast: Broadcasted
-import ArrayLayouts: sub_materialize, axes_print_matrix_row
 import InfiniteArrays: OneToInf, PosInfinity, InfRanges, RealInfinity, Infinity, InfStepRange, TridiagonalToeplitzLayout, InfiniteCardinal
-import BlockArrays: AbstractBlockLayout, sizes_from_blocks, BlockTridiagonal, OneToCumsum, BlockSlice, AbstractBlockedUnitRange,
-                    BlockLayout
-import LazyArrays: PaddedColumns, LazyArrayStyle
+import BlockArrays: AbstractBlockLayout, sizes_from_blocks, BlockTridiagonal, OneToCumsum, BlockSlice, AbstractBlockedUnitRange, BlockLayout
+import InfiniteArrays.ArrayLayouts: sub_materialize, axes_print_matrix_row
+import InfiniteArrays.LazyArrays: PaddedColumns, LazyArrayStyle, paddeddata
 
 const OneToInfCumsum = RangeCumsum{Int,OneToInf{Int}}
 
