@@ -401,7 +401,8 @@ simplifiable(::Mul{<:DiagonalLayout, <:InfToeplitzLayouts}) = Val(true)
 simplifiable(::Mul{<:InfToeplitzLayouts, <:DiagonalLayout}) = Val(true)
 mulreduce(M::Mul{<:DiagonalLayout, <:InfToeplitzLayouts}) = Lmul(M)
 mulreduce(M::Mul{<:InfToeplitzLayouts, <:DiagonalLayout}) = Rmul(M)
-
+copy(M::Mul{<:DiagonalLayout, <:InfToeplitzLayouts}) = copy(mulreduce(M))
+copy(M::Mul{<:InfToeplitzLayouts, <:DiagonalLayout}) = copy(mulreduce(M))
 
 
 # copy for AdjOrTrans
