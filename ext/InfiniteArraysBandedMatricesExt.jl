@@ -5,7 +5,7 @@ using InfiniteArrays.LazyArrays, InfiniteArrays.ArrayLayouts, InfiniteArrays.Fil
 import Base: BroadcastStyle, size, getindex, similar, copy, *, +, -, /, \, materialize!, copyto!, OneTo
 import Base.Broadcast: Broadcasted
 import InfiniteArrays: InfIndexRanges, Infinity, PosInfinity, OneToInf, InfAxes, AbstractInfUnitRange, InfRanges, InfBaseToeplitzLayouts, ConstRowMatrix, PertConstRowMatrix, SymTriPertToeplitz, TriPertToeplitz, ConstRows, PertConstRows, PertTridiagonalToeplitzLayout
-import ArrayLayouts: sub_materialize, MemoryLayout, sublayout, mulreduce, triangularlayout, MatLdivVec, subdiagonaldata, diagonaldata, supdiagonaldata
+import ArrayLayouts: sub_materialize, MemoryLayout, sublayout, mulreduce, triangularlayout, MatLdivVec, subdiagonaldata, diagonaldata, supdiagonaldata, OnesLayout, _copy_oftype
 import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable, AbstractLazyLayout, PaddedColumns, LazyArrayStyle, ApplyLayout, AbstractLazyBandedLayout, ApplyBandedLayout, BroadcastBandedLayout
 import BandedMatrices: _BandedMatrix, AbstractBandedMatrix, banded_similar, BandedMatrix, bandedcolumns, BandedColumns, bandeddata, _default_banded_broadcast
 import FillArrays: AbstractFillMatrix, AbstractFill, getindex_value
@@ -403,6 +403,9 @@ mulreduce(M::Mul{<:DiagonalLayout, <:InfToeplitzLayouts}) = Lmul(M)
 mulreduce(M::Mul{<:InfToeplitzLayouts, <:DiagonalLayout}) = Rmul(M)
 copy(M::Mul{<:DiagonalLayout, <:InfToeplitzLayouts}) = copy(mulreduce(M))
 copy(M::Mul{<:InfToeplitzLayouts, <:DiagonalLayout}) = copy(mulreduce(M))
+copy(M::Mul{<:InfToeplitzLayouts, <:DiagonalLayout{<:OnesLayout}}) = _copy_oftype(M.A, eltype(M))
+copy(M::Mul{<:DiagonalLayout{<:OnesLayout}, <:InfToeplitzLayouts}) = _copy_oftype(M.B, eltype(M))
+
 
 
 # copy for AdjOrTrans
