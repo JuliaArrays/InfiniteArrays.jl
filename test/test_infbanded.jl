@@ -107,10 +107,19 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
         @testset "Toep * Diag" begin
             A = BandedMatrix(1 => Fill(2im,∞), 2 => Fill(-1,∞), 3 => Fill(2,∞), -2 => Fill(-4,∞), -3 => Fill(-2im,∞))
             D = Diagonal(1:∞)
+            F = Diagonal(Fill(2,∞))
             @test D*A isa BroadcastMatrix
             @test A*D isa BroadcastMatrix
+            @test F*A isa BandedMatrix
+            @test A*F isa BandedMatrix
+            @test Eye(∞)*A isa BandedMatrix
+            @test A*Eye(∞) isa BandedMatrix
             @test simplifiable(*, D, A) == Val(true)
             @test simplifiable(*, A, D) == Val(true)
+            @test simplifiable(*, F, A) == Val(true)
+            @test simplifiable(*, A, F) == Val(true)
+            @test simplifiable(*, Eye(∞), A) == Val(true)
+            @test simplifiable(*, A, Eye(∞)) == Val(true)
         end
 
         @testset "change bands" begin
