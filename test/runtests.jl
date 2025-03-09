@@ -884,6 +884,13 @@ end
         @test broadcast(*, 1:∞, Fill(2,∞)') isa BroadcastArray
         @test broadcast(*, Diagonal(1:∞), Ones{Int}(∞)') ≡ broadcast(*, Ones{Int}(∞)', Diagonal(1:∞)) ≡ Diagonal(1:∞)
         @test broadcast(*, Diagonal(1:∞), Fill(2,∞)') ≡ broadcast(*, Fill(2,∞)', Diagonal(1:∞)) ≡ Diagonal(2:2:∞)
+
+        @test !(Broadcast.BroadcastStyle(typeof(Fill(4))) isa LazyArrayStyle)
+        @test Broadcast.BroadcastStyle(typeof(Fill(4, ∞))) isa LazyArrayStyle{1}
+        @test Broadcast.BroadcastStyle(typeof(Fill(4, ∞, ∞))) isa LazyArrayStyle{2}
+        @test Broadcast.BroadcastStyle(typeof(Fill(4, ∞, 1))) isa LazyArrayStyle{2}
+        @test Broadcast.BroadcastStyle(typeof(Fill(4, 1, ∞))) isa LazyArrayStyle{2}
+        @test Broadcast.BroadcastStyle(typeof(Fill(4, ∞, ∞, ∞))) isa LazyArrayStyle{3}
     end
 
     @testset "subview inf broadcast" begin
