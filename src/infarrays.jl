@@ -425,7 +425,7 @@ Base._unsafe_getindex(::IndexStyle, A::AbstractFill{<:Any,2}, kr::InfAxes, jr::U
 
 @inline getindex(A::ApplyMatrix{<:Any,typeof(hcat)}, kr::InfAxes, j::Integer) = layout_getindex(A, kr, j)
 
-if !isdefined(FillArrays, :checkindex_AbstractUnitRange_AbstractFill)
+if !isdefined(FillArrays, :_checkindex_AbstractUnitRange_AbstractFill)
     Base.checkindex(::Type{Bool}, inds::AbstractUnitRange, I::AbstractFill) = Base.checkindex(Bool, inds, getindex_value(I))
 end
 LazyArrays.cache_getindex(::InfiniteCardinal{0}, A::AbstractVector, I, J...) = layout_getindex(A, I, J...)
