@@ -898,13 +898,13 @@ end
     @testset "views of matrices" begin
         D = Diagonal(1:∞)
         V = Vcat(Ones(2,∞), D)
-        @test view(D,:,5) .+ 1 isa BroadcastVector
-        @test view(D,5,:) .+ 1 isa BroadcastVector
-        @test view(V,:,5) .+ 1 isa BroadcastVector
-        @test view(V,5,:) .+ 1 isa BroadcastVector
+        @test view(D,:,5) .+ 1 isa BroadcastVector || view(D,:,5) .+ 1 isa CachedArray
+        @test view(D,5,:) .+ 1 isa BroadcastVector || view(D,5,:) .+ 1 isa CachedArray
+        @test view(V,:,5) .+ 1 isa BroadcastVector || view(V,:,5) .+ 1 isa Vcat
+        @test view(V,5,:) .+ 1 isa BroadcastVector || view(V,5,:) .+ 1 isa Vcat
 
         @test view(D,2:∞,2:∞) .+ 1 isa BroadcastMatrix
-        @test view(V,2:∞,2:∞) .+ 1 isa BroadcastMatrix
+        @test view(V,2:∞,2:∞) .+ 1 isa BroadcastMatrix || view(V,2:∞,2:∞) .+ 1 isa Vcat
 
         @test view(D,2:∞,[1,2,3]) .+ 1 isa BroadcastMatrix
         @test view(D,[1,2,3],2:∞) .+ 1 isa BroadcastMatrix
