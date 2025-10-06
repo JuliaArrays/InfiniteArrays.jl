@@ -382,23 +382,26 @@ ArrayLayouts.typed_vcat(::Type{T}, ::Tuple{Any,InfiniteCardinal{0}}, A...) where
 
 sub_materialize(_, V, ::Tuple{InfAxes}) = V
 sub_materialize(_, V, ::Tuple{InfAxes,InfAxes}) = V
-sub_materialize(_, V, ::Tuple{<:Any,InfAxes}) = V
+sub_materialize(_, V, ::Tuple{Any,InfAxes}) = V
 sub_materialize(_, V, ::Tuple{InfAxes,Any}) = V
 
 
 sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractVector, ::Tuple{InfAxes}) = ApplyArray(V)
-sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{InfAxes,InfAxes}) = ApplyArray(V)
-sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{<:Any,InfAxes}) = ApplyArray(V)
-sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{InfAxes,Any}) = ApplyArray(V)
+sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{InfAxes, InfAxes}) = ApplyArray(V)
+sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{Any, InfAxes}) = ApplyArray(V)
+sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{InfAxes, Any}) = ApplyArray(V)
 
 sub_materialize(::ApplyLayout{typeof(hcat)}, V, ::Tuple{InfAxes}) = V
-sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{InfAxes,InfAxes}) = ApplyArray(V)
-sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{<:Any,InfAxes}) = ApplyArray(V)
-sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{InfAxes,Any}) = ApplyArray(V)
+sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{InfAxes, InfAxes}) = ApplyArray(V)
+sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{Any, InfAxes}) = ApplyArray(V)
+sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{InfAxes, Any}) = ApplyArray(V)
 
 
-sub_materialize(::AbstractPaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T =
-    _padded_sub_materialize(v)
+sub_materialize(::AbstractPaddedLayout, v::AbstractVector, ::Tuple{InfAxes}) = _padded_sub_materialize(v)
+
+sub_materialize(::AbstractPaddedLayout, v::AbstractMatrix, ::Tuple{InfAxes, InfAxes}) = v
+sub_materialize(::AbstractPaddedLayout, v::AbstractMatrix, ::Tuple{InfAxes, Any}) = v
+sub_materialize(::AbstractPaddedLayout, v::AbstractMatrix, ::Tuple{Any, InfAxes}) = v
 
 sub_materialize(lay::InvColumnLayout, v::AbstractVector, ax::Tuple{InfAxes}) =
     Base.invoke(sub_materialize, Tuple{InvColumnLayout, AbstractVector, Any}, lay, v, ax)
