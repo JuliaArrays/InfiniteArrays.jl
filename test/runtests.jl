@@ -898,13 +898,13 @@ end
     @testset "views of matrices" begin
         D = Diagonal(1:∞)
         V = Vcat(Ones(2,∞), D)
-        @test view(D,:,5) .+ 1 isa BroadcastVector
-        @test view(D,5,:) .+ 1 isa BroadcastVector
-        @test view(V,:,5) .+ 1 isa BroadcastVector
-        @test view(V,5,:) .+ 1 isa BroadcastVector
+        @test view(D,:,5) .+ 1 isa BroadcastVector || view(D,:,5) .+ 1 isa CachedArray
+        @test view(D,5,:) .+ 1 isa BroadcastVector || view(D,5,:) .+ 1 isa CachedArray
+        @test view(V,:,5) .+ 1 isa BroadcastVector || view(V,:,5) .+ 1 isa Vcat
+        @test view(V,5,:) .+ 1 isa BroadcastVector || view(V,5,:) .+ 1 isa Vcat
 
         @test view(D,2:∞,2:∞) .+ 1 isa BroadcastMatrix
-        @test view(V,2:∞,2:∞) .+ 1 isa BroadcastMatrix
+        @test view(V,2:∞,2:∞) .+ 1 isa BroadcastMatrix || view(V,2:∞,2:∞) .+ 1 isa Vcat
 
         @test view(D,2:∞,[1,2,3]) .+ 1 isa BroadcastMatrix
         @test view(D,[1,2,3],2:∞) .+ 1 isa BroadcastMatrix
@@ -1247,6 +1247,16 @@ end
     @test LazyArrays.sub_materialize(view(v, 2:∞))[1:10] == zeros(10)
     @test v[2:∞] isa Zeros
     @test v[1:∞] == v
+
+    V = Vcat([1 2; 3 4], Zeros(∞,2))
+    H = Hcat([1 2; 3 4], Zeros(2,∞))
+    S = ApplyArray(Base.setindex, Zeros(∞,∞), [1 2; 3 4], Base.OneTo(2), Base.OneTo(2))
+    @test_skip V[:,1] == S[:,1] == [1; 3; Zeros(∞)]
+    @test V[:,1] ≈ S[:,1] ≈ [1; 3; Zeros(∞)] # TODO: change to ==
+    @test V[2:∞,1:2] ≈ S[2:∞,1:2] ≈ Vcat([3 4], Zeros(∞,2))
+    @test H[1,:] ≈ S[1,:] ≈ [1; 2; Zeros(∞)]
+    @test_broken H[1:2,2:∞] ≈ S[1:2,2:∞] ≈ Hcat([2; 4], Zeros(2,∞))
+    @test_broken S[2:∞,2:∞] ≈ ApplyArray(Base.setindex, Zeros(∞,∞), 4, 1, 1)
 end
 
 @testset "issue #180" begin
