@@ -1290,7 +1290,7 @@ end
     r = 1:∞
     for v in (4, true)
         f = Fill(v, ∞)
-        @test checkbounds(Bool, r, v)
+        @test checkbounds(Bool, r, f)
     end
 end
 
