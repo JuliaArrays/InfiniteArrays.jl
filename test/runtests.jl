@@ -1286,6 +1286,14 @@ end
     @test (a*Hcat(Zeros(1,2), permutedims(1:∞)))[1,1:5] == (a*Vcat(Hcat(Zeros(1,2), permutedims(1:∞))))[1,1:5]
 end
 
+@testset "checkindex" begin
+    r = 1:∞
+    for v in (4, true)
+        f = Fill(v, ∞)
+        @test checkbounds(Bool, r, v)
+    end
+end
+
 include("test_infconv.jl")
 include("test_infblock.jl")
 include("test_infbanded.jl")
