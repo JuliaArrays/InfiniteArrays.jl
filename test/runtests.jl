@@ -1292,6 +1292,8 @@ end
         f = Fill(v, ∞)
         @test checkbounds(Bool, r, f)
     end
+    @test checkbounds(Bool, r, Fill(1, 1))
+    @test !checkbounds(Bool, r, Fill(true, 1))
 end
 
 include("test_infconv.jl")
