@@ -121,3 +121,5 @@ sublayout(::ApplyBandedLayout, ::Type{<:Tuple{KR,Integer}}) where {KR<:InfAxes} 
     sublayout(PaddedColumns{UnknownLayout}(), Tuple{KR})
 sublayout(::ApplyBandedLayout, ::Type{<:Tuple{Integer,JR}}) where {JR<:InfAxes} =
     sublayout(PaddedColumns{UnknownLayout}(), Tuple{JR})
+
+LazyArrays._vcat_sub_arguments(::Union{PertConstRows,ConstRows}, A, V) = LazyArrays._vcat_sub_arguments(ApplyLayout{typeof(hcat)}(), A, V)
