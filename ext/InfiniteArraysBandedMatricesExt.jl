@@ -3,10 +3,10 @@ using InfiniteArrays, BandedMatrices, LinearAlgebra
 using InfiniteArrays.LazyArrays, InfiniteArrays.ArrayLayouts, InfiniteArrays.FillArrays
 
 import Base: BroadcastStyle, size, getindex, similar, copy, *, +, -, /, \, materialize!, copyto!, OneTo
-import Base.Broadcast: Broadcasted
+import Base.Broadcast: Broadcasted, result_style
 import InfiniteArrays: InfIndexRanges, Infinity, PosInfinity, OneToInf, InfAxes, AbstractInfUnitRange, InfRanges, InfBaseToeplitzLayouts, ConstRowMatrix, PertConstRowMatrix, SymTriPertToeplitz, TriPertToeplitz, ConstRows, PertConstRows, PertTridiagonalToeplitzLayout
 import ArrayLayouts: sub_materialize, MemoryLayout, sublayout, mulreduce, triangularlayout, MatLdivVec, subdiagonaldata, diagonaldata, supdiagonaldata, OnesLayout, _copy_oftype
-import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable, AbstractLazyLayout, PaddedColumns, LazyArrayStyle, ApplyLayout, AbstractLazyBandedLayout, ApplyBandedLayout, BroadcastBandedLayout
+import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable, AbstractLazyLayout, PaddedColumns, LazyArrayStyle, ApplyLayout, AbstractLazyBandedLayout, ApplyBandedLayout, BroadcastBandedLayout, CachedArrayStyle, AbstractLazyArrayStyle
 import BandedMatrices: _BandedMatrix, AbstractBandedMatrix, banded_similar, BandedMatrix, bandedcolumns, BandedColumns, bandeddata, _default_banded_broadcast
 import FillArrays: AbstractFillMatrix, AbstractFill, getindex_value
 
@@ -26,9 +26,11 @@ InfBandCartesianIndices(b::Band) = InfBandCartesianIndices(b.i)
 size(::InfBandCartesianIndices) = (∞,)
 getindex(B::InfBandCartesianIndices, k::Int) = B.b ≥ 0 ? CartesianIndex(k, k+B.b) : CartesianIndex(k-B.b, k)
 
+
 Base.checkindex(::Type{Bool}, ::NTuple{2,OneToInf{Int}}, ::InfBandCartesianIndices) = true
 BandedMatrices.band_to_indices(_, ::NTuple{2,OneToInf{Int}}, b) = (InfBandCartesianIndices(b),)
-BroadcastStyle(::Type{<:SubArray{<:Any,1,<:Any,Tuple{InfBandCartesianIndices}}}) = LazyArrayStyle{1}()
+_lower_style_dim(::Sty) where {Sty} = Sty(Val(1))
+BroadcastStyle(::Type{<:SubArray{<:Any,1,P,Tuple{InfBandCartesianIndices}}}) where {P} = _lower_style_dim(result_style(LazyArrayStyle{1}(), BroadcastStyle(P)))
 
 _inf_banded_sub_materialize(_, V) = V
 function _inf_banded_sub_materialize(::BandedColumns, V)
@@ -296,6 +298,7 @@ for Typ in (:ConstRows, :PertConstRows)
     @eval begin
         sublayout(::$Typ, ::Type{<:Tuple{Any,AbstractInfUnitRange{Int}}}) = $Typ() # no way to lose const rows
         applybroadcaststyle(::Type{<:AbstractMatrix}, ::$Typ) = LazyArrayStyle{2}()
+        applybroadcaststyle(::Type{<:ApplyMatrix{<:Any, <:Any, Args}}, ::$Typ) where {Args<:Tuple} = LazyArrayStyle{2}() # ambiguity
         applylayout(::Type, ::$Typ, _...) = LazyLayout()
     end
 end

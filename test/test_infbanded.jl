@@ -4,7 +4,8 @@ import InfiniteArrays: TridiagonalToeplitzLayout, BidiagonalToeplitzLayout, TriP
                         TriToeplitz, ConstRows, SymTriPertToeplitz, AdjTriPertToeplitz, subdiagonalconstant,
                         diagonalconstant, supdiagonalconstant, PertTridiagonalToeplitzLayout
 using Base: oneto
-using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout, islazy
+using LazyArrays: simplifiable, ApplyLayout, CachedArrayStyle, LazyArrayStyle, BroadcastBandedLayout, islazy
+import Base.Broadcast: BroadcastStyle
 
 const InfiniteArraysBandedMatricesExt = Base.get_extension(InfiniteArrays, :InfiniteArraysBandedMatricesExt)
 const InfToeplitz = InfiniteArraysBandedMatricesExt.InfToeplitz
@@ -40,6 +41,7 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
         @test (B*A*x)[1:10] == [0; 10; 14; 12; zeros(6)]
 
         @test _BandedMatrix((1:∞)', ∞, -1, 1) isa BandedMatrix
+
     end
 
     @testset "∞-Toeplitz" begin
@@ -379,5 +381,14 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
     @testset "Default broadcasted" begin
         A = BandedMatrix(1 => Fill(2im,∞), 2 => Fill(-1,∞), 3 => Fill(2,∞), -2 => Fill(-4,∞), -3 => Fill(-2im,∞))
         @test copy(Base.broadcasted(BandedMatrices.BandedStyle(), exp,A))[1:10,1:10] == exp.(A[1:10,1:10])
+    end
+
+    @testset "BroadcastStyle with InfBandCartesianIndices" begin
+        A = BandedMatrix(1 => Fill(2im,∞), 2 => Fill(-1,∞), 3 => Fill(2,∞), -2 => Fill(-4,∞), -3 => Fill(-2im,∞))
+        B = view(A, band(0)) 
+        @test BroadcastStyle(typeof(B)) == LazyArrayStyle{1}()
+        A = BandedMatrix(1 => Fill(2im,∞), 2 => cache(Fill(-1,∞)), 3 => Fill(2,∞), -2 => Fill(-4,∞), -3 => Fill(-2im,∞))
+        B = view(A, band(0))
+        @test BroadcastStyle(typeof(B)) == CachedArrayStyle{1}()
     end
 end
