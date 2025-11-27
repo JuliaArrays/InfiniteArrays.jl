@@ -4,7 +4,8 @@ import InfiniteArrays: TridiagonalToeplitzLayout, BidiagonalToeplitzLayout, TriP
                         TriToeplitz, ConstRows, SymTriPertToeplitz, AdjTriPertToeplitz, subdiagonalconstant,
                         diagonalconstant, supdiagonalconstant, PertTridiagonalToeplitzLayout
 using Base: oneto
-using LazyArrays: simplifiable, ApplyLayout, BroadcastBandedLayout, islazy
+using LazyArrays: simplifiable, ApplyLayout, CachedArrayStyle, LazyArrayStyle, BroadcastBandedLayout, islazy
+import Base.Broadcast: BroadcastStyle
 
 const InfiniteArraysBandedMatricesExt = Base.get_extension(InfiniteArrays, :InfiniteArraysBandedMatricesExt)
 const InfToeplitz = InfiniteArraysBandedMatricesExt.InfToeplitz
@@ -40,6 +41,7 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
         @test (B*A*x)[1:10] == [0; 10; 14; 12; zeros(6)]
 
         @test _BandedMatrix((1:∞)', ∞, -1, 1) isa BandedMatrix
+
     end
 
     @testset "∞-Toeplitz" begin
@@ -380,4 +382,75 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
         A = BandedMatrix(1 => Fill(2im,∞), 2 => Fill(-1,∞), 3 => Fill(2,∞), -2 => Fill(-4,∞), -3 => Fill(-2im,∞))
         @test copy(Base.broadcasted(BandedMatrices.BandedStyle(), exp,A))[1:10,1:10] == exp.(A[1:10,1:10])
     end
+
+    @testset "BroadcastStyle with InfBandCartesianIndices" begin
+        A = BandedMatrix(1 => Fill(2im,∞), 2 => Fill(-1,∞), 3 => Fill(2,∞), -2 => Fill(-4,∞), -3 => Fill(-2im,∞))
+        B = view(A, band(0)) 
+        @test BroadcastStyle(typeof(B)) == LazyArrayStyle{1}()
+        A = BandedMatrix(1 => Fill(2im,∞), 2 => cache(Fill(-1,∞)), 3 => Fill(2,∞), -2 => Fill(-4,∞), -3 => Fill(-2im,∞))
+        B = view(A, band(0))
+        @test BroadcastStyle(typeof(B)) == CachedArrayStyle{1}()
+    end
 end
+
+#=
+julia> BroadcastStyle(typeof(B))
+LazyArrayStyle{1}()
+
+julia> BroadcastStyle(typeof(A))
+LazyArrayStyle{2}()
+
+julia> @edit BroadcastStyle(typeof(A))
+
+julia> @edit BroadcastStyle(typeof(A))^C
+
+julia> A.data
+(7×5 Matrix{Complex{Int64}}) * (vcat(1×ℵ₀ Fill{Complex{Int64}, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}} with indices Base.OneTo(1)×OneToInf(), hcat(1×2 Zeros{Int64}, 1×ℵ₀ LazyArrays.CachedArray{Int64, 2, Matrix{Int64}, Fill{Int64, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}}} with indices Base.OneTo(1)×OneToInf()) with indices Base.OneTo(1)×OneToInf(), 1×ℵ₀ Fill{Int64, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}} with indices Base.OneTo(1)×OneToInf(), 1×ℵ₀ Fill{Int64, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}} with indices Base.OneTo(1)×OneToInf(), 1×ℵ₀ Fill{Complex{Int64}, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}} with indices Base.OneTo(1)×OneToInf()) with indices Base.OneTo(5)×OneToInf()) with indices Base.OneTo(7)×OneToInf():
+  2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im  …  
+  0+0im   0+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im
+  0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im
+  0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im
+  0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im
+ -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  …
+  0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im
+
+julia> A.data
+(7×5 Matrix{Complex{Int64}}) * (vcat(1×ℵ₀ Fill{Complex{Int64}, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}} with indices Base.OneTo(1)×OneToInf(), hcat(1×2 Zeros{Int64}, 1×ℵ₀ LazyArrays.CachedArray{Int64, 2, Matrix{Int64}, Fill{Int64, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}}} with indices Base.OneTo(1)×OneToInf()) with indices Base.OneTo(1)×OneToInf(), 1×ℵ₀ Fill{Int64, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}} with indices Base.OneTo(1)×OneToInf(), 1×ℵ₀ Fill{Int64, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}} with indices Base.OneTo(1)×OneToInf(), 1×ℵ₀ Fill{Complex{Int64}, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}} with indices Base.OneTo(1)×OneToInf()) with indices Base.OneTo(5)×OneToInf()) with indices Base.OneTo(7)×OneToInf():
+  2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im  …
+  0+0im   0+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im
+  0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im
+  0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im
+  0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im     
+ -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  …
+  0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im
+
+julia> Base.BroadcastStyle(typeof(A.data))
+LazyArrayStyle{2}()
+
+julia> @edit Base.BroadcastStyle(typeof(A.data))
+
+julia> typeof(A.data)
+ApplyArray{Complex{Int64}, 2, typeof(*), Tuple{Matrix{Complex{Int64}}, ApplyArray{Complex{Int64}, 2, typeof(vcat), Tuple{Fill{Complex{Int64}, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}}, ApplyArray{Int64, 2, typeof(hcat), Tuple{Zeros{Int64, 2, Tuple{Base.OneTo{Int64}, Base.OneTo{Int64}}}, LazyArrays.CachedArray{Int64, 2, Matrix{Int64}, Fill{Int64, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}}}}}, Fill{Int64, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}}, Fill{Int64, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}}, Fill{Complex{Int64}, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}}}}}}
+
+julia> Base.Broad^C
+
+julia> Base.^C
+
+julia> LazyArrays.applybroadcaststyle(typeof(A.data), MemoryLayout(A.data))
+LazyArrayStyle{2}()
+
+julia> @edit LazyArrays.applybroadcaststyle(typeof(A.data), MemoryLayout(A.data))
+
+julia> MemoryLayout(A.data)
+ApplyLayout{typeof(*)}()
+
+julia> A.data
+(7×5 Matrix{Complex{Int64}}) * (vcat(1×ℵ₀ Fill{Complex{Int64}, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}} with indices Base.OneTo(1)×OneToInf(), hcat(1×2 Zeros{Int64}, 1×ℵ₀ LazyArrays.CachedArray{Int64, 2, Matrix{Int64}, Fill{Int64, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}}} with indices Base.OneTo(1)×OneToInf()) with indices Base.OneTo(1)×OneToInf(), 1×ℵ₀ Fill{Int64, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}} with indices Base.OneTo(1)×OneToInf(), 1×ℵ₀ Fill{Int64, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}} with indices Base.OneTo(1)×OneToInf(), 1×ℵ₀ Fill{Complex{Int64}, 2, Tuple{Base.OneTo{Int64}, InfiniteArrays.OneToInf{Int64}}} with indices Base.OneTo(1)×OneToInf()) with indices Base.OneTo(5)×OneToInf()) with indices Base.OneTo(7)×OneToInf():
+  2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im   2+0im  …
+  0+0im   0+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im  -1+0im
+  0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im   0+2im
+  0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im
+  0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im   0+0im
+ -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  -4+0im  …
+  0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im   0-2im
+  =#
