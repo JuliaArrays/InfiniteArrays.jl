@@ -14,6 +14,7 @@ unitrange(a::BiInfUnitRange) = a
 Base.has_offset_axes(::BiInfUnitRange) = true
 
 getindex(v::BiInfUnitRange{T}, i::Integer) where T = convert(T, i)
+getindex(v::BiInfUnitRange{T}, i::RealInfinity) where T = i
 axes(::BiInfUnitRange) = (BiInfUnitRange(),)
 first(::BiInfUnitRange) = -∞
 show(io::IO, ::BiInfUnitRange{Int}) = print(io, "BiInfUnitRange()")

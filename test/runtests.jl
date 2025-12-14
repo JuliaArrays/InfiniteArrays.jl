@@ -564,6 +564,10 @@ end
         @test_throws ArgumentError [1:∞; [1.0]; 1:∞]
         @test_throws ArgumentError [1:∞; 1; [1]]
     end
+
+    @testset "range from ∞" begin
+        @test range(ℵ₀; length=5) ≡ Fill(ℵ₀, 5)
+    end
 end
 
 @testset "fill" begin

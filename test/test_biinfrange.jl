@@ -5,4 +5,5 @@ using InfiniteArrays: BiInfUnitRange
     r = BiInfUnitRange()
     @test stringmime("text/plain", r) == "BiInfUnitRange()"
     @test Fill(1, (r,))[-5] == 1
+    @test exp.(r)[-3] == exp(-3)
 end
