@@ -63,6 +63,7 @@ zeros(sz::Union{Infinity, Integer, AbstractUnitRange}...) = zeros(Base.to_shape(
 zeros(::Type{T}, sz::Union{Infinity, Integer, AbstractUnitRange}...) where T = zeros(T, Base.to_shape(sz)...)
 zeros(::Type{T}, ::Tuple{PosInfinity}) where T = cache(Zeros{T}(∞))
 zeros(::Type{T}, nm::Tuple{Integer, PosInfinity}) where T = cache(Zeros{T}(nm...))
+zeros(::Type{T}, nm::Tuple{Integer, Integer, PosInfinity}) where T = cache(Zeros{T}(nm...))
 zeros(::Type{T}, nm::Tuple{PosInfinity, Integer}) where T = cache(Zeros{T}(nm...))
 zeros(::Type{T}, nm::Tuple{PosInfinity, PosInfinity}) where T = cache(Zeros{T}(nm...))
 
@@ -80,14 +81,14 @@ fill(x, nm::Tuple{PosInfinity, PosInfinity}) = cache(Fill(x,nm...))
 
 
 
-# This gets called when infinit number of columns
+# This gets called when infinite number of columns
 axes_print_matrix_row(_, io, X, A, i, ::AbstractVector{<:PosInfinity}, sep) = nothing
 print_matrix_row(io::IO, X::AbstractVecOrMat, A::Vector, i::Integer, cols::AbstractVector{<:PosInfinity}, sep::AbstractString, idxlast::Integer=last(axes(X, 2))) = nothing
 print_matrix_row(io::IO, X::AbstractVecOrMat, A::Vector, i::Integer, cols::AbstractVector, sep::AbstractString, idxlast::Union{RealInfinity,Infinity}) = print_matrix_row(io, X, A, i, cols, sep, ℵ₀)
 print_matrix_row(io::IO,
         X::Union{LayoutMatrix,
         LayoutVector,
-        AbstractTriangular{<:Any,<:LayoutMatrix},
+        UpperOrLowerTriangular{<:Any,<:LayoutMatrix},
         AdjOrTrans{<:Any,<:LayoutMatrix},
         AdjOrTrans{<:Any,<:LayoutVector},
         HermOrSym{<:Any,<:LayoutMatrix},
@@ -100,7 +101,7 @@ print_matrix_row(io::IO,
                  AbstractFill{<:Any,2},
                  Diagonal{<:Any,<:AbstractFill{<:Any,1}},
                  RectDiagonal,
-                 AbstractTriangular{<:Any,<:AbstractFill{<:Any,2}}
+                 UpperOrLowerTriangular{<:Any,<:AbstractFill{<:Any,2}}
                  }, A::Vector,
         i::Integer, cols::AbstractVector{<:PosInfinity}, sep::AbstractString, idxlast::Integer=last(axes(X, 2))) =
     axes_print_matrix_row(axes(X), io, X, A, i, cols, sep)
@@ -163,16 +164,18 @@ end
 #####
 
 
-# Lazy Broadacasting
+# Lazy Broadcasting
 for typ in (:Ones, :Zeros, :Fill)
     @eval begin
-        BroadcastStyle(::Type{$typ{T,N,NTuple{N,<:OneToInf}}}) where {T,N} = LazyArrayStyle{N}()
+        BroadcastStyle(::Type{$typ{T,N,<:Tuple{OneToInf,Vararg{OneToInf}}}}) where {T,N} = LazyArrayStyle{N}()
         BroadcastStyle(::Type{$typ{T,2,<:Tuple{<:Any,<:OneToInf}}}) where {T} = LazyArrayStyle{2}()
         BroadcastStyle(::Type{$typ{T,2,<:Tuple{<:OneToInf,<:Any}}}) where {T} = LazyArrayStyle{2}()
     end
 end
 
-BroadcastStyle(::Type{<:Diagonal{T,<:AbstractFill{T,1,Tuple{OneToInf{I}}}}}) where {T,I} = LazyArrayStyle{2}()
+for M in (:Diagonal, :Bidiagonal, :Tridiagonal, :SymTridiagonal)
+    @eval BroadcastStyle(::Type{<:$M{T,<:AbstractFill{T,1,Tuple{OneToInf{I}}}}}) where {T,I} = LazyArrayStyle{2}()
+end
 
 ## Support broadcast(*, ::AbstractFill, A)
 
@@ -183,7 +186,45 @@ function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Ones{T,1,
     convert(AbstractArray{promote_type(T,V),N}, b)
 end
 
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Ones{T,2,Tuple{OneToInf{Int},OneTo{Int}}},AbstractArray{V,N}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(b)
+    convert(AbstractArray{promote_type(T,V),N}, b)
+end
+
+function _onesbroadcast_ifinf(::NTuple{2,OneToInf{Int}}, bc)
+    a,b = bc.args
+    convert(AbstractArray{promote_type(eltype(a),eltype(b))}, b)
+end
+_onesbroadcast_ifinf(_, bc) = BroadcastArray(bc)
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Ones{T,2,NTuple{2,OneToInf{Int}}},AbstractArray{V,N}}}) where {N,T,V}
+    a,b = bc.args
+    _onesbroadcast_ifinf(axes(b), bc)
+end
+
+
+
+copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Ones{T,1,Tuple{OneToInf{Int}}},AbstractArray{V,N},Vararg{Any}}}) where {N,T,V} =
+    broadcast(*, first(bc.args), broadcast(*, tail(bc.args)...))
+copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Ones{T,2,Tuple{OneToInf{Int},OneTo{Int}}},AbstractArray{V,N},Vararg{Any}}}) where {N,T,V} =
+    broadcast(*, first(bc.args), broadcast(*, tail(bc.args)...))
+copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{Ones{T,2,NTuple{2,OneToInf{Int}}},AbstractArray{V,N},Vararg{Any}}}) where {N,T,V} =
+    broadcast(*, first(bc.args), broadcast(*, tail(bc.args)...))    
+
 function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},Ones{V,1,Tuple{OneToInf{Int}}}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(a)
+    convert(AbstractArray{promote_type(T,V),N}, a)
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},Ones{V,2,Tuple{OneTo{Int},OneToInf{Int}}}}}) where {N,T,V}
+    a,b = bc.args
+    @assert bc.axes == axes(a)
+    convert(AbstractArray{promote_type(T,V),N}, a)
+end
+
+function copy(bc::Broadcasted{<:BroadcastStyle,<:Any,typeof(*),<:Tuple{AbstractArray{T,N},Ones{V,2,Tuple{OneToInf{Int},OneToInf{Int}}}}}) where {N,T,V}
     a,b = bc.args
     @assert bc.axes == axes(a)
     convert(AbstractArray{promote_type(T,V),N}, a)
@@ -246,7 +287,9 @@ end
 one(D::Diagonal{T,<:AbstractFill{T,1,Tuple{OneToInf{Int}}}}) where T = Eye{T}(size(D,1))
 copy(D::Diagonal{T,<:AbstractFill{T,1,Tuple{OneToInf{Int}}}}) where T = D
 
-BroadcastStyle(::Type{<:Diagonal{<:Any,<:AbstractInfUnitRange}}) = LazyArrayStyle{2}()
+for M in (:Diagonal, :Bidiagonal, :Tridiagonal, :SymTridiagonal)
+    @eval BroadcastStyle(::Type{<:$M{<:Any,<:AbstractInfUnitRange}}) = LazyArrayStyle{2}()
+end
 sub_materialize(::AbstractBandedLayout, V, ::Tuple{InfAxes,InfAxes}) = V
 sub_materialize(::AbstractBandedLayout, V, ::Tuple{OneTo{Int},InfAxes}) = V
 sub_materialize(::AbstractBandedLayout, V, ::Tuple{InfAxes,OneTo{Int}}) = V
@@ -256,15 +299,15 @@ sub_materialize(::AbstractBandedLayout, V, ::Tuple{InfAxes,OneTo{Int}}) = V
 ##
 
 sublayout(::DiagonalLayout{L}, ::Type{<:Tuple{KR,Integer}}) where {L,KR<:InfAxes} =
-    sublayout(PaddedLayout{UnknownLayout}(), Tuple{KR})
+    sublayout(PaddedColumns{UnknownLayout}(), Tuple{KR})
 sublayout(::DiagonalLayout{L}, ::Type{<:Tuple{Integer,JR}}) where {L,JR<:InfAxes} =
-    sublayout(PaddedLayout{UnknownLayout}(), Tuple{JR})
+    sublayout(PaddedColumns{UnknownLayout}(), Tuple{JR})
 -
 
 sublayout(::AbstractBandedLayout, ::Type{<:Tuple{KR,Integer}}) where {KR<:InfAxes} =
-    sublayout(PaddedLayout{UnknownLayout}(), Tuple{KR})
+    sublayout(PaddedColumns{UnknownLayout}(), Tuple{KR})
 sublayout(::AbstractBandedLayout, ::Type{<:Tuple{Integer,JR}}) where {JR<:InfAxes} =
-    sublayout(PaddedLayout{UnknownLayout}(), Tuple{JR})
+    sublayout(PaddedColumns{UnknownLayout}(), Tuple{JR})
 
 
 function sub_paddeddata(::AbstractBandedLayout, S::SubArray{T,1,<:AbstractMatrix,<:Tuple{InfAxes,Integer}}) where T
@@ -296,7 +339,7 @@ _vcat(a, b, c...) = Vcat(a, b, c...)
 getindex(A::Vcat, r::InfUnitRange) = Base.invoke(getindex, Tuple{AbstractArray, Any}, A, r)
 _unsafe_getindex(::IndexLinear, A::Vcat, r::InfUnitRange) = _vcat(_gettail(first(r), A.args...)...)
 
-# some common cases not catched by LayoutArrays + ambiguities
+# some common cases not caught by LayoutArrays + ambiguities
 for InfColMatrix in (:(SubArray{<:Any,2,<:Any,<:Tuple{Any,InfIndexRanges}}),
                      :(SubArray{<:Any,2,<:LayoutVecOrMat,<:Tuple{Any,InfIndexRanges}}),
                      :(AbstractFill{<:Any,2,Tuple{OneTo{Int},OneToInf{Int}}}))
@@ -339,23 +382,26 @@ ArrayLayouts.typed_vcat(::Type{T}, ::Tuple{Any,InfiniteCardinal{0}}, A...) where
 
 sub_materialize(_, V, ::Tuple{InfAxes}) = V
 sub_materialize(_, V, ::Tuple{InfAxes,InfAxes}) = V
-sub_materialize(_, V, ::Tuple{<:Any,InfAxes}) = V
+sub_materialize(_, V, ::Tuple{Any,InfAxes}) = V
 sub_materialize(_, V, ::Tuple{InfAxes,Any}) = V
 
 
 sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractVector, ::Tuple{InfAxes}) = ApplyArray(V)
-sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{InfAxes,InfAxes}) = ApplyArray(V)
-sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{<:Any,InfAxes}) = ApplyArray(V)
-sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{InfAxes,Any}) = ApplyArray(V)
+sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{InfAxes, InfAxes}) = ApplyArray(V)
+sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{Any, InfAxes}) = ApplyArray(V)
+sub_materialize(::ApplyLayout{typeof(vcat)}, V::AbstractMatrix, ::Tuple{InfAxes, Any}) = ApplyArray(V)
 
 sub_materialize(::ApplyLayout{typeof(hcat)}, V, ::Tuple{InfAxes}) = V
-sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{InfAxes,InfAxes}) = ApplyArray(V)
-sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{<:Any,InfAxes}) = ApplyArray(V)
-sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{InfAxes,Any}) = ApplyArray(V)
+sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{InfAxes, InfAxes}) = ApplyArray(V)
+sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{Any, InfAxes}) = ApplyArray(V)
+sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{InfAxes, Any}) = ApplyArray(V)
 
 
-sub_materialize(::PaddedLayout, v::AbstractVector{T}, ::Tuple{InfAxes}) where T =
-    _padded_sub_materialize(v)
+sub_materialize(::AbstractPaddedLayout, v::AbstractVector, ::Tuple{InfAxes}) = _padded_sub_materialize(v)
+
+sub_materialize(::AbstractPaddedLayout, v::AbstractMatrix, ::Tuple{InfAxes, InfAxes}) = v
+sub_materialize(::AbstractPaddedLayout, v::AbstractMatrix, ::Tuple{InfAxes, Any}) = v
+sub_materialize(::AbstractPaddedLayout, v::AbstractMatrix, ::Tuple{Any, InfAxes}) = v
 
 sub_materialize(lay::InvColumnLayout, v::AbstractVector, ax::Tuple{InfAxes}) =
     Base.invoke(sub_materialize, Tuple{InvColumnLayout, AbstractVector, Any}, lay, v, ax)
@@ -364,7 +410,10 @@ sub_materialize(lay::InvColumnLayout, v::AbstractVector, ax::Tuple{InfAxes}) =
 Base._unsafe_getindex(::IndexStyle, A::AbstractVector, r::InfAxes) = layout_getindex(A, r)
 Base._unsafe_getindex(::IndexStyle, A::AbstractFill{<:Any,1}, r::InfAxes) = FillArrays._fill_getindex(A, r)
 getindex(A::AbstractCachedVector, r::InfAxes) = layout_getindex(A, r)
+# preserve padded/fill structure
+getindex(A::CachedVector{<:Any,<:AbstractVector,<:AbstractFill{<:Any,1}}, r::InfAxes) = LazyArrays.cache_getindex(A, r)
 # don't resize to ∞
+Base.isassigned(A::AbstractCachedVector, r::InfiniteCardinal{0}) = true
 getindex(A::AbstractCachedVector, r::InfiniteCardinal{0}) = A.array[r]
 
 
@@ -379,6 +428,10 @@ Base._unsafe_getindex(::IndexStyle, A::AbstractFill{<:Any,2}, kr::InfAxes, jr::U
 
 @inline getindex(A::ApplyMatrix{<:Any,typeof(hcat)}, kr::InfAxes, j::Integer) = layout_getindex(A, kr, j)
 
-Base.checkindex(::Type{Bool}, inds::AbstractUnitRange, I::AbstractFill) = Base.checkindex(Bool, inds, getindex_value(I))
+Base.checkindex(::Type{Bool}, inds::AbstractInfUnitRange, I::AbstractFill) = Base.checkindex(Bool, inds, getindex_value(I))
+Base.checkindex(::Type{Bool}, inds::AbstractInfUnitRange, I::AbstractFill{Bool}) = axes(I,1) == inds
 LazyArrays.cache_getindex(::InfiniteCardinal{0}, A::AbstractVector, I, J...) = layout_getindex(A, I, J...)
+LazyArrays.cache_getindex(::InfiniteCardinal{0}, A::CachedVector{<:Any,<:AbstractVector,<:AbstractFill{<:Any,1}}, I::AbstractVector) = LazyArrays.cache_getindex(nothing, A, I)
 
+
+*(a::AbstractVector, b::AbstractFill{<:Any,2,Tuple{OneTo{Int},OneToInf{Int}}}) = ApplyArray(*,a,b)

@@ -1,12 +1,15 @@
-using LinearAlgebra, SparseArrays, InfiniteArrays, Infinities, FillArrays, LazyArrays, Statistics, BandedMatrices, LazyBandedMatrices, Test, Base64
+using LinearAlgebra, SparseArrays, InfiniteArrays, Infinities, FillArrays, LazyArrays, Statistics, Test, Base64
+using BandedMatrices
 import InfiniteArrays: InfUnitRange, InfStepRange, OneToInf, NotANumber, oneto, unitrange
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport, DualLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
 import Base.Broadcast: broadcasted, Broadcasted, instantiate
 
 using Aqua
+downstream_test = "--downstream_integration_test" in ARGS
 @testset "Project quality" begin
-    Aqua.test_all(InfiniteArrays, ambiguities=false)
+    Aqua.test_all(InfiniteArrays, ambiguities=false, piracies=false,
+        stale_deps=!downstream_test)
 end
 
 @testset "construction" begin
@@ -121,6 +124,11 @@ end
     @test ∞:1 ≡ 1:0
 
     @testset "indexing" begin
+        @testset "axes" begin
+            r = axes(big(1):∞,1)
+            @test r == axes(r,1)
+            @test r[typemax(Int)+big(1)] == typemax(Int)+big(1)
+        end
         L32 = @inferred(Int32(1):∞)
         L64 = @inferred(Int64(1):∞)
         @test @inferred(L32[1]) === Int32(1) && @inferred(L64[1]) === Int64(1)
@@ -160,6 +168,21 @@ end
         @test length(1.:.2:∞) == ℵ₀
         @test length(2:-.2:-∞) == ℵ₀
         @test length(2.:-.2:-∞) == ℵ₀
+
+        @test Base.checked_length(1:∞) == length(1:∞)
+
+        @testset "IteratorSize" begin
+            @test Base.IteratorSize(1:2:∞) == Base.IsInfinite()
+            @test Base.IteratorSize(1:∞) == Base.IsInfinite()
+            s = Iterators.Stateful(2:∞)
+            @test first(s) == 2
+            @test first(s) == 3
+        end
+    end
+
+    @testset "first" begin
+        @test first(1:4:∞) == 1
+        @test first(1:4:∞, 4) == range(1, step=4, length=4)
     end
 
     @testset "intersect" begin
@@ -183,7 +206,7 @@ end
         @test @inferred(intersect(0:3:∞, 0:4:∞)) == intersect(0:4:∞, 0:3:∞) == 0:12:∞
 
         @test intersect(24:-3:0, 0:4:∞) == 0:12:24
-        @test_throws ArgumentError intersect(1:6:∞, 0:4:∞) # supporting empty would break type inferrence
+        @test_throws ArgumentError intersect(1:6:∞, 0:4:∞) # supporting empty would break type inference
 
         @test intersect(1:∞,3) == 3:3
         @test intersect(1:∞, 2:∞, UnitRange(3,7), UnitRange(4,6)) == UnitRange(4,6)
@@ -197,6 +220,14 @@ end
         @test sort(2:2:∞) ≡ sort!(2:2:∞) ≡ 2:2:∞
         @test_throws ArgumentError sort(2:-2:-∞)
         @test_throws ArgumentError sort!(2:-2:-∞)
+
+        @testset "RangeCumsum" begin
+            r = InfiniteArrays.OneToInf()
+            rs = cumsum(r)
+            @test sort(rs) === sort!(rs) === rs
+            @test @inferred((rs -> Val(issorted(rs)))(rs)) isa Val{true}
+            @test rs[end] ≡ ℵ₀
+        end
     end
     @testset "in" begin
         @test 0 in UInt(0):100:∞
@@ -224,10 +255,10 @@ end
         @test Complex(1, 0) in 1.0:∞
         @test Complex(1.0, 0.0) in 1:∞
         @test Complex(1.0, 0.0) in 1.0:∞
-        @test_skip !(Complex(1, 1) in 1:∞)  # this is an infinite-loop at the moment
-        @test_skip !(Complex(1, 1) in 1.0:∞)
-        @test_skip !(Complex(1.0, 1.0) in 1:∞)
-        @test_skip !(Complex(1.0, 1.0) in 1.0:∞)
+        @test !(Complex(1, 1) in 1:∞)
+        @test !(Complex(1, 1) in 1.0:∞)
+        @test !(Complex(1.0, 1.0) in 1:∞)
+        @test !(Complex(1.0, 1.0) in 1.0:∞)
         @test !(π in 1:∞)
     end
 
@@ -273,6 +304,13 @@ end
 
     @testset "near-equal ranges" begin
         @test 0.0:0.1:∞ != 0.0f0:0.1f0:∞
+    end
+
+    @testset "constprop in comparing OneToInf" begin
+        r1 = OneToInf{Int8}()
+        r2 = OneToInf{Int16}()
+        v = @inferred ((r1,r2) -> Val(r1 == r2))(r1, r2)
+        @test v isa Val{true}
     end
 
     @testset "comparing InfiniteUnitRanges and OneToInf" begin
@@ -355,6 +393,16 @@ end
         @test (1:-1:-∞)[1:∞] == 1:-1:-∞
     end
 
+    @testset "view(InfStepRange, inf-range)" begin
+        r = 2:5:∞
+        @test view(r, axes(r,1)) === r
+        @test view(r, 1:1:∞) === r
+        @test view(r, 2:2:∞) === 7:10:∞
+        r2 = 2:5:10_000 # arbitrary high upper cutoff
+        @test view(r, 4:10) == view(r2, 4:10)
+        @test view(r, 4:7:50) == view(r2, 4:7:50)
+    end
+
     @testset "OneToInf" begin
         r = OneToInf()
         @test !isempty(r)
@@ -410,6 +458,11 @@ end
         @test_throws ArgumentError (3:∞) ∪ (2:2:∞)
         @test_throws ArgumentError (2:2:∞) ∪ (3:∞)
         @test_throws ArgumentError (2:3:∞) ∪ (2:2:∞)
+
+        @test @inferred(union(1:∞)) ≡ 1:∞
+        @test @inferred(union(1.5:∞)) ≡ 1.5:∞
+        @test @inferred(union(1:∞, 2:∞, 4:∞)) ≡ 1:∞
+        @test @inferred(union(1.5:∞, 0.5:∞, 2.5:2:∞)) ≡ 0.5:1:∞
     end
 
     @testset "adjoint indexing" begin
@@ -456,6 +509,60 @@ end
             end
             @test x == 6
         end
+    end
+
+    @testset "vcat" begin
+        @test [1:∞;] === 1:∞
+
+        @testset for r in (2, 2.0)
+            v = [r; 1:∞]
+            @test v isa AbstractVector{typeof(r)}
+            @test isinf(length(v))
+            @test v[1] == r
+            if typeof(v) == Int # fast infinite getindex is not defined for Float64
+                @test v[2:∞] == 1:∞
+            else
+                @test v[2:10] == 1:9
+            end
+        end
+
+        @testset for r in (1:2, [1,2])
+            v = [r; 1:∞]
+            @test v isa AbstractVector{Int}
+            @test isinf(length(v))
+            @test v[axes(r,1)] == r
+            if isfinite(length(r))
+                @test v[length(r) .+ 1:∞] == 1:∞
+            end
+        end
+
+        @testset for r in (1.0:2.0, [1.0,2.0])
+            v = [r; 1:∞]
+            @test v isa AbstractVector{Float64}
+            @test isinf(length(v))
+            if isfinite(length(r))
+                @test v[axes(r,1)] == r
+            end
+            @test v[length(r) .+ (1:10)] == 1:10
+        end
+
+        @test_throws ArgumentError [1:∞; 1]
+        @test_throws ArgumentError [1:∞; 1:∞]
+        @test_throws ArgumentError [1:∞; 1]
+        @test_throws ArgumentError [1:∞; 1:∞; 1:∞]
+        @test_throws ArgumentError [1:∞; 1:∞; 1:∞; 1]
+        @test_throws ArgumentError [1:∞; 1.0:∞]
+        @test_throws ArgumentError [1:∞; 1:2]
+        @test_throws ArgumentError [1:∞; 1:2; 1]
+        @test_throws ArgumentError [1:∞; 1:2; 1:∞]
+        @test_throws ArgumentError [1:∞; 1:2.0]
+        @test_throws ArgumentError [1:∞; 1:2.0; 1:∞]
+        @test_throws ArgumentError [1:∞; 1:2.0; 1]
+        @test_throws ArgumentError [1:∞; [1]]
+        @test_throws ArgumentError [1:∞; [1]; 1:∞]
+        @test_throws ArgumentError [1:∞; [1.0]]
+        @test_throws ArgumentError [1:∞; [1.0]; 1:∞]
+        @test_throws ArgumentError [1:∞; 1; [1]]
     end
 end
 
@@ -524,9 +631,7 @@ end
     @test D[:,5][1:10] == D[1:10,5]
     @test D[5,:][1:10] == D[5,1:10]
 
-    if VERSION ≥ v"1.7-"
-        @test D^2 isa Diagonal
-    end
+    @test D^2 isa Diagonal
     @test D*D isa Diagonal
     @test MemoryLayout(typeof(D.diag)) == LazyLayout()
     @test MemoryLayout(typeof(D)) == DiagonalLayout{LazyLayout}()
@@ -617,7 +722,7 @@ end
     # This should be generalized, but it at the moment
     # it is restricted to a single Number. Support smart
     # addition for any number of Number/SVector's would be better
-    # allowibng for the tail to be variable lenth
+    # allowibng for the tail to be variable length
     @testset "Vcat special case" begin
         @test Vcat(1,Zeros{Int}(∞)) + Vcat(3,Zeros{Int}(∞)) ≡
             Vcat(1,Zeros{Int}(∞)) .+ Vcat(3,Zeros{Int}(∞)) ≡
@@ -779,6 +884,8 @@ end
         @test broadcast(*, 1:∞, Fill(2,∞)') isa BroadcastArray
         @test broadcast(*, Diagonal(1:∞), Ones{Int}(∞)') ≡ broadcast(*, Ones{Int}(∞)', Diagonal(1:∞)) ≡ Diagonal(1:∞)
         @test broadcast(*, Diagonal(1:∞), Fill(2,∞)') ≡ broadcast(*, Fill(2,∞)', Diagonal(1:∞)) ≡ Diagonal(2:2:∞)
+
+        @test !(Broadcast.BroadcastStyle(typeof(Fill(4))) isa LazyArrayStyle)
     end
 
     @testset "subview inf broadcast" begin
@@ -791,13 +898,13 @@ end
     @testset "views of matrices" begin
         D = Diagonal(1:∞)
         V = Vcat(Ones(2,∞), D)
-        @test view(D,:,5) .+ 1 isa BroadcastVector
-        @test view(D,5,:) .+ 1 isa BroadcastVector
-        @test view(V,:,5) .+ 1 isa BroadcastVector
-        @test view(V,5,:) .+ 1 isa BroadcastVector
+        @test view(D,:,5) .+ 1 isa BroadcastVector || view(D,:,5) .+ 1 isa CachedArray
+        @test view(D,5,:) .+ 1 isa BroadcastVector || view(D,5,:) .+ 1 isa CachedArray
+        @test view(V,:,5) .+ 1 isa BroadcastVector || view(V,:,5) .+ 1 isa Vcat
+        @test view(V,5,:) .+ 1 isa BroadcastVector || view(V,5,:) .+ 1 isa Vcat
 
         @test view(D,2:∞,2:∞) .+ 1 isa BroadcastMatrix
-        @test view(V,2:∞,2:∞) .+ 1 isa BroadcastMatrix
+        @test view(V,2:∞,2:∞) .+ 1 isa BroadcastMatrix || view(V,2:∞,2:∞) .+ 1 isa Vcat
 
         @test view(D,2:∞,[1,2,3]) .+ 1 isa BroadcastMatrix
         @test view(D,[1,2,3],2:∞) .+ 1 isa BroadcastMatrix
@@ -815,6 +922,16 @@ end
         @test c[1:6] == a[r[2:7]]
         @test Base.BroadcastStyle(typeof(c)) isa LazyArrayStyle
     end
+
+    @testset "structured matrices" begin
+        r = 1:∞
+        f = Fill(2, ∞)
+        for B in (Bidiagonal(r, r, :U), Tridiagonal(r, r, r), SymTridiagonal(r, r),
+                   Bidiagonal(f, f, :U), Tridiagonal(f, f, f), SymTridiagonal(f, f))
+            B2 = B .+ B
+            @test B2[1:10, 1:10] == 2B[1:10, 1:10]
+        end
+    end
 end
 
 @testset "Cumsum and diff" begin
@@ -824,7 +941,7 @@ end
     @test cumsum(Ones{BigInt}(∞)) ≡ OneToInf{BigInt}()
 
     @test diff(oneto(∞)) ≡ Ones{Int}(∞)
-    @test diff(1:∞) ≡ Fill(1,∞)
+    @test diff(1:∞) ≡ Ones{Int}(∞)
     @test diff(1:2:∞) ≡ Fill(2,∞)
     @test diff(1:2.0:∞) ≡ Fill(2.0,∞)
 
@@ -849,7 +966,19 @@ end
         @test exp.(c)[1:20] == exp.(c[1:20])
     end
 
+    @test cumsum(3:4:∞)[end] ≡ cumsum(3:4:∞)[∞] ≡ cumsum(3:4:∞)[ℵ₀] ≡ RealInfinity()
+    @test cumsum(2:∞)[end] ≡ cumsum(2:∞)[∞] ≡ cumsum(2:∞)[ℵ₀] ≡ cumsum(oneto(∞))[end] ≡ cumsum(oneto(∞))[∞] ≡ cumsum(oneto(∞))[ℵ₀] ≡  ℵ₀
+
+    @test_throws BoundsError cumsum(oneto(∞))[-5]
+
     @test cumsum(1:∞)[2:∞][1:5] == cumsum(1:6)[2:end]
+
+    @testset "union of cumsum" begin
+        r1 = InfiniteArrays.OneToInf{Int8}()
+        r2 = InfiniteArrays.OneToInf{Int16}()
+        rs = union(cumsum(r1), cumsum(r2))
+        @test rs == cumsum(r2)
+    end
 end
 
 @testset "Sub-array" begin
@@ -988,6 +1117,17 @@ end
     @test searchsorted(factorial.(big(1):∞), 6) == 3:3
     @test searchsortedfirst(factorial.(big(1):∞), 7) == 4
     @test searchsortedlast(factorial.(big(1):∞), 7) == 3
+
+    @testset "Issue #178" begin
+        findfirst(isone, 1:∞) == 1 
+        findfirst(isone, 0:2:∞) === nothing
+        findfirst(isone, -5:∞) == 7
+        findfirst(isone, 2:∞) === nothing 
+        findfirst(iszero, 0:∞) == 1 
+        findfirst(iszero, 5:∞) === nothing 
+        findfirst(iszero, 0.5:∞) === nothing 
+        findfirst(iszero, -5.0:2.5:∞) == 3
+    end
 end
 
 @testset "convert infrange" begin
@@ -1053,3 +1193,110 @@ end
     A = UpperTriangular(Ones(∞,∞))
     @test ApplyArray(inv,A)[1:10,1:10] ≈ diagm(0 => ones(10), 1 => -ones(9))
 end
+
+@testset "3-mul (changed in Julia v1.9)" begin
+    @test *(Eye(∞),Diagonal(1:∞), Eye(∞)) == broadcast(*, Ones(∞), Diagonal(1:∞), Ones(1,∞)) ==
+        broadcast(*, Ones(∞), Diagonal(1:∞), Ones(∞,∞)) == broadcast(*, Ones(∞,1), Diagonal(1:∞), Ones(∞,∞)) ==
+        broadcast(*, Ones(∞,∞), Diagonal(1:∞), Ones(∞,∞)) == Diagonal(1:∞)
+
+    @test_throws DimensionMismatch broadcast(*, Ones(∞,2), Diagonal(1:∞))
+    @test_throws DimensionMismatch broadcast(*, Diagonal(1:∞), Ones(2,∞))
+end
+
+@testset "∞-cached matrix indexing" begin
+    c = zeros(5,∞)
+	c[6] = 2
+	@test c[6] == 2
+
+    c = zeros(∞,3)
+	c[6] = 2
+	@test c[6] == 2
+
+    c = zeros(5,3,∞);
+    c[6] = 2
+    @test c[1,2,1] == 2
+    @test_broken c[6] == 2
+end
+
+@testset "print_matrix_row" begin
+    # check that show works
+    Base.sprint(show, I(ℵ₀), context=:limit=>true)
+end
+
+@testset "comprehension" begin
+    @test [k * (k+1) for k = 1:∞][1:10] == [k * (k+1) for k = 1:10]
+    @test [k * (k+1) for k = 1:2:∞][1:10] == [k * (k+1) for k = 1:2:20]
+    @test [k * (k+1) for k = 1:2.0:∞][1:10] == [k * (k+1) for k = 1:2.0:20]
+    @test [k * (k+1) for k = 1:2:∞] isa AbstractVector{Int}
+    @test [k * (k+1) for k = 1:2.0:∞] isa AbstractVector{Float64}
+end
+
+@testset "diag" begin
+    D = Diagonal(1:∞)
+    @test @inferred(diag(D)) === 1:∞
+    @test @inferred((D -> diag(D,1))(D)) === Zeros{Int}(ℵ₀)
+    # test for compile-time evaluation of off-diagonals
+    @inferred Val((D -> diag(D,1))(D))
+    # Issue #176 
+    @test inv(D)[1:100,1:100] == Diagonal(inv.(1:∞))[1:100,1:100]
+end
+
+@testset "inf padded" begin
+    v = Vcat(1, Zeros(∞))
+    @test LazyArrays.sub_materialize(view(v, 1:∞))[1:10] == [1; zeros(9)]
+    @test LazyArrays.sub_materialize(view(v, 2:∞))[1:10] == zeros(10)
+    @test v[2:∞] isa Zeros
+    @test v[1:∞] == v
+
+    V = Vcat([1 2; 3 4], Zeros(∞,2))
+    H = Hcat([1 2; 3 4], Zeros(2,∞))
+    S = ApplyArray(Base.setindex, Zeros(∞,∞), [1 2; 3 4], Base.OneTo(2), Base.OneTo(2))
+    @test_skip V[:,1] == S[:,1] == [1; 3; Zeros(∞)]
+    @test V[:,1] ≈ S[:,1] ≈ [1; 3; Zeros(∞)] # TODO: change to ==
+    @test V[2:∞,1:2] ≈ S[2:∞,1:2] ≈ Vcat([3 4], Zeros(∞,2))
+    @test H[1,:] ≈ S[1,:] ≈ [1; 2; Zeros(∞)]
+    @test_broken H[1:2,2:∞] ≈ S[1:2,2:∞] ≈ Hcat([2; 4], Zeros(2,∞))
+    @test_broken S[2:∞,2:∞] ≈ ApplyArray(Base.setindex, Zeros(∞,∞), 4, 1, 1)
+end
+
+@testset "issue #180" begin
+    @test isnothing(findfirst(==(21), 10:-1:-∞))
+    @test isnothing(findfirst(==(11), 10:-1:-∞))
+    @test findfirst(==(9), 10:-1:-∞) == 2
+    r = 10:-1:-∞
+    v = -20
+    ind = findfirst(==(v), r)
+    @test r[ind] == v
+end
+
+
+@testset "bounds-checking for StepRangeLen{<:CartesianIndex}" begin
+    if VERSION >= v"1.11.0-rc3"
+        D = Diagonal(1:∞)
+        @test checkbounds(Bool, D, diagind(D, IndexCartesian()))
+    end
+end
+
+@testset "Vector * ∞ matrix" begin
+    a = [1+im,2+im]
+    A = a * Ones{Complex{Int}}(1,∞)
+    @test A[:,1:5] == a * ones(1,5)
+    
+    @test (a*permutedims(1:∞))[:,1:5] == a*(1:5)'
+    @test (a*Hcat(Zeros(1,2), permutedims(1:∞)))[1,1:5] == (a*Vcat(Hcat(Zeros(1,2), permutedims(1:∞))))[1,1:5]
+end
+
+@testset "checkindex" begin
+    r = 1:∞
+    for v in (4, true)
+        f = Fill(v, ∞)
+        @test checkbounds(Bool, r, f)
+    end
+    @test checkbounds(Bool, r, Fill(1, 1))
+    @test !checkbounds(Bool, r, Fill(true, 1))
+end
+
+include("test_infconv.jl")
+include("test_infblock.jl")
+include("test_infbanded.jl")
+include("test_infblockbanded.jl")

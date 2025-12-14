@@ -1,8 +1,13 @@
 # InfiniteArrays.jl
 
 
+[pkgeval-img]: https://juliaci.github.io/NanosoldierReports/pkgeval_badges/I/InfiniteArrays.svg
+[pkgeval-url]: https://juliaci.github.io/NanosoldierReports/pkgeval_badges/report.html
+
 [![Build Status](https://github.com/JuliaArrays/InfiniteArrays.jl/workflows/CI/badge.svg)](https://github.com/JuliaArrays/InfiniteArrays.jl/actions)
 [![codecov](https://codecov.io/gh/JuliaArrays/InfiniteArrays.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaArrays/InfiniteArrays.jl)
+[![PkgEval][pkgeval-img]][pkgeval-url]
+[![version](https://juliahub.com/docs/General/InfiniteArrays/stable/version.svg)](https://juliahub.com/ui/Packages/General/InfiniteArrays)
 
 
 A Julia package for representing arrays with infinite dimension sizes, designed to work
@@ -17,7 +22,7 @@ and QR decompositions.
 Here are some examples of current functionality:
 
 ```julia
-julia> using InfiniteArrays, LinearAlgebra
+julia> using InfiniteArrays, LinearAlgebra, FillArrays
 
 julia> x = Ones(∞) # infinite vector of all ones
 Ones{Float64,1,Tuple{InfiniteArrays.OneToInf{Int64}}} with indices OneToInf():
@@ -128,4 +133,4 @@ LazyArrays.CachedArray{Float64,1,Array{Float64,1},Ones{Float64,1,Tuple{InfiniteA
  1.0
  1.0
  ⋮
- ```
+```

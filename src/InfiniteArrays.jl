@@ -1,56 +1,49 @@
 module InfiniteArrays
-using ArrayLayouts: LayoutVecOrMat
-using Base, Statistics, LinearAlgebra, FillArrays, Infinities, LazyArrays, ArrayLayouts
+using LinearAlgebra, FillArrays, Infinities, LazyArrays, ArrayLayouts
 
-import Base: *, +, -, /, \, ==, isinf, isfinite, sign, signbit, angle, show, isless,
-            fld, cld, div, min, max, minimum, maximum, mod,
-            <, ≤, >, ≥, promote_rule, convert, unsafe_convert, copy,
-            size, step, isempty, length, first, last, tail,
-            getindex, setindex!, intersect, @_inline_meta,
-            sort, sort!, issorted, sortperm, sum, in, broadcast,
-            eltype, elsize, parent, parentindices, reinterpret,
-            unaliascopy, dataids,
-            real, imag, conj, transpose,
-            exp, log, sqrt, cos, sin, tan, csc, sec, cot,
-            cosh, sinh, tanh, csch, sech, coth, acos, asin, atan, acsc, asec, acot,
-            acosh, asinh, atanh, acsch, asech, acoth, (:),
-            AbstractMatrix, AbstractArray, checkindex, unsafe_length, unsafe_indices, OneTo,
-            to_shape, _sub2ind, print_matrix, print_matrix_row, print_matrix_vdots,
-            checkindex, Slice, IdentityUnitRange, @propagate_inbounds, @_propagate_inbounds_meta,
-         	_in_range, _range, Ordered,
-         	ArithmeticWraps, ArithmeticUnknown, floatrange, reverse, unitrange_last,
-         	AbstractArray, AbstractVector, Array, Vector, Matrix,
-         	axes, (:), _sub2ind_recurse, promote_eltypeof,
-         	diff, cumsum, show_delim_array, show_circular, Int,
-         	similar, _unsafe_getindex, string, zeros, ones, fill, permutedims,
-         	cat_similar, vcat, hcat, one, zero,
-		 	reshape, ReshapedIndex, ind2sub_rs, _unsafe_getindex_rs,
-            searchsorted, searchsortedfirst, searchsortedlast, Ordering, lt, Fix2, findfirst,
-            cat_indices, cat_size, cat_similar, __cat, _ind2sub_recurse, union, intersect, IEEEFloat
+import Base: *, +, -, /, <, ==, >, \, ≤, ≥, (:), @propagate_inbounds,
+             AbstractArray, AbstractMatrix, AbstractVector, ArithmeticUnknown, ArithmeticWraps, Array, Fix2, IEEEFloat,
+             IdentityUnitRange, Int, Matrix, OneTo, Ordered, Ordering, ReshapedIndex, Slice, Vector, __cat, _in_range,
+             _ind2sub_recurse, _range, _sub2ind, _sub2ind_recurse, _unsafe_getindex, _unsafe_getindex_rs,
+             angle, axes, broadcast, cat_indices,
+             cat_similar, cat_size, checkindex, collect, convert, copy,
+             cumsum, dataids, diff, div, eltype, fill, findfirst, first, floatrange, getindex, hcat,
+             in, ind2sub_rs, intersect, inv, isempty, isinf, issorted, last, length, lt, max,
+             maximum, minimum, mod, one, ones, parent, parentindices, permutedims, print_matrix, print_matrix_row,
+             print_matrix_vdots, promote_rule, reinterpret, reshape, reverse, searchsorted,
+             searchsortedfirst, searchsortedlast, setindex!, show, show_circular, show_delim_array, sign,
+             signbit, similar, size, sort, sort!, step, sum, tail,
+             to_shape, transpose, unaliascopy, union, unitrange_last, unsafe_convert, unsafe_indices, unsafe_length,
+             vcat, zeros, copyto!, range_start_step_length
 
-if VERSION < v"1.8-"
-   import Base: _rangestyle
+if VERSION ≥ v"1.11.0-DEV.21"
+   using LinearAlgebra: UpperOrLowerTriangular
 else
-   import Base: range_start_step_length
+   const UpperOrLowerTriangular{T,S} = Union{LinearAlgebra.UpperTriangular{T,S},
+                                             LinearAlgebra.UnitUpperTriangular{T,S},
+                                             LinearAlgebra.LowerTriangular{T,S},
+                                             LinearAlgebra.UnitLowerTriangular{T,S}}
 end
+
+
 using Base.Broadcast
-import Base.Broadcast: BroadcastStyle, AbstractArrayStyle, Broadcasted, broadcasted,
-                        @nexprs, @ncall, combine_eltypes, DefaultArrayStyle, instantiate, axistype
+import ArrayLayouts: AbstractBandedLayout, LayoutMatrix, LayoutVecOrMat, LayoutVecOrMats, LayoutVector, MemoryLayout,
+                     RangeCumsum, UnknownLayout, reshapedlayout, sub_materialize, materialize!, sublayout, MatLdivVec,
+                     subdiagonaldata, diagonaldata, supdiagonaldata, triangularlayout
 
-import LinearAlgebra: BlasInt, BlasFloat, norm, diag, diagm, ishermitian, issymmetric,
-                             det, logdet, istriu, istril, adjoint, tr, AbstractTriangular,
-                             norm2, norm1, normp, AdjOrTrans, HermOrSym
+import Base.Broadcast: BroadcastStyle, Broadcasted, DefaultArrayStyle, axistype, broadcasted
 
-import Statistics: mean, median
+import FillArrays: AbstractFill, Eye, Fill, Ones, RectDiagonal, Zeros, fill_reshape, getindex_value, AbstractFillMatrix
 
-import FillArrays: AbstractFill, getindex_value, fill_reshape, RectDiagonal, Fill, Ones, Zeros, Eye
-import LazyArrays: LazyArrayStyle, AbstractBandedLayout, MemoryLayout, LazyLayout, UnknownLayout,
-                    ZerosLayout, AbstractCachedVector, CachedArray, CachedVector, ApplyLayout, LazyMatrix,
-                    reshapedlayout, sub_materialize, sublayout, LayoutMatrix, LayoutVector, _padded_sub_materialize, PaddedLayout,
-                    AbstractCachedMatrix, sub_paddeddata, InvColumnLayout
+import Infinities: InfiniteCardinal, Infinity, ∞
 
-import ArrayLayouts: RangeCumsum, LayoutVecOrMat, LayoutVecOrMats
-import Infinities: ∞, Infinity, InfiniteCardinal
+import LazyArrays: AbstractLazyLayout, AbstractCachedVector, ApplyLayout, CachedArray, CachedVector, InvColumnLayout, AbstractLazyBandedLayout,
+                   LazyArrayStyle, LazyLayout, LazyMatrix, PaddedColumns, _padded_sub_materialize, sub_paddeddata,
+                   ApplyBandedLayout, BroadcastBandedLayout, islazy_layout
+
+import LinearAlgebra: AdjOrTrans, HermOrSym, diag, norm, norm1, norm2, normp
+
+import LazyArrays: AbstractPaddedLayout
 
 export ∞, ℵ₀, Hcat, Vcat, Zeros, Ones, Fill, Eye, BroadcastArray, cache
 import Base: unitrange, oneto
@@ -96,18 +89,18 @@ for N=1:3
    end
 end
 
-for Typ in (:Number, :AbstractVector)
+for Typ in (:Number, :(AbstractVector{<:Number}))
    @eval begin
-      vcat(a::$Typ, b::AbstractFill{<:Any,1,<:Tuple{OneToInf}}) = Vcat(a, b)
-      vcat(a::$Typ, c::CachedVector{<:Any,<:Any,<:AbstractFill{<:Any,1,<:Tuple{OneToInf}}}) =
+      vcat(a::$Typ, b::AbstractFill{<:Number,1,<:Tuple{OneToInf}}) = Vcat(a, b)
+      vcat(a::$Typ, c::CachedVector{<:Number,<:Any,<:AbstractFill{<:Any,1,<:Tuple{OneToInf}}}) =
          CachedArray(vcat(a, view(c.data,1:c.datasize[1])), c.array)
    end
 end
 
-vcat(a::AbstractVector, b::AbstractVector, c::AbstractFill{<:Any,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b), c)
-vcat(a::AbstractVector, b::AbstractVector, c::AbstractVector, d::AbstractFill{<:Any,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b,c), d)
+vcat(a::AbstractVector{<:Number}, b::AbstractVector{<:Number}, c::AbstractFill{<:Number,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b), c)
+vcat(a::AbstractVector{<:Number}, b::AbstractVector{<:Number}, c::AbstractVector{<:Number}, d::AbstractFill{<:Number,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b,c), d)
 
-vcat(a::AbstractMatrix, b::AbstractFill{<:Any,2,<:Tuple{OneToInf,OneTo}}) = Vcat(a, b)
+vcat(a::AbstractMatrix{<:Number}, b::AbstractFill{<:Number,2,<:Tuple{OneToInf,OneTo}}) = Vcat(a, b)
 
 cat_similar(A, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
 cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
@@ -150,7 +143,7 @@ axistype(::OneToInf{V}, ::OneTo{T}) where {T,V} = OneToInf{promote_type(T,V)}()
 # returns the range of indices of v equal to x
 # if v does not contain x, returns a 0-length range
 # indicating the insertion point of x
-function searchsorted(v::AbstractVector, x, ilo::Int, ::PosInfinity, o::Ordering)
+function searchsorted(v::AbstractVector, x, ilo::Integer, ::PosInfinity, o::Ordering)
     lo = ilo-1
     hi = ℵ₀
     @inbounds while lo < hi-1
@@ -171,7 +164,7 @@ end
 
 # index of the first value of vector a that is greater than or equal to x;
 # returns length(v)+1 if x is greater than all values in v.
-function searchsortedfirst(v::AbstractVector, x, lo::Int, hi::PosInfinity, o::Ordering)
+function searchsortedfirst(v::AbstractVector, x, lo::Integer, hi::PosInfinity, o::Ordering)
    u = 1
    lo = lo - u
    hi = ℵ₀
@@ -188,7 +181,7 @@ end
 
 # index of the last value of vector a that is less than or equal to x;
 # returns 0 if x is less than all values of v.
-function searchsortedlast(v::AbstractVector, x, lo::Int, hi::PosInfinity, o::Ordering)
+function searchsortedlast(v::AbstractVector, x, lo::Integer, hi::PosInfinity, o::Ordering)
    u = 1
    lo = lo - u
    hi = ℵ₀
@@ -212,6 +205,23 @@ end
 end
 
 include("biinfrange.jl")
+
+collect(G::Base.Generator{<:InfRanges}) = BroadcastArray(G.f, G.iter)
+
+# Support PowerBySquaring w/ ∞-arrays
+function ArrayLayouts._power_by_squaring(_, ::NTuple{2,InfiniteCardinal{0}}, A::AbstractMatrix{T}, p::Integer) where T
+   if p < 0
+       inv(A)^(-p)
+   elseif p == 0
+       Eye{T}(∞)
+   elseif p == 1
+       copy(A)
+   else
+       A*A^(p-1)
+   end
+end
+
+include("inftoeplitz.jl")
 
 
 end # module
