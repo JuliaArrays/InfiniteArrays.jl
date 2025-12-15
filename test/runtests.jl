@@ -1300,6 +1300,7 @@ end
     @test !checkbounds(Bool, r, Fill(true, 1))
 end
 
+include("test_biinfrange.jl")
 include("test_infconv.jl")
 include("test_infblock.jl")
 include("test_infbanded.jl")
