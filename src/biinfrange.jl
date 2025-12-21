@@ -27,6 +27,8 @@ getindex(r::BiInfUnitRange{T}, s::AbstractUnitRange{<:Integer}) where T = conver
 
 IndexStyle(::Type{<:AdjOrTransAbsVec{<:Any,<:BiInfUnitRange}}) = IndexCartesian()
 
+Base.Broadcast.axistype(a::BiInfUnitRange, ::OneTo) = a
+
 function Base._print_matrix(io, @nospecialize(X::AbstractVecOrMat), pre, sep, post, hdots, vdots, ddots, hmod, vmod, ::BiInfUnitRange, colsA)
     hmod, vmod = Int(hmod)::Int, Int(vmod)::Int
     ncols, idxlast = length(colsA), last(colsA)
