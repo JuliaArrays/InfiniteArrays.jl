@@ -443,6 +443,7 @@ sum(r::InfRanges{<:Real}) = last(r)
 in(x::Union{Infinity,RealInfinity}, r::InfRanges) = false # never reach it...
 in(x::Infinity, r::InfRanges{<:Integer}) = false # never reach it...
 in(x::Real, r::InfRanges{<:Real}) = _in_range(x, r)
+in(x::Integer, r::InfUnitRange) = x ≥ first(r)
 # This method needs to be defined separately since -(::T, ::T) can be implemented
 # even if -(::T, ::Real) is not
 in(x::T, r::InfRanges{T}) where {T} = _in_range(x, r)
