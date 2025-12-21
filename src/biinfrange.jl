@@ -7,8 +7,8 @@ struct BiInfUnitRange{T<:Real} <: AbstractInfUnitRange{T} end
 
 BiInfUnitRange() = BiInfUnitRange{Int}()
 
-AbstractArray{T}(a::BiInfUnitRange) where T<:Real = BiInfUnitRange{T}(a)
-AbstractVector{T}(a::BiInfUnitRange) where T<:Real = BiInfUnitRange{T}(a)
+AbstractArray{T}(::BiInfUnitRange) where T<:Real = BiInfUnitRange{T}()
+AbstractVector{T}(::BiInfUnitRange) where T<:Real = BiInfUnitRange{T}()
 
 unitrange(a::BiInfUnitRange) = a
 Base.has_offset_axes(::BiInfUnitRange) = true
@@ -18,6 +18,11 @@ function getindex(x::BiInfUnitRange, i::PosInfinity)
     isinf(length(x)) || throw(BoundsError(x,y))
     ℵ₀
 end
+function getindex(x::BiInfUnitRange, i::Infinity)
+    isinf(length(x)) || throw(BoundsError(x,y))
+    ℵ₀
+end
+
 getindex(v::BiInfUnitRange{T}, i::RealInfinity) where T = i
 axes(::BiInfUnitRange) = (BiInfUnitRange(),)
 first(::BiInfUnitRange) = -∞
