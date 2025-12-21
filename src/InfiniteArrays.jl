@@ -14,7 +14,7 @@ import Base: *, +, -, /, <, ==, >, \, ≤, ≥, (:), @propagate_inbounds,
              searchsortedfirst, searchsortedlast, setindex!, show, show_circular, show_delim_array, sign,
              signbit, similar, size, sort, sort!, step, sum, tail,
              to_shape, transpose, unaliascopy, union, unitrange_last, unsafe_convert, unsafe_indices, unsafe_length,
-             vcat, zeros, copyto!, range_start_step_length
+             vcat, zeros, copyto!, range_start_step_length, undef_ref_str, alignment, IndexStyle, IndexCartesian
 
 if VERSION ≥ v"1.11.0-DEV.21"
    using LinearAlgebra: UpperOrLowerTriangular
@@ -41,7 +41,7 @@ import LazyArrays: AbstractLazyLayout, AbstractCachedVector, ApplyLayout, Cached
                    LazyArrayStyle, LazyLayout, LazyMatrix, PaddedColumns, _padded_sub_materialize, sub_paddeddata,
                    ApplyBandedLayout, BroadcastBandedLayout, islazy_layout
 
-import LinearAlgebra: AdjOrTrans, HermOrSym, diag, norm, norm1, norm2, normp
+import LinearAlgebra: AdjOrTrans, HermOrSym, diag, norm, norm1, norm2, normp, AdjOrTransAbsVec
 
 import LazyArrays: AbstractPaddedLayout
 
@@ -204,6 +204,7 @@ end
     return LazyArrays.searchsortedlast_recursive(n, x, args...)
 end
 
+include("biinfrange.jl")
 
 collect(G::Base.Generator{<:InfRanges}) = BroadcastArray(G.f, G.iter)
 

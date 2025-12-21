@@ -29,6 +29,7 @@ _range(a::Real,          ::Nothing,         ::Nothing, len::InfiniteCardinal{0})
 _range(a::AbstractFloat, ::Nothing,         ::Nothing, len::InfiniteCardinal{0}) = _range(a, oftype(a, 1),   nothing, len)
 _range(a::T, st::T, ::Nothing, ::InfiniteCardinal{0}) where T<:IEEEFloat = InfStepRange{T,T}(a, st)
 _range(a::T, st::T, ::Nothing, ::InfiniteCardinal{0}) where T<:AbstractFloat = InfStepRange{T,T}(a, st)
+_range(a::Infinities.AllInfinities, ::Nothing, ::Nothing, length::Int) = Fill(a, length)
 range_start_step_length(a, st, ::InfiniteCardinal{0}) = InfStepRange(a, st)
 range_start_step_length(a::Real, st::IEEEFloat, len::InfiniteCardinal{0}) = range_start_step_length(promote(a, st)..., len)
 range_start_step_length(a::IEEEFloat, st::Real, len::InfiniteCardinal{0}) = range_start_step_length(promote(a, st)..., len)
@@ -442,6 +443,7 @@ sum(r::InfRanges{<:Real}) = last(r)
 in(x::Union{Infinity,RealInfinity}, r::InfRanges) = false # never reach it...
 in(x::Infinity, r::InfRanges{<:Integer}) = false # never reach it...
 in(x::Real, r::InfRanges{<:Real}) = _in_range(x, r)
+in(x::Integer, r::InfUnitRange) = x ≥ first(r)
 # This method needs to be defined separately since -(::T, ::T) can be implemented
 # even if -(::T, ::Real) is not
 in(x::T, r::InfRanges{T}) where {T} = _in_range(x, r)
