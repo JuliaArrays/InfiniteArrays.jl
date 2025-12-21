@@ -14,6 +14,10 @@ unitrange(a::BiInfUnitRange) = a
 Base.has_offset_axes(::BiInfUnitRange) = true
 
 getindex(v::BiInfUnitRange{T}, i::Integer) where T = convert(T, i)
+function getindex(x::BiInfUnitRange, i::PosInfinity)
+    isinf(length(x)) || throw(BoundsError(x,y))
+    ℵ₀
+end
 getindex(v::BiInfUnitRange{T}, i::RealInfinity) where T = i
 axes(::BiInfUnitRange) = (BiInfUnitRange(),)
 first(::BiInfUnitRange) = -∞
@@ -21,7 +25,7 @@ show(io::IO, ::BiInfUnitRange{Int}) = print(io, "BiInfUnitRange()")
 
 getindex(r::BiInfUnitRange{T}, s::AbstractUnitRange{<:Integer}) where T = convert(AbstractVector{T}, s)
 
-
+IndexStyle(::Type{<:AdjOrTransAbsVec{<:Any,<:BiInfUnitRange}}) = IndexCartesian()
 
 function Base._print_matrix(io, @nospecialize(X::AbstractVecOrMat), pre, sep, post, hdots, vdots, ddots, hmod, vmod, ::BiInfUnitRange, colsA)
     hmod, vmod = Int(hmod)::Int, Int(vmod)::Int
@@ -98,6 +102,57 @@ function Base._print_matrix(io, @nospecialize(X::AbstractVecOrMat), pre, sep, po
         print(io, vdots)
         length(colsA) > 1 && print(io, "    ", ddots)
         print(io, post)
+    end
+end
+
+
+function Base._print_matrix(io, @nospecialize(X::AbstractVecOrMat), pre, sep, post, hdots, vdots, ddots, hmod, vmod, rowsA, ::BiInfUnitRange)
+    hmod, vmod = Int(hmod)::Int, Int(vmod)::Int
+    if !(get(io, :limit, false)::Bool)
+        screenheight = screenwidth = typemax(Int)
+    else
+        sz = displaysize(io)::Tuple{Int,Int}
+        screenheight, screenwidth = sz[1] - 4, sz[2]
+    end
+    screenwidth -= length(pre)::Int + length(post)::Int
+    presp = repeat(" ", length(pre)::Int)  # indent each row to match pre string
+    postsp = ""
+    @assert textwidth(hdots) == textwidth(ddots)
+    sepsize = length(sep)::Int
+    m = length(rowsA)
+
+    # To figure out alignments, only need to look at as many rows as could
+    # fit down screen. If screen has at least as many rows as A, look at A.
+    # If not, then we only need to look at the first and last chunks of A,
+    # each half a screen height in size.
+    halfheight = div(screenheight,2)
+    if m > screenheight
+        rowsA = [rowsA[(0:halfheight-1) .+ firstindex(rowsA)]; rowsA[(end-div(screenheight-1,2)+1):end]]
+    else
+        rowsA = [rowsA;]
+    end
+
+    # Similarly for columns, only necessary to get alignments for as many
+    # columns as could conceivably fit across the screen
+
+    halfmaxpossiblecols = div(screenwidth, 4*(1+sepsize))
+    maxpossiblecols = 2halfmaxpossiblecols + 1
+    colsA = -halfmaxpossiblecols:halfmaxpossiblecols
+
+    A = alignment(io, X, rowsA, colsA, screenwidth, screenwidth, sepsize, ℵ₀)
+    c = div(screenwidth-length(hdots)::Int+1,2)+1  # what goes to right of ellipsis
+    Ralign = reverse(alignment(io, X, rowsA, reverse(colsA), c, c, sepsize, ℵ₀)) # alignments for right
+    c = screenwidth - sum(map(sum,Ralign)) - (length(Ralign)-1)*sepsize - length(hdots)::Int
+    Lalign = alignment(io, X, rowsA, colsA, c, c, sepsize, ℵ₀) # alignments for left of ellipsis
+
+    print(io, hdots)
+    for i in rowsA
+        print(io, i == first(rowsA) ? pre : presp)
+        print_matrix_row(io, X,Lalign,i,colsA[1:length(Lalign)],sep,ℵ₀)
+        print(io, (i - first(rowsA)) % hmod == 0 ? hdots : repeat(" ", length(hdots)::Int))
+        print_matrix_row(io, X, Ralign, i, ℵ₀ .+ colsA, sep, ℵ₀)
+        print(io, i == last(rowsA) ? post : postsp)
+        if i != last(rowsA); println(io); end
     end
 end
 
