@@ -4,11 +4,13 @@ import InfiniteArrays: InfUnitRange, InfStepRange, OneToInf, NotANumber, oneto, 
 import LazyArrays: CachedArray, MemoryLayout, LazyLayout, DiagonalLayout, LazyArrayStyle, colsupport, DualLayout
 import BandedMatrices: _BandedMatrix, BandedColumns
 import Base.Broadcast: broadcasted, Broadcasted, instantiate
+import Infinities: Infinity, InfiniteCardinal, RealInfinity, ComplexInfinity, NotANumber
 
 using Aqua
 downstream_test = "--downstream_integration_test" in ARGS
 @testset "Project quality" begin
-    Aqua.test_all(InfiniteArrays, ambiguities=false, piracies=false,
+    Aqua.test_all(InfiniteArrays, ambiguities=false,
+        piracies=(; treat_as_own=Union{Function, Type}[Infinity, InfiniteCardinal, RealInfinity, ComplexInfinity, NotANumber], broken=true),
         stale_deps=!downstream_test)
 end
 
