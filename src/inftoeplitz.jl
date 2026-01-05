@@ -80,7 +80,7 @@ for op in (:-, :+)
             SymTridiagonal(convert(AbstractVector{TV}, broadcast($op, Ref(λ.λ), A.dv)),
                            convert(AbstractVector{TV}, broadcast($op, A.ev)))
         end
-        function $op(A::SymTridiagonal{T,<:AbstractFill}, λ::UniformScaling) where T
+        function $op(A::SymTridiagonal{T,<:InfFill}, λ::UniformScaling) where T
             TV = promote_type(T,eltype(λ))
             SymTridiagonal(convert(AbstractVector{TV}, broadcast($op, A.dv, Ref(λ.λ))),
                            convert(AbstractVector{TV}, A.ev))
