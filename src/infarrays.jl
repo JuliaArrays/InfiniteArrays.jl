@@ -327,7 +327,7 @@ end
 # Concat: Hcat/Vcat
 #####
 
-function getindex(f::Vcat{T,1}, k::PosInfinity) where T
+function getindex(f::Vcat{T,1}, k::InfiniteCardinal{0}) where T
     length(f) == ℵ₀ || throw(BoundsError(f,k))
     ∞
 end
