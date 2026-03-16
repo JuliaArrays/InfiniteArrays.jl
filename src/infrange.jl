@@ -207,29 +207,12 @@ function getindex(v::InfStepRange{T}, i::Integer) where T
     convert(T, first(v) + (i - 1)*step(v))
 end
 
-function getindex(x::AbstractUnitRange, y::PosInfinity)
-    isinf(length(x)) || throw(BoundsError(x,y))
-    ℵ₀
-end
+getindex(v::AbstractArray, i::Infinity) = v[Integer(i)]
+getindex(v::AbstractArray, i::RealInfinity) = v[Integer(i)]
 
-function getindex(x::OneToInf{T}, y::PosInfinity) where T
-    isinf(length(x)) || throw(BoundsError(x,y))
-    ℵ₀
+for infrange in (:AbstractInfUnitRange, :InfUnitRange, :OneToInf, :InfStepRange)
+    @eval getindex(v::$infrange, ::InfiniteCardinal{0}) = last(v)
 end
-
-function getindex(x::InfStepRange{T}, y::PosInfinity) where T
-    isinf(length(x)) || throw(BoundsError(x,y))
-    ℵ₀
-end
-function getindex(x::InfUnitRange{T}, y::PosInfinity) where T
-    isinf(length(x)) || throw(BoundsError(x,y))
-    ℵ₀
-end
-
-getindex(::AbstractInfUnitRange, ::Infinity) = ℵ₀
-getindex(::OneToInf, ::Infinity) = ℵ₀
-getindex(v::InfUnitRange, i::Infinity) = ℵ₀
-getindex(v::InfStepRange, i::Infinity) = ℵ₀
 
 function getindex(r::AbstractInfUnitRange, s::AbstractInfUnitRange{<:Integer})
     f = first(r)
