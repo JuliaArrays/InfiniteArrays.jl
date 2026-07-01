@@ -18,6 +18,7 @@ parentindices(A::ReshapedArray) = map(oneto, size(parent(A)))
 
 unaliascopy(A::ReshapedArray) = typeof(A)(unaliascopy(A.parent), A.dims, A.mi)
 dataids(A::ReshapedArray) = dataids(A.parent)
+copy(A::ReshapedArray) = typeof(A)(copy(A.parent), A.dims, A.mi)
 
 @inline function getindex(A::ReshapedArray{T,N}, indices::Vararg{Integer,N}) where {T,N}
     @boundscheck checkbounds(A, indices...)
