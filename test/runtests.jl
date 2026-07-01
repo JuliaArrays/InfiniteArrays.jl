@@ -1075,7 +1075,7 @@ end
     @test a[1:7] == [1, 2, 2, 1, 2, 2, 1]
     @test permutedims(permutedims(1:∞)) ≡ 1:∞
     @test parentindices(a) ≡ (oneto(3),oneto(∞))
-    @test Base.unaliascopy(a) ≡ a
+    @test Base.unaliascopy(a) ≡ copy(a) ≡ a
     @test Base.dataids(a) == Base.dataids(parent(a))
     @test a[Base.ReshapedIndex(5)] == a[5]
 
