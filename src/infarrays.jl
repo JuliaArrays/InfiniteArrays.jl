@@ -116,8 +116,6 @@ Base.mapreduce_impl(f, op, A::AbstractArray, ifirst::Integer, ::PosInfinity) =
 
 # fix error in show
 Base.isassigned(A::AbstractArray, i::RealInfinity) = i == ∞ ? isassigned(A, ℵ₀) : false
-Base.getindex(A::AbstractArray, i::RealInfinity) = A[convert(Integer, i)]
-Base.getindex(A::AbstractCachedVector, i::RealInfinity) = A[convert(Integer, i)]
 
 # work around due to RealInfinity appearing from UnitStepRange
 show_delim_array(io::IO, itr::AbstractArray, op, delim, cl, delim_one, i1, inf::RealInfinity) =
