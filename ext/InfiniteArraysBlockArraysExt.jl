@@ -6,7 +6,7 @@ import Base: length, size, axes, BroadcastStyle, copy, +, -, maximum, OneTo
 import Base.Broadcast: Broadcasted
 import InfiniteArrays: OneToInf, PosInfinity, InfRanges, RealInfinity, Infinity, InfStepRange, TridiagonalToeplitzLayout, InfiniteCardinal
 import BlockArrays: AbstractBlockLayout, sizes_from_blocks, BlockTridiagonal, OneToCumsum, BlockSlice, AbstractBlockedUnitRange, BlockLayout
-import InfiniteArrays.ArrayLayouts: sub_materialize, axes_print_matrix_row
+import InfiniteArrays.ArrayLayouts: sub_materialize, axes_print_matrix_row, MemoryLayout
 import InfiniteArrays.LazyArrays: PaddedColumns, LazyArrayStyle, paddeddata
 
 const OneToInfCumsum = RangeCumsum{Int,OneToInf{Int}}
