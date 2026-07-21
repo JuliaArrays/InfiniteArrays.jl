@@ -49,9 +49,9 @@ floatrange(a::AbstractFloat, st::AbstractFloat, ::PosInfinity, divisor::Abstract
 
 ## 1-dimensional ranges ##
 
+abstract type AbstractInfStepRange{T} <: AbstractRange{T} end
 
-
-struct InfStepRange{T,S} <: OrdinalRange{T,S}
+struct InfStepRange{T,S} <: AbstractInfStepRange{T}
     start::T
     step::S
     function InfStepRange{T,S}(start::T, step::S) where {T,S}
@@ -62,7 +62,20 @@ end
 InfStepRange(start::T, step::S) where {T,S} = InfStepRange{T,S}(start,step)
 InfStepRange{T,S}(start, step) where {T,S} = InfStepRange{T,S}(convert(T,start),convert(S,step))
 
+
+struct InfFirstStepRange{T,S} <: AbstractInfStepRange{S, S}
+    step::S
+    function InfFirstStepRange{S}(step::S) where {T,S}
+        new{S}(step)
+    end
+end
+
+InfFirstStepRange(step::S) where {S} = InfFirstStepRange{S}(start,step)
+InfFirstStepRange{S}(step) where {S} = InfFirstStepRange{S}(convert(S,step))
+
+
 FillArrays.steprangelen(start, step, ::PosInfinity) = InfStepRange(start, step)
+FillArrays.FirstStepRange.firststeprangelen(step, ::PosInfinity) = InfFirstStepRange(step)
 
 abstract type AbstractInfUnitRange{T<:Real} <: AbstractUnitRange{T} end
 
@@ -84,7 +97,7 @@ AbstractVector{T}(a::InfUnitRange) where T<:Real = InfUnitRange{T}(a.start)
 AbstractArray{T}(a::InfStepRange) where T<:Real = InfStepRange(convert(T,a.start), convert(T,a.step))
 AbstractVector{T}(a::InfStepRange) where T<:Real = InfStepRange(convert(T,a.start), convert(T,a.step))
 
-const InfRanges{T} = Union{InfStepRange{T},AbstractInfUnitRange{T}}
+const InfRanges{T} = Union{AbstractInfStepRange{T}, AbstractInfUnitRange{T}}
 const InfAxes = Union{InfRanges{<:Integer},Slice{<:AbstractInfUnitRange{<:Integer}},IdentityUnitRange{<:AbstractInfUnitRange{<:Integer}}}
 
 Base.IteratorSize(::Type{<:InfRanges}) = Base.IsInfinite()
