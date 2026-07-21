@@ -288,7 +288,7 @@ one(D::Diagonal{T,<:AbstractFill{T,1,Tuple{OneToInf{Int}}}}) where T = Eye{T}(si
 copy(D::Diagonal{T,<:AbstractFill{T,1,Tuple{OneToInf{Int}}}}) where T = D
 
 for M in (:Diagonal, :Bidiagonal, :Tridiagonal, :SymTridiagonal)
-    @eval BroadcastStyle(::Type{<:$M{<:Any,<:AbstractInfUnitRange}}) = LazyArrayStyle{2}()
+    @eval BroadcastStyle(::Type{<:$M{<:Any,<:InfRanges}}) = LazyArrayStyle{2}()
 end
 sub_materialize(::AbstractBandedLayout, V, ::Tuple{InfAxes,InfAxes}) = V
 sub_materialize(::AbstractBandedLayout, V, ::Tuple{OneTo{Int},InfAxes}) = V
