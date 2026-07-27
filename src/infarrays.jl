@@ -170,6 +170,7 @@ for typ in (:Ones, :Zeros, :Fill)
         BroadcastStyle(::Type{<:$typ{T,N,<:Tuple{OneToInf,Vararg{OneToInf}}}}) where {T,N} = LazyArrayStyle{N}()
         BroadcastStyle(::Type{<:$typ{T,2,<:Tuple{<:Any,<:OneToInf}}}) where {T} = LazyArrayStyle{2}()
         BroadcastStyle(::Type{<:$typ{T,2,<:Tuple{<:OneToInf,<:Any}}}) where {T} = LazyArrayStyle{2}()
+        BroadcastStyle(::Type{<:$typ{T,2,<:Tuple{<:OneToInf,<:OneToInf}}}) where {T} = LazyArrayStyle{2}()
     end
 end
 
