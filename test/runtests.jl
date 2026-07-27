@@ -881,6 +881,10 @@ end
         @test broadcast(+, Zeros{Int}(∞) , Fill(1,∞)) isa Fill
         @test broadcast(+, Zeros{Int}(∞) , Zeros(∞)) isa Zeros
         @test broadcast(*, Ones(∞), Ones(∞)) ≡ Ones(∞)
+        let B = muladd.(Ones(∞), Ones(∞), Ones(∞))
+            @test size(B) == (ℵ₀,)
+            @test B[1:5] == fill(2.0, 5)
+        end
         @test broadcast(*, Ones{Int}(∞), 1:∞) ≡ broadcast(*, 1:∞, Ones{Int}(∞)) ≡ 1:∞
         @test broadcast(*, Fill(2,∞), 1:∞) ≡ broadcast(*, 1:∞, Fill(2,∞)) ≡ 2:2:∞
         @test broadcast(*, Fill([1,2],∞), 1:∞) isa BroadcastVector
