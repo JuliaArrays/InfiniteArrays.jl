@@ -178,6 +178,12 @@ for M in (:Diagonal, :Bidiagonal, :Tridiagonal, :SymTridiagonal)
     @eval BroadcastStyle(::Type{<:$M{T,<:AbstractFill{T,1,Tuple{OneToInf{I}}}}}) where {T,I} = LazyArrayStyle{2}()
 end
 
+# LazyArrays forwards one- and two-argument fill broadcasts to DefaultArrayStyle, but literal_pow
+# is a three-argument form, so forward it explicitly to retain the FillArrays simplification
+broadcasted(::LazyArrayStyle{N}, op::typeof(Base.literal_pow), x::Base.RefValue{typeof(^)},
+        r::AbstractFill{T,N,<:Tuple{Vararg{OneToInf}}}, y::Base.RefValue{<:Val}) where {T,N} =
+    broadcast(DefaultArrayStyle{N}(), op, x, r, y)
+
 ## Support broadcast(*, ::AbstractFill, A)
 
 
