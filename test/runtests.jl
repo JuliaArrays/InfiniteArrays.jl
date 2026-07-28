@@ -896,6 +896,18 @@ end
         @test broadcast(*, Diagonal(1:∞), Fill(2,∞)') ≡ broadcast(*, Fill(2,∞)', Diagonal(1:∞)) ≡ Diagonal(2:2:∞)
 
         @test !(Broadcast.BroadcastStyle(typeof(Fill(4))) isa LazyArrayStyle)
+
+        @testset "literal_pow" begin
+            @test Ones(∞) .^ 2 ≡ Ones(∞)
+            @test Zeros(∞) .^ 2 ≡ Zeros(∞)
+            @test Fill(2,∞) .^ 2 ≡ Fill(4,∞)
+            for ax in ((∞,∞), (∞,5), (5,∞))
+                @test Ones(ax...) .^ 2 ≡ Ones(ax...)
+                @test Zeros(ax...) .^ 2 ≡ Zeros(ax...)
+                @test Fill(2,ax...) .^ 2 ≡ Fill(4,ax...)
+            end
+            @test Ones(∞,∞,∞) .^ 2 ≡ Ones(∞,∞,∞)
+        end
     end
 
     @testset "subview inf broadcast" begin
