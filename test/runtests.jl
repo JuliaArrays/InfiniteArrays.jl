@@ -881,6 +881,10 @@ end
         @test broadcast(+, Zeros{Int}(∞) , Fill(1,∞)) isa Fill
         @test broadcast(+, Zeros{Int}(∞) , Zeros(∞)) isa Zeros
         @test broadcast(*, Ones(∞), Ones(∞)) ≡ Ones(∞)
+        let B = muladd.(Ones(∞), Ones(∞), Ones(∞))
+            @test size(B) == (ℵ₀,)
+            @test B[1:5] == fill(2.0, 5)
+        end
         @test broadcast(*, Ones{Int}(∞), 1:∞) ≡ broadcast(*, 1:∞, Ones{Int}(∞)) ≡ 1:∞
         @test broadcast(*, Fill(2,∞), 1:∞) ≡ broadcast(*, 1:∞, Fill(2,∞)) ≡ 2:2:∞
         @test broadcast(*, Fill([1,2],∞), 1:∞) isa BroadcastVector
@@ -892,6 +896,18 @@ end
         @test broadcast(*, Diagonal(1:∞), Fill(2,∞)') ≡ broadcast(*, Fill(2,∞)', Diagonal(1:∞)) ≡ Diagonal(2:2:∞)
 
         @test !(Broadcast.BroadcastStyle(typeof(Fill(4))) isa LazyArrayStyle)
+
+        @testset "literal_pow" begin
+            @test Ones(∞) .^ 2 ≡ Ones(∞)
+            @test Zeros(∞) .^ 2 ≡ Zeros(∞)
+            @test Fill(2,∞) .^ 2 ≡ Fill(4,∞)
+            for ax in ((∞,∞), (∞,5), (5,∞))
+                @test Ones(ax...) .^ 2 ≡ Ones(ax...)
+                @test Zeros(ax...) .^ 2 ≡ Zeros(ax...)
+                @test Fill(2,ax...) .^ 2 ≡ Fill(4,ax...)
+            end
+            @test Ones(∞,∞,∞) .^ 2 ≡ Ones(∞,∞,∞)
+        end
     end
 
     @testset "subview inf broadcast" begin
