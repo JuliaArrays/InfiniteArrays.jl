@@ -1,5 +1,6 @@
-using InfiniteArrays, BlockBandedMatrices, ArrayLayouts, FillArrays, BlockArrays, Test
+using InfiniteArrays, BlockBandedMatrices, ArrayLayouts, FillArrays, BlockArrays, LazyArrays, Test
 using Base: oneto
+using BlockBandedMatrices: _BandedBlockBandedMatrix
 
 @testset "BlockBanded" begin
     @testset "Triangle Recurrence" begin
@@ -23,6 +24,7 @@ using Base: oneto
     end
 
     @testset "Inf–BlockOnes is lazy" begin
-        
+        B = _BandedBlockBandedMatrix(Ones{Float64}((Base.OneTo(2), blockedrange(Ones{Int}(∞)))), BlockedOneTo(1:2:∞), (1,-1), (1,0))
+        @test MemoryLayout(B) isa BlockBandedMatrices.BandedBlockBandedColumns{LazyArrays.LazyLayout}
     end
 end
