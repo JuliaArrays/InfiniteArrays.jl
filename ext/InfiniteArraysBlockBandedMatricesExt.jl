@@ -4,8 +4,8 @@ using InfiniteArrays, BlockBandedMatrices
 
 using InfiniteArrays.LinearAlgebra, BlockBandedMatrices.BlockArrays, BlockBandedMatrices.BandedMatrices
 
-import BlockBandedMatrices: BlockSkylineSizes, BlockBandedMatrix, _BlockSkylineMatrix
-import InfiniteArrays: InfiniteCardinal, OneToInf, InfStepRange
+import BlockBandedMatrices: BlockSkylineSizes, BlockBandedMatrix, _BlockSkylineMatrix, bandedblockbandedcolumns
+import InfiniteArrays: InfiniteCardinal, OneToInf, InfStepRange, MemoryLayout, LazyLayout
 import BlockBandedMatrices.BandedMatrices: _BandedMatrix
 
 const BlockTriPertToeplitz{T} = BlockMatrix{T,Tridiagonal{Matrix{T},Vcat{Matrix{T},1,Tuple{Vector{Matrix{T}},Fill{Matrix{T},1,Tuple{OneToInf{Int}}}}}},
@@ -61,5 +61,7 @@ function BlockBandedMatrix(A::BlockTriPertToeplitz{T}, (l,u)::NTuple{2,Int}) whe
 end
 
 BlockBandedMatrix(A::BlockTriPertToeplitz) = BlockBandedMatrix(A, blockbandwidths(A))
+
+MemoryLayout(::Type{<:BandedBlockBandedMatrix{<:Any,<:Any,<:BlockedOneTo{Int,<:InfStepRange}}}) = bandedblockbandedcolumns(LazyLayout())
 
 end #module
