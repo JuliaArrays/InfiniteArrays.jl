@@ -20,6 +20,8 @@ function (:)(start::T, step::T, stop::PosInfinity) where {T<:Real}
     InfStepRange(start,step)
 end
 
+FillArrays.steprangelen(start, step, ::PosInfinity) = InfStepRange(start, step)
+
 # this is needed for showarray
 (:)(::PosInfinity, ::PosInfinity) = 1:0
 
