@@ -25,6 +25,17 @@ BlockArrays.sortedunion(a::OneToInfCumsum, ::OneToInfCumsum) = a
 
 BlockArrays.blocklasts(a::InfRanges) = Fill(length(a),1)
 
+function BlockArrays.blocklengths(a::BlockedOneTo{<:Any,<:InfStepRange})
+    st = step(blocklasts(a))
+    first(a) == 1 || error("Offset axes not supported")
+    f = first(blocklasts(a))-first(a)+oneunit(eltype(a))
+    if f == st
+        Fill(st,length(blocklasts(a)))
+    else
+        Vcat(f, Fill(st,length(blocklasts(a))))
+    end
+end
+
 BlockArrays.findblock(::BlockedOneTo, ::RealInfinity) = Block(ℵ₀)
 
 maximum(::BlockRange{1, Tuple{OneTo{InfiniteCardinal{0}}}}) = Block(ℵ₀)
