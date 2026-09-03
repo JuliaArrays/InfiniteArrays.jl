@@ -7,8 +7,8 @@ import Base: *, +, -, /, <, ==, >, \, ≤, ≥, (:), @propagate_inbounds,
              _ind2sub_recurse, _range, _sub2ind, _sub2ind_recurse, _unsafe_getindex, _unsafe_getindex_rs,
              angle, axes, broadcast, cat_indices,
              cat_similar, cat_size, checkindex, collect, convert, copy,
-             cumsum, dataids, diff, div, eltype, fill, findfirst, first, floatrange, getindex, hcat,
-             in, ind2sub_rs, intersect, inv, isempty, isinf, issorted, last, length, lt, max,
+             cumsum, dataids, diff, div, eltype, fill, findfirst, first, floatrange, getindex, hash, hcat,
+             in, ind2sub_rs, intersect, inv, isempty, isequal, isinf, issorted, last, length, lt, max,
              maximum, minimum, mod, one, ones, parent, parentindices, permutedims, print_matrix, print_matrix_row,
              print_matrix_vdots, promote_rule, reinterpret, reshape, reverse, searchsorted,
              searchsortedfirst, searchsortedlast, setindex!, show, show_circular, show_delim_array, sign,
@@ -222,6 +222,8 @@ function ArrayLayouts._power_by_squaring(_, ::NTuple{2,InfiniteCardinal{0}}, A::
 end
 
 include("inftoeplitz.jl")
+
+include("infhash.jl")
 
 
 end # module
