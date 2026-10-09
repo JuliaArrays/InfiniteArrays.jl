@@ -763,6 +763,20 @@ end
         @test [[1,2]; [3,4]; Zeros(∞)] isa Vcat{<:Any,1,<:Tuple{Array,Zeros}}
         @test [[1,2]; [3,4]; [5,6]; Zeros(∞)] isa Vcat{<:Any,1,<:Tuple{Array,Zeros}}
 
+        @testset "matrix-valued prefixes" begin
+            A = [1.0 2; 3 4]
+            B = [5.0 6; 7 8]
+            for (x, prefix) in (([[A]; Fill(B,∞)], [A]),
+                                ([[A]; [B]; Fill(B,∞)], [A,B]),
+                                ([[A]; [B]; [A]; Fill(B,∞)], [A,B,A]),
+                                ([Matrix{Float64}[]; Fill(B,∞)], Matrix{Float64}[]))
+                @test x isa Vcat{Matrix{Float64},1,<:Tuple{Vector,Fill}}
+                @test size(x) == (ℵ₀,)
+                @test x[1:length(prefix)+2] == [prefix; [B,B]]
+                @test x[1_000_000] == B
+            end
+        end
+
         @test [randn(2,2); Zeros(∞,2)] isa Vcat{<:Any,2,<:Tuple{Array,Zeros}}
 
         a = [[1,2,3]; zeros(Int,∞)]
