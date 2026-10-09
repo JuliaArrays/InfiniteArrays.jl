@@ -100,6 +100,11 @@ end
 vcat(a::AbstractVector{<:Number}, b::AbstractVector{<:Number}, c::AbstractFill{<:Number,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b), c)
 vcat(a::AbstractVector{<:Number}, b::AbstractVector{<:Number}, c::AbstractVector{<:Number}, d::AbstractFill{<:Number,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b,c), d)
 
+# Retain the numeric specializations above to disambiguate SparseArrays' vcat methods.
+vcat(a::AbstractVector, b::AbstractFill{<:Any,1,<:Tuple{OneToInf}}) = Vcat(a, b)
+vcat(a::AbstractVector, b::AbstractVector, c::AbstractFill{<:Any,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b), c)
+vcat(a::AbstractVector, b::AbstractVector, c::AbstractVector, d::AbstractFill{<:Any,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b,c), d)
+
 vcat(a::AbstractMatrix{<:Number}, b::AbstractFill{<:Number,2,<:Tuple{OneToInf,OneTo}}) = Vcat(a, b)
 
 cat_similar(A, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
