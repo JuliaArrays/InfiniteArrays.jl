@@ -19,9 +19,9 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
         D = Diagonal(Fill(2,∞))
 
         B = D[1:∞,2:∞]
-        @test B isa BandedMatrix
+        @test bandwidths(B) == (1,-1)
         @test B[1:10,1:10] == diagm(-1 => Fill(2,9))
-        @test B[1:∞,2:∞] isa BandedMatrix
+        @test bandwidths(B[1:∞,2:∞]) == (2,-2)
 
         A = BandedMatrix(0 => 1:∞, 1=> Fill(2.0,∞), -1 => Fill(3.0,∞))
         x = [1; 2; zeros(∞)]

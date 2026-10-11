@@ -33,13 +33,13 @@ import ArrayLayouts: AbstractBandedLayout, LayoutMatrix, LayoutVecOrMat, LayoutV
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, DefaultArrayStyle, axistype, broadcasted
 
-import FillArrays: AbstractFill, Eye, Fill, Ones, RectDiagonal, Zeros, fill_reshape, getindex_value, AbstractFillMatrix
+import FillArrays: AbstractFill, Eye, Fill, Ones, RectDiagonal, Zeros, fill_reshape, getindex_value, AbstractFillMatrix, OffDiagonal
 
 import Infinities: InfiniteCardinal, Infinity, ∞
 
 import LazyArrays: AbstractLazyLayout, AbstractCachedVector, ApplyLayout, CachedArray, CachedVector, InvColumnLayout, AbstractLazyBandedLayout,
                    LazyArrayStyle, LazyLayout, LazyMatrix, PaddedColumns, _padded_sub_materialize, sub_paddeddata,
-                   ApplyBandedLayout, BroadcastBandedLayout, islazy_layout
+                   ApplyBandedLayout, BroadcastBandedLayout, islazy_layout, islazy
 
 import LinearAlgebra: AdjOrTrans, HermOrSym, diag, norm, norm1, norm2, normp, AdjOrTransAbsVec
 

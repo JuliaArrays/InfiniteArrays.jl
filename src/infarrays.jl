@@ -101,6 +101,7 @@ print_matrix_row(io::IO,
                  AbstractFill{<:Any,2},
                  Diagonal{<:Any,<:AbstractFill{<:Any,1}},
                  RectDiagonal,
+                 OffDiagonal,
                  UpperOrLowerTriangular{<:Any,<:AbstractFill{<:Any,2}}
                  }, A::Vector,
         i::Integer, cols::AbstractVector{<:PosInfinity}, sep::AbstractString, idxlast::Integer=last(axes(X, 2))) =
@@ -448,3 +449,6 @@ LazyArrays.cache_getindex(::InfiniteCardinal{0}, A::CachedVector{<:Any,<:Abstrac
 
 
 *(a::AbstractVector, b::AbstractFill{<:Any,2,Tuple{OneTo{Int},OneToInf{Int}}}) = ApplyArray(*,a,b)
+
+
+islazy(::OffDiagonal{<:Any,<:Any,NTuple{2,OneToInf{Int}}}) = Val(true)
