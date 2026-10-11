@@ -19,9 +19,9 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
         D = Diagonal(Fill(2,∞))
 
         B = D[1:∞,2:∞]
-        @test B isa BandedMatrix
+        @test bandwidths(B) == (1,-1)
         @test B[1:10,1:10] == diagm(-1 => Fill(2,9))
-        @test B[1:∞,2:∞] isa BandedMatrix
+        @test bandwidths(B[1:∞,2:∞]) == (2,-2)
 
         A = BandedMatrix(0 => 1:∞, 1=> Fill(2.0,∞), -1 => Fill(3.0,∞))
         x = [1; 2; zeros(∞)]
@@ -379,5 +379,10 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
     @testset "Default broadcasted" begin
         A = BandedMatrix(1 => Fill(2im,∞), 2 => Fill(-1,∞), 3 => Fill(2,∞), -2 => Fill(-4,∞), -3 => Fill(-2im,∞))
         @test copy(Base.broadcasted(BandedMatrices.BandedStyle(), exp,A))[1:10,1:10] == exp.(A[1:10,1:10])
+    end
+
+    @testset "OffDiagonal" begin
+        A = FillArrays.OffDiagonal(1:∞, 1)
+        @test LazyArrays.islazy(A) == Val(true)
     end
 end
