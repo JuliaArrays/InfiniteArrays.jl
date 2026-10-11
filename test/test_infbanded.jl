@@ -380,4 +380,9 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
         A = BandedMatrix(1 => Fill(2im,∞), 2 => Fill(-1,∞), 3 => Fill(2,∞), -2 => Fill(-4,∞), -3 => Fill(-2im,∞))
         @test copy(Base.broadcasted(BandedMatrices.BandedStyle(), exp,A))[1:10,1:10] == exp.(A[1:10,1:10])
     end
+
+    @testset "OffDiagonal" begin
+        A = FillArrays.OffDiagonal(1:∞, 1)
+        @test LazyArrays.islazy(A) == Val(true)
+    end
 end
