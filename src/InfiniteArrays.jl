@@ -95,6 +95,10 @@ for Typ in (:Number, :(AbstractVector{<:Number}))
       vcat(a::$Typ, c::CachedVector{<:Number,<:Any,<:AbstractFill{<:Any,1,<:Tuple{OneToInf}}}) =
          CachedArray(vcat(a, view(c.data,1:c.datasize[1])), c.array)
    end
+   for Typ2 in (:Number, :(AbstractVector{<:Number}))
+      @eval vcat(a::$Typ, b::$Typ2, c::CachedVector{<:Number,<:Any,<:AbstractFill{<:Any,1,<:Tuple{OneToInf}}}) =
+         CachedArray(vcat(a, b, view(c.data,1:c.datasize[1])), c.array)
+   end
 end
 
 vcat(a::AbstractVector{<:Number}, b::AbstractVector{<:Number}, c::AbstractFill{<:Number,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b), c)

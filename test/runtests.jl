@@ -756,6 +756,8 @@ end
         @test [[1,2,3]; zeros(∞)] isa CachedArray
 
         @test [1; 2; zeros(Int,∞)] isa CachedArray
+        @test [1; [2,3]; zeros(Int,∞)] isa CachedArray
+        @test [1; [2,3]; zeros(Int,∞)][1:5] == [1,2,3,0,0]
         @test [1; 2; 3; zeros(Int,∞)] isa CachedArray
         @test [[1,2]; 3; zeros(Int,∞)] isa CachedArray
         @test [2; [1,2]; 3; zeros(Int,∞)] isa CachedArray
