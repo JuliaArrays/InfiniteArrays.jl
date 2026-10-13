@@ -320,6 +320,21 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
         D = _BandedMatrix(Ones(1, ∞), 10, -1, 1)
 
         @test (A*B)[1:10, 1:10] == (B*C)[1:10, 1:10] == (D*A)[1:10, 1:10] == D * B == (C*D)[1:10, 1:10] == BandedMatrix(2 => Ones(8))
+
+        @testset "∞ x finite" begin
+            @test A*B isa BandedMatrix
+            @test D*A isa Transpose{<:Any,<:BandedMatrix}
+            @test D*B isa BandedMatrix
+            @test B*C isa BandedMatrix
+            @test C*D isa Transpose{<:Any,<:BandedMatrix}
+            @test B*D isa ApplyArray
+            @test simplifiable(*, B, D) == Val(false)
+
+            # used to stack overflow
+            P = _BandedMatrix(Ones{Int}(1, 10), ℵ₀, 0, 0)
+            M = ApplyArray(*, Diagonal(1:∞), A)
+            @test (M * P)[1:12, 1:10] == M[1:12, 1:10]
+        end
     end
 
     @testset "Banded Broadcast" begin

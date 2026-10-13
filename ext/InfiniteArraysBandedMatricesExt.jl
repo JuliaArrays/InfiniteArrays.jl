@@ -368,7 +368,12 @@ similar(M::MulAdd{<:AbstractBandedLayout,<:AbstractBandedLayout}, ::Type{T}, axe
 # BandedFill * BandedFill
 ###
 
-simplifiable(::Mul{<:BandedColumns{<:AbstractFillLayout},<:BandedColumns{<:AbstractFillLayout}}) = Val(true)
+simplifiable(M::Mul{<:BandedColumns{<:AbstractFillLayout},<:BandedColumns{<:AbstractFillLayout}}) = _bandedfill_simplifiable(axes(M.A), axes(M.B))
+_bandedfill_simplifiable(_, _) = Val(true)
+# ∞×n * n×∞ is kept lazy so is not simplifiable
+_bandedfill_simplifiable(::Tuple{InfAxes,Any}, ::Tuple{Any,InfAxes}) = Val(false)
+_bandedfill_simplifiable(::Tuple{InfAxes,InfAxes}, ::Tuple{InfAxes,InfAxes}) = Val(true)
+
 copy(M::MulAdd{<:BandedColumns{<:AbstractFillLayout},<:BandedColumns{<:AbstractFillLayout},ZerosLayout}) =
     _bandedfill_mul(M, axes(M.A), axes(M.B))
 
@@ -385,12 +390,25 @@ function _bandedfill_mul(M::MulAdd, ::Tuple{InfAxes,InfAxes}, ::Tuple{InfAxes,In
     ret
 end
 
-_bandedfill_mul(M::MulAdd, ::Tuple{InfAxes,Any}, ::Tuple{Any,Any}) = ApplyArray(*, M.A, M.B)
 _bandedfill_mul(M::MulAdd, ::Tuple{InfAxes,Any}, ::Tuple{Any,InfAxes}) = ApplyArray(*, M.A, M.B)
-_bandedfill_mul(M::MulAdd, ::Tuple{Any,Any}, ::Tuple{Any,InfAxes}) = ApplyArray(*, M.A, M.B)
-_bandedfill_mul(M::MulAdd, ::Tuple{Any,InfAxes}, ::Tuple{InfAxes,InfAxes}) = ApplyArray(*, M.A, M.B)
-_bandedfill_mul(M::MulAdd, ::Tuple{InfAxes,InfAxes}, ::Tuple{InfAxes,Any}) = ApplyArray(*, M.A, M.B)
-_bandedfill_mul(M::MulAdd, ::Tuple{Any,InfAxes}, ::Tuple{InfAxes,Any}) = ApplyArray(*, M.A, M.B)
+_bandedfill_mul(M::MulAdd, ::Tuple{InfAxes,Any}, ::Tuple{Any,Any}) = _bandedfill_mul_truncated(M)
+_bandedfill_mul(M::MulAdd, ::Tuple{Any,Any}, ::Tuple{Any,InfAxes}) = _bandedfill_mul_truncated(M)
+_bandedfill_mul(M::MulAdd, ::Tuple{Any,InfAxes}, ::Tuple{InfAxes,InfAxes}) = _bandedfill_mul_truncated(M)
+_bandedfill_mul(M::MulAdd, ::Tuple{InfAxes,InfAxes}, ::Tuple{InfAxes,Any}) = _bandedfill_mul_truncated(M)
+_bandedfill_mul(M::MulAdd, ::Tuple{Any,InfAxes}, ::Tuple{InfAxes,Any}) = _bandedfill_mul_truncated(M)
+
+# When one dimension of the result is finite only finitely many entries
+# are nonzero so we can multiply the corresponding finite blocks.
+function _bandedfill_mul_truncated(M::MulAdd)
+    A, B = M.A, M.B
+    ret = similar(M)
+    l, u = bandwidths(ret)
+    k = max(0, min(size(ret,1), size(ret,2)+l)) # nonzero rows
+    c = max(0, min(size(ret,2), size(ret,1)+u)) # nonzero columns
+    m = max(0, min(size(A,2), k+bandwidth(A,2), c+bandwidth(B,1))) # nonzero inner indices
+    mul!(view(ret, 1:k, 1:c), view(A, 1:k, 1:m), view(B, 1:m, 1:c))
+    ret
+end
 
 mulreduce(M::Mul{<:InfToeplitzLayouts, <:InfToeplitzLayouts}) = ApplyArray(M)
 mulreduce(M::Mul{<:InfToeplitzLayouts}) = ApplyArray(M)
