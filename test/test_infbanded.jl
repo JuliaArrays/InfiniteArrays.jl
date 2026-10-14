@@ -36,7 +36,7 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
         @test D[band(0)] ≡ Fill(2,∞)
         @test D[band(1)] ≡ Fill(0,∞)
 
-        @test B*A*x isa Vcat
+        @test MemoryLayout(B*A*x) isa LazyArrays.PaddedColumns
         @test (B*A*x)[1:10] == [0; 10; 14; 12; zeros(6)]
 
         @test _BandedMatrix((1:∞)', ∞, -1, 1) isa BandedMatrix
