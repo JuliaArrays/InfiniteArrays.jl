@@ -199,6 +199,28 @@ const InfBandCartesianIndices = InfiniteArraysBandedMatricesExt.InfBandCartesian
         A = _BandedMatrix(Ones(1,∞), ∞, 1,-1)
         B = _BandedMatrix(Fill(1.0π,1,∞), ∞, 0,0)
         @test (A*B)[1:10,1:10] ≈ BandedMatrix(-1 => Fill(1.0π,9))
+
+        for (Al,Au,Bl,Bu) in ((1,-1,-1,1), (2,-2,1,1), (2,1,-1,2), (-1,2,3,-2), (1,1,1,1))
+            A = _BandedMatrix(Fill(2.0,Al+Au+1,∞), ∞, Al, Au)
+            B = _BandedMatrix(Fill(3.0,Bl+Bu+1,∞), ∞, Bl, Bu)
+            @test A*B isa BandedMatrix
+            @test (A*B)[1:15,1:15] == A[1:15,1:25] * B[1:25,1:15]
+        end
+    end
+
+    @testset "OffDiagonal * Fill Banded" begin
+        B = _BandedMatrix(-Ones(1,∞), ∞, -1, 1)
+        C = _BandedMatrix(Fill(2.0,4,∞), ∞, 2, 1)
+        for V in (view(Diagonal(Ones(∞)), :, 1:∞), view(Eye(∞), :, 2:∞), view(Diagonal(Fill(2.0,∞)), 3:∞, :), view(Eye(∞), 2:∞, 4:∞))
+            @test MemoryLayout(V) isa OffDiagonalLayout
+            for A in (B, C)
+                @test simplifiable(*, V, A) == simplifiable(*, A, V) == Val(true)
+                @test V*A isa BandedMatrix
+                @test A*V isa BandedMatrix
+                @test (V*A)[1:12,1:12] == V[1:12,1:20] * A[1:20,1:12]
+                @test (A*V)[1:12,1:12] == A[1:12,1:20] * V[1:20,1:12]
+            end
+        end
     end
 
     @testset "concat" begin

@@ -5,7 +5,7 @@ using InfiniteArrays.LazyArrays, InfiniteArrays.ArrayLayouts, InfiniteArrays.Fil
 import Base: BroadcastStyle, size, getindex, similar, copy, *, +, -, /, \, materialize!, copyto!, OneTo
 import Base.Broadcast: Broadcasted
 import InfiniteArrays: InfIndexRanges, Infinity, PosInfinity, OneToInf, InfAxes, AbstractInfUnitRange, InfRanges, InfBaseToeplitzLayouts, ConstRowMatrix, PertConstRowMatrix, SymTriPertToeplitz, TriPertToeplitz, ConstRows, PertConstRows, PertTridiagonalToeplitzLayout
-import ArrayLayouts: sub_materialize, MemoryLayout, sublayout, mulreduce, triangularlayout, MatLdivVec, subdiagonaldata, diagonaldata, supdiagonaldata, OnesLayout, _copy_oftype
+import ArrayLayouts: sub_materialize, MemoryLayout, sublayout, mulreduce, triangularlayout, MatLdivVec, subdiagonaldata, diagonaldata, supdiagonaldata, OnesLayout, _copy_oftype, OffDiagonalLayout, offdiagonaldata
 import LazyArrays: applybroadcaststyle, applylayout, islazy, islazy_layout, simplifiable, AbstractLazyLayout, PaddedColumns, LazyArrayStyle, ApplyLayout, AbstractLazyBandedLayout, ApplyBandedLayout, BroadcastBandedLayout
 import BandedMatrices: _BandedMatrix, AbstractBandedMatrix, banded_similar, BandedMatrix, bandedcolumns, BandedColumns, bandeddata, _default_banded_broadcast
 import FillArrays: AbstractFillMatrix, AbstractFill, getindex_value
@@ -377,6 +377,23 @@ _bandedfill_simplifiable(::Tuple{InfAxes,InfAxes}, ::Tuple{InfAxes,InfAxes}) = V
 copy(M::MulAdd{<:BandedColumns{<:AbstractFillLayout},<:BandedColumns{<:AbstractFillLayout},ZerosLayout}) =
     _bandedfill_mul(M, axes(M.A), axes(M.B))
 
+# An ∞×∞ OffDiagonal with constant entries, e.g. view(Eye(∞), :, 2:∞), is a BandedFill matrix
+const OffDiagonalFillLayout = OffDiagonalLayout{<:AbstractFillLayout}
+simplifiable(M::Mul{<:OffDiagonalFillLayout,<:BandedColumns{<:AbstractFillLayout}}) = _bandedfill_simplifiable(axes(M.A), axes(M.B))
+simplifiable(M::Mul{<:BandedColumns{<:AbstractFillLayout},<:OffDiagonalFillLayout}) = _bandedfill_simplifiable(axes(M.A), axes(M.B))
+mulreduce(M::Mul{<:OffDiagonalFillLayout,<:BandedColumns{<:AbstractFillLayout}}) = _offdiagonalfill_mulreduce(Lmul, M, axes(M.A), axes(M.B))
+mulreduce(M::Mul{<:BandedColumns{<:AbstractFillLayout},<:OffDiagonalFillLayout}) = _offdiagonalfill_mulreduce(Rmul, M, axes(M.A), axes(M.B))
+_offdiagonalfill_mulreduce(LRmul, M, _, _) = LRmul(M)
+_offdiagonalfill_mulreduce(_, M, ::Tuple{InfAxes,InfAxes}, ::Tuple{InfAxes,InfAxes}) = MulAdd(M)
+copy(M::MulAdd{<:OffDiagonalFillLayout,<:BandedColumns{<:AbstractFillLayout},ZerosLayout}) =
+    _bandedfill_mul(M, axes(M.A), axes(M.B))
+copy(M::MulAdd{<:BandedColumns{<:AbstractFillLayout},<:OffDiagonalFillLayout,ZerosLayout}) =
+    _bandedfill_mul(M, axes(M.A), axes(M.B))
+
+_bandedfill_value(A) = _bandedfill_value(MemoryLayout(A), A)
+_bandedfill_value(::BandedColumns, A) = getindex_value(bandeddata(A))
+_bandedfill_value(::OffDiagonalLayout, A) = getindex_value(offdiagonaldata(A))
+
 _bandedfill_mul(M, _, _) = copyto!(similar(M), M)
 function _bandedfill_mul(M::MulAdd, ::Tuple{InfAxes,InfAxes}, ::Tuple{InfAxes,InfAxes})
     A, B = M.A, M.B
@@ -384,9 +401,11 @@ function _bandedfill_mul(M::MulAdd, ::Tuple{InfAxes,InfAxes}, ::Tuple{InfAxes,In
     Bl,Bu = bandwidths(B)
     l,u = Al+Bl,Au+Bu
     m = min(Au+Al,Bl+Bu)+1
-    λ = getindex_value(bandeddata(A))*getindex_value(bandeddata(B))
-    ret = _BandedMatrix(Hcat(Array{typeof(λ)}(undef, l+u+1,max(0,u)), [1:m-1; Fill(m,l+u-2m+3); m-1:-1:1]*Fill(λ,1,∞)), ℵ₀, l, u)
-    mul!(view(ret, 1:l+u,1:u), view(A,1:l+u,1:u+Bl), view(B,1:u+Bl,1:u))
+    λ = _bandedfill_value(A)*_bandedfill_value(B)
+    # entries in rows 1:Al or columns 1:Bu have truncated sums so are computed explicitly
+    c = max(0, u, Bu, Al+u)
+    ret = _BandedMatrix(Hcat(Array{typeof(λ)}(undef, l+u+1, c), [1:m-1; Fill(m,l+u-2m+3); m-1:-1:1]*Fill(λ,1,∞)), ℵ₀, l, u)
+    mul!(view(ret, 1:max(0,c+l), 1:c), view(A, 1:max(0,c+l), 1:max(0,c+Bl)), view(B, 1:max(0,c+Bl), 1:c))
     ret
 end
 
