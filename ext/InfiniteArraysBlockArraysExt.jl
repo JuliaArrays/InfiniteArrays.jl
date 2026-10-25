@@ -7,7 +7,7 @@ import Base.Broadcast: Broadcasted
 import InfiniteArrays: OneToInf, PosInfinity, InfRanges, RealInfinity, Infinity, InfStepRange, TridiagonalToeplitzLayout, InfiniteCardinal
 import BlockArrays: AbstractBlockLayout, sizes_from_blocks, BlockTridiagonal, OneToCumsum, BlockSlice, AbstractBlockedUnitRange, BlockLayout
 import InfiniteArrays.ArrayLayouts: sub_materialize, axes_print_matrix_row, MemoryLayout
-import InfiniteArrays.LazyArrays: PaddedColumns, LazyArrayStyle, paddeddata
+import InfiniteArrays.LazyArrays: PaddedColumns, LazyArrayStyle, paddeddata, LazyLayout
 
 const OneToInfCumsum = RangeCumsum{Int,OneToInf{Int}}
 
@@ -44,6 +44,11 @@ axes(a::OneToInfBlocks) = (a,)
 
 sub_materialize(_, V, ::Tuple{BlockedOneTo{Int,<:InfRanges}}) = V
 sub_materialize(::AbstractBlockLayout, V, ::Tuple{BlockedOneTo{Int,<:InfRanges}}) = V
+# lazy matrix views with infinite blocked axes, e.g. rows of a PiecewiseInterlace, cannot be materialised
+for ax in (:(Tuple{OneTo{Int},BlockedOneTo{Int,<:InfRanges}}), :(Tuple{BlockedOneTo{Int,<:InfRanges},OneTo{Int}}),
+           :(Tuple{BlockedOneTo{Int,<:InfRanges},BlockedOneTo{Int,<:InfRanges}}))
+    @eval sub_materialize(::LazyLayout, V, ::$ax) = V
+end
 function sub_materialize(::PaddedColumns, v::AbstractVector{T}, ax::Tuple{BlockedOneTo{Int,<:InfRanges}}) where T
     dat = paddeddata(v)
     BlockedVector(Vcat(sub_materialize(dat), Zeros{T}(∞)), ax)

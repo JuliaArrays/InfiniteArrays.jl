@@ -111,6 +111,13 @@ print_matrix_row(io::IO,
 print_matrix_vdots(io::IO, vdots::AbstractString,
         A::Vector, sep::AbstractString, M::Integer, ::NotANumber, pad_right::Bool = true) = nothing
 
+# An infinite matrix can only be printed in limited form, otherwise Base tries to allocate
+# a vector of typemax(Int) indices.
+for (Rows, Cols) in ((:(Union{InfUnitRange,OneToInf}), :Any), (:UnitRange, :(Union{InfUnitRange,OneToInf})))
+    @eval Base._print_matrix(io, @nospecialize(X::AbstractVecOrMat), pre, sep, post, hdots, vdots, ddots, hmod, vmod, rowsA::$Rows, colsA::$Cols) =
+        invoke(Base._print_matrix, Tuple{Any,AbstractVecOrMat,Vararg{Any,10}}, IOContext(io, :limit => true), X, pre, sep, post, hdots, vdots, ddots, hmod, vmod, rowsA, colsA)
+end
+
 # Avoid infinite loops on maximum
 Base.mapreduce_impl(f, op, A::AbstractArray, ifirst::Integer, ::PosInfinity) =
     throw(ArgumentError("Cannot call mapreduce on an infinite length $(typeof(A))"))
