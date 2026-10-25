@@ -59,6 +59,15 @@ const BlockTriPertToeplitz = InfiniteArraysBlockArraysExt.BlockTriPertToeplitz
         @test c[Block.(2:∞)][Block(1)] == [2,0,0]
     end
 
+    @testset "infinite blocked views" begin
+        A = BlockedArray(BroadcastArray(+, 1:∞, (1:∞)'), Vcat(2, Fill(3, ∞)), Vcat(2, Fill(3, ∞)))
+        @test MemoryLayout(view(A, 1:2, :)) isa LazyLayout
+        @test A[1:2, :] isa SubArray
+        @test A[1:2, :][:,1:3] == [2 3 4; 3 4 5]
+        @test A[:, 1:2] isa SubArray
+        @test A[:, 1:2][1:3,:] == [2 3; 3 4; 4 5]
+    end
+
 
     @testset "triangle recurrences" begin
         @testset "n and k" begin

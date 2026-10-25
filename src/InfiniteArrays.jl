@@ -111,6 +111,10 @@ vcat(a::AbstractVector{<:AbstractArray}, b::AbstractVector{<:AbstractArray}, c::
 
 vcat(a::AbstractMatrix{<:Number}, b::AbstractFill{<:Number,2,<:Tuple{OneToInf,OneTo}}) = Vcat(a, b)
 
+# rows of infinite length, e.g. [P[x,:]'; P[y,:]'], are concatenated lazily
+vcat(a::AdjOrTransAbsVec{<:Number}, b::AdjOrTransAbsVec{<:Number}...) =
+   any(c -> isinf(size(c,2)), (a, b...)) ? Vcat(a, b...) : Base.typed_vcat(Base.promote_eltype(a, b...), a, b...)
+
 cat_similar(A, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
 cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
 cat_similar(A::Array, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
