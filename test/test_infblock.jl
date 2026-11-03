@@ -7,6 +7,10 @@ using BlockArrays: BlockTridiagonal
 const InfiniteArraysBlockArraysExt = Base.get_extension(InfiniteArrays, :InfiniteArraysBlockArraysExt)
 const BlockTriPertToeplitz = InfiniteArraysBlockArraysExt.BlockTriPertToeplitz
 
+# an infinite matrix with LazyLayout
+struct InfLazyMatrix <: LazyArrays.LazyMatrix{Int} end
+Base.size(::InfLazyMatrix) = (ℵ₀, ℵ₀)
+Base.getindex(::InfLazyMatrix, k::Int, j::Int) = k + j
 
 
 @testset "∞-block arrays" begin
@@ -60,12 +64,18 @@ const BlockTriPertToeplitz = InfiniteArraysBlockArraysExt.BlockTriPertToeplitz
     end
 
     @testset "infinite blocked views" begin
-        A = BlockedArray(BroadcastArray(+, 1:∞, (1:∞)'), Vcat(2, Fill(3, ∞)), Vcat(2, Fill(3, ∞)))
+        A = BlockedArray(InfLazyMatrix(), Vcat(2, Fill(3, ∞)), Vcat(2, Fill(3, ∞)))
         @test MemoryLayout(view(A, 1:2, :)) isa LazyLayout
         @test A[1:2, :] isa SubArray
         @test A[1:2, :][:,1:3] == [2 3 4; 3 4 5]
         @test A[:, 1:2] isa SubArray
         @test A[:, 1:2][1:3,:] == [2 3; 3 4; 4 5]
+
+        B = BlockedArray(BroadcastArray(+, 1:∞, (1:∞)'), Vcat(2, Fill(3, ∞)), Vcat(2, Fill(3, ∞)))
+        @test B[1:2, :] isa BlockedMatrix{Int,<:BroadcastMatrix}
+        @test B[1:2, :][:,1:3] == [2 3 4; 3 4 5]
+        @test B[:, 1:2] isa BlockedMatrix{Int,<:BroadcastMatrix}
+        @test B[:, 1:2][1:3,:] == [2 3; 3 4; 4 5]
     end
 
 

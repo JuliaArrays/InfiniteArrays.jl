@@ -453,6 +453,10 @@ Base.checkindex(::Type{Bool}, inds::AbstractInfUnitRange, I::AbstractFill) = Bas
 Base.checkindex(::Type{Bool}, inds::AbstractInfUnitRange, I::AbstractFill{Bool}) = axes(I,1) == inds
 LazyArrays.cache_getindex(::InfiniteCardinal{0}, A::AbstractVector, I, J...) = layout_getindex(A, I, J...)
 LazyArrays.cache_getindex(::InfiniteCardinal{0}, A::CachedVector{<:Any,<:AbstractVector,<:AbstractFill{<:Any,1}}, I::AbstractVector) = LazyArrays.cache_getindex(nothing, A, I)
+# a singleton dimension of a broadcast argument, e.g. the rows of (1:∞)' in view(BroadcastArray(+, 1:∞, (1:∞)'), :, 1:2),
+# is indexed by OneTo(1), which cannot be converted to a Slice{<:OneToInf}
+@inline LazyArrays._broadcastviewinds(ax::Tuple{OneTo{Int},Vararg{Any}}, inds::Tuple{Slice{<:OneToInf},Vararg{Any}}) =
+    tuple(isone(length(ax[1])) ? OneTo(1) : inds[1], LazyArrays._broadcastviewinds(Base.tail(ax), Base.tail(inds))...)
 
 
 *(a::AbstractVector, b::AbstractFill{<:Any,2,Tuple{OneTo{Int},OneToInf{Int}}}) = ApplyArray(*,a,b)
