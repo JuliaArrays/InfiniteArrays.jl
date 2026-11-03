@@ -681,6 +681,10 @@ end
         @test A isa Vcat
         @test size(A) == (2,ℵ₀)
         @test A[:,1:3] == [1 2 3; 2 3 4]
+        B = [Ones{Int}(∞)'; (1:∞)'; transpose(oneto(∞))]
+        @test B isa Vcat
+        @test size(B) == (3,ℵ₀)
+        @test B[:,1:3] == [1 1 1; 1 2 3; 1 2 3]
         @test [(1:3)'; (2:4)'] == [1 2 3; 2 3 4]
         @test [(1:3)'; (2:4)'] isa Matrix
     end
