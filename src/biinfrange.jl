@@ -37,12 +37,9 @@ Base.Broadcast.axistype(a::BiInfUnitRange, ::OneTo) = a
 function Base._print_matrix(io, @nospecialize(X::AbstractVecOrMat), pre, sep, post, hdots, vdots, ddots, hmod, vmod, ::BiInfUnitRange, colsA)
     hmod, vmod = Int(hmod)::Int, Int(vmod)::Int
     ncols, idxlast = length(colsA), last(colsA)
-    if !(get(io, :limit, false)::Bool)
-        screenheight = screenwidth = typemax(Int)
-    else
-        sz = displaysize(io)::Tuple{Int,Int}
-        screenheight, screenwidth = sz[1] - 4, sz[2]
-    end
+    # always limited as there are infinitely many rows or columns
+    sz = displaysize(io)::Tuple{Int,Int}
+    screenheight, screenwidth = sz[1] - 4, sz[2]
     screenwidth -= length(pre)::Int + length(post)::Int
     presp = repeat(" ", length(pre)::Int)  # indent each row to match pre string
     postsp = ""
@@ -115,12 +112,9 @@ end
 
 function Base._print_matrix(io, @nospecialize(X::AbstractVecOrMat), pre, sep, post, hdots, vdots, ddots, hmod, vmod, rowsA, ::BiInfUnitRange)
     hmod, vmod = Int(hmod)::Int, Int(vmod)::Int
-    if !(get(io, :limit, false)::Bool)
-        screenheight = screenwidth = typemax(Int)
-    else
-        sz = displaysize(io)::Tuple{Int,Int}
-        screenheight, screenwidth = sz[1] - 4, sz[2]
-    end
+    # always limited as there are infinitely many rows or columns
+    sz = displaysize(io)::Tuple{Int,Int}
+    screenheight, screenwidth = sz[1] - 4, sz[2]
     screenwidth -= length(pre)::Int + length(post)::Int
     presp = repeat(" ", length(pre)::Int)  # indent each row to match pre string
     postsp = ""
@@ -167,12 +161,9 @@ end
 
 function Base._print_matrix(io, @nospecialize(X::AbstractVecOrMat), pre, sep, post, hdots, vdots, ddots, hmod, vmod, ::BiInfUnitRange, ::BiInfUnitRange)
     hmod, vmod = Int(hmod)::Int, Int(vmod)::Int
-    if !(get(io, :limit, false)::Bool)
-        screenheight = screenwidth = typemax(Int)
-    else
-        sz = displaysize(io)::Tuple{Int,Int}
-        screenheight, screenwidth = sz[1] - 4, sz[2]
-    end
+    # always limited as there are infinitely many rows or columns
+    sz = displaysize(io)::Tuple{Int,Int}
+    screenheight, screenwidth = sz[1] - 4, sz[2]
     screenwidth -= length(pre)::Int + length(post)::Int
     presp = repeat(" ", length(pre)::Int)  # indent each row to match pre string
     postsp = ""

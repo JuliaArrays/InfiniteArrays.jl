@@ -676,6 +676,28 @@ end
 end
 
 @testset "concat" begin
+    @testset "vcat infinite rows" begin
+        A = [(1:∞)'; transpose(2:∞)]
+        @test A isa Vcat
+        @test size(A) == (2,ℵ₀)
+        @test A[:,1:3] == [1 2 3; 2 3 4]
+        B = [Ones{Int}(∞)'; (1:∞)'; transpose(oneto(∞))]
+        @test B isa Vcat
+        @test size(B) == (3,ℵ₀)
+        @test B[:,1:3] == [1 1 1; 1 2 3; 1 2 3]
+        # mixed with an infinite row that is not a range or fill
+        C = [(1:∞)'; ((1:∞) .^ 2)']
+        @test C isa Vcat
+        @test size(C) == (2,ℵ₀)
+        @test C[:,1:3] == [1 2 3; 1 4 9]
+        D = [((1:∞) .^ 2)'; (1:∞)']
+        @test D isa Vcat
+        @test size(D) == (2,ℵ₀)
+        @test D[:,1:3] == [1 4 9; 1 2 3]
+        @test [(1:3)'; (2:4)'] == [1 2 3; 2 3 4]
+        @test [(1:3)'; (2:4)'] isa Matrix
+    end
+
     @testset "concat indexing" begin
         A = Vcat(1:10, 1:∞)
         @test @inferred(length(A)) == ℵ₀
@@ -1278,6 +1300,11 @@ end
 @testset "print_matrix_row" begin
     # check that show works
     Base.sprint(show, I(ℵ₀), context=:limit=>true)
+
+    # infinite matrices are always printed in limited form
+    for A in (Diagonal(1:∞), (1:∞)', reshape(1:∞, 1, ∞))
+        @test sprint(show, MIME"text/plain"(), A) == sprint(show, MIME"text/plain"(), A; context=:limit=>true)
+    end
 end
 
 @testset "comprehension" begin

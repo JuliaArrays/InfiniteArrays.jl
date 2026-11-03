@@ -111,6 +111,12 @@ vcat(a::AbstractVector{<:AbstractArray}, b::AbstractVector{<:AbstractArray}, c::
 
 vcat(a::AbstractMatrix{<:Number}, b::AbstractFill{<:Number,2,<:Tuple{OneToInf,OneTo}}) = Vcat(a, b)
 
+# rows of infinite length, e.g. [(1:∞)'; (2:∞)'], are concatenated lazily
+const InfRowVector = AdjOrTrans{<:Number,<:Union{InfRanges,AbstractFill{<:Any,1,<:Tuple{OneToInf}}}}
+vcat(a::InfRowVector, b::AdjOrTransAbsVec{<:Number}...) = Vcat(a, b...)
+vcat(a::AdjOrTransAbsVec{<:Number}, b::InfRowVector, c::AdjOrTransAbsVec{<:Number}...) = Vcat(a, b, c...)
+vcat(a::InfRowVector, b::InfRowVector, c::AdjOrTransAbsVec{<:Number}...) = Vcat(a, b, c...)
+
 cat_similar(A, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
 cat_similar(A::AbstractArray, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
 cat_similar(A::Array, ::Type{T}, shape::Tuple{PosInfinity}) where T = zeros(T,∞)
