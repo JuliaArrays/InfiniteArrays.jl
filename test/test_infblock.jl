@@ -16,6 +16,8 @@ const BlockTriPertToeplitz = InfiniteArraysBlockArraysExt.BlockTriPertToeplitz
         for i in 1:10
             @test b2[Block(i)] == b[Block(i)] + b[Block(i)]
         end
+
+        @test blocklengths(blockedrange(Ones{Int}(∞))) ≡ Ones{Int}(∞)
     end
 
     @testset "fixed block size" begin
