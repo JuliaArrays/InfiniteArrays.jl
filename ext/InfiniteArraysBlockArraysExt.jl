@@ -24,6 +24,7 @@ end
 BlockArrays.sortedunion(a::OneToInfCumsum, ::OneToInfCumsum) = a
 
 BlockArrays.blocklasts(a::InfRanges) = Fill(length(a),1)
+BlockArrays.blocklengths(::BlockedOneTo{T,OneToInf{T}}) where T<:Integer = Ones{T}(∞)
 
 BlockArrays.findblock(::BlockedOneTo, ::RealInfinity) = Block(ℵ₀)
 
