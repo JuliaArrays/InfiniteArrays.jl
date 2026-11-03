@@ -1185,6 +1185,25 @@ end
         AbstractMatrix{Float64}(transpose(1:∞)) ≡ AbstractMatrix{Float64}(transpose(oneto(∞))) ≡
         AbstractArray{Float64}(transpose(1:∞)) ≡ AbstractArray{Float64}(transpose(oneto(∞))) ≡
         transpose(InfUnitRange(1.0))
+
+    @testset "complex" begin
+        for r in (oneto(∞), 2:∞, 1.0:∞, 1:2:∞, 0.5:0.25:∞)
+            for c in (convert(AbstractArray{ComplexF64}, r), convert(AbstractVector{ComplexF64}, r),
+                      AbstractArray{ComplexF64}(r), AbstractVector{ComplexF64}(r))
+                @test c isa AbstractVector{ComplexF64}
+                @test size(c) == (ℵ₀,)
+                @test c[1:5] == r[1:5]
+            end
+            for c in (convert(AbstractMatrix{ComplexF64}, r'), AbstractMatrix{ComplexF64}(r'), AbstractArray{ComplexF64}(r'))
+                @test c isa Adjoint{ComplexF64}
+                @test c[1,1:5] == r[1:5]
+            end
+            for c in (convert(AbstractMatrix{ComplexF64}, transpose(r)), AbstractMatrix{ComplexF64}(transpose(r)), AbstractArray{ComplexF64}(transpose(r)))
+                @test c isa Transpose{ComplexF64}
+                @test c[1,1:5] == r[1:5]
+            end
+        end
+    end
 end
 
 @testset "cached indexing" begin

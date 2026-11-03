@@ -89,10 +89,14 @@ const InfAxes = Union{InfRanges{<:Integer},Slice{<:AbstractInfUnitRange{<:Intege
 
 Base.IteratorSize(::Type{<:InfRanges}) = Base.IsInfinite()
 
-AbstractArray{T}(ac::Adjoint{<:Any,<:InfRanges}) where T<:Real = AbstractArray{T}(parent(ac))'
-AbstractMatrix{T}(ac::Adjoint{<:Any,<:InfRanges}) where T<:Real = AbstractVector{T}(parent(ac))'
-AbstractArray{T}(ac::Transpose{<:Any,<:InfRanges}) where T<:Real = transpose(AbstractArray{T}(parent(ac)))
-AbstractMatrix{T}(ac::Transpose{<:Any,<:InfRanges}) where T<:Real = transpose(AbstractVector{T}(parent(ac)))
+# non-real eltypes (e.g. complex) have no range type, so convert lazily instead of collecting
+AbstractArray{T}(a::InfRanges) where T = T.(a)
+AbstractVector{T}(a::InfRanges) where T = T.(a)
+
+AbstractArray{T}(ac::Adjoint{<:Any,<:InfRanges}) where T = AbstractArray{T}(parent(ac))'
+AbstractMatrix{T}(ac::Adjoint{<:Any,<:InfRanges}) where T = AbstractVector{T}(parent(ac))'
+AbstractArray{T}(ac::Transpose{<:Any,<:InfRanges}) where T = transpose(AbstractArray{T}(parent(ac)))
+AbstractMatrix{T}(ac::Transpose{<:Any,<:InfRanges}) where T = transpose(AbstractVector{T}(parent(ac)))
 
 copy(ac::AdjOrTrans{<:Any,<:InfRanges}) = ac
 reverse(a::InfRanges) = throw(ArgumentError("Cannot reverse infinite range"))
