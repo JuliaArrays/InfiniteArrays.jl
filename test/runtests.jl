@@ -685,6 +685,15 @@ end
         @test B isa Vcat
         @test size(B) == (3,ℵ₀)
         @test B[:,1:3] == [1 1 1; 1 2 3; 1 2 3]
+        # mixed with an infinite row that is not a range or fill
+        C = [(1:∞)'; ((1:∞) .^ 2)']
+        @test C isa Vcat
+        @test size(C) == (2,ℵ₀)
+        @test C[:,1:3] == [1 2 3; 1 4 9]
+        D = [((1:∞) .^ 2)'; (1:∞)']
+        @test D isa Vcat
+        @test size(D) == (2,ℵ₀)
+        @test D[:,1:3] == [1 4 9; 1 2 3]
         @test [(1:3)'; (2:4)'] == [1 2 3; 2 3 4]
         @test [(1:3)'; (2:4)'] isa Matrix
     end
