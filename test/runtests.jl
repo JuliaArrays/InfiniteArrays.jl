@@ -302,6 +302,19 @@ end
         @test 1 .+ transpose(1:∞) ≡ broadcast(+, 1, transpose(1:∞)) ≡ transpose(2:∞)
         @test (1:∞)' .+ 1 ≡ broadcast(+, (1:∞)', 1) ≡ (2:∞)'
         @test transpose(1:∞) .+ 1 ≡ broadcast(+, transpose(1:∞), 1) ≡ transpose(2:∞)
+
+        # non-real results are not conjugated
+        for r in (1:∞, 0.0:∞, 1:2:∞)
+            @test (-im .* r')[1,1:5] == broadcast(*, -im, r')[1,1:5] == -im*r[1:5]
+            @test (r' .* -im)[1,1:5] == broadcast(*, r', -im)[1,1:5] == -im*r[1:5]
+            @test (r' .+ im)[1,1:5] == broadcast(+, r', im)[1,1:5] == r[1:5] .+ im
+            @test cis.(r')[1,1:5] == broadcast(cis, r')[1,1:5] == cis.(r[1:5])
+            @test (-im .* r')[1,2] == -im*r[2]
+            @test (-im .* transpose(r))[1,1:5] == -im*r[1:5]
+            # entries of lazy broadcasts are computed by re-broadcasting, which flattens to the above
+            @test (-im .* BroadcastVector(*, 2, r)')[1,2] == -2im*r[2]
+        end
+        @test 2im .* (1:∞)' isa Transpose{Complex{Int}}
     end
 
     @testset "near-equal ranges" begin
