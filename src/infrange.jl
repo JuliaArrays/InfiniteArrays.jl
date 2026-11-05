@@ -494,18 +494,23 @@ BroadcastStyle(::Type{<:SubArray{<:Any,2,<:Any,<:Tuple{<:Any,<:InfIndexRanges}}}
 
 
 
-broadcasted(::LazyArrayStyle, f, r::Adjoint{<:Any,<:InfRanges}) = broadcast(f,parent(r))'
+# for real r we have r' == transpose(r), so we can broadcast over parent(r) and then transpose.
+# Taking the adjoint of a non-real result would conjugate it, so only do so for real results.
+_adjoint_broadcast(b::AbstractArray{<:Real}) = b'
+_adjoint_broadcast(b) = transpose(b)
+
+broadcasted(::LazyArrayStyle, f, r::Adjoint{<:Real,<:InfRanges}) = _adjoint_broadcast(broadcast(f,parent(r)))
 broadcasted(::LazyArrayStyle, f, r::Transpose{<:Any,<:InfRanges}) = transpose(broadcast(f,parent(r)))
-broadcasted(::LazyArrayStyle, f, a::Number, r::Adjoint{<:Any,<:InfRanges}) = broadcast(f,a,parent(r))'
+broadcasted(::LazyArrayStyle, f, a::Number, r::Adjoint{<:Real,<:InfRanges}) = _adjoint_broadcast(broadcast(f,a,parent(r)))
 broadcasted(::LazyArrayStyle, f, a::Number, r::Transpose{<:Any,<:InfRanges}) = transpose(broadcast(f,a,parent(r)))
-broadcasted(::LazyArrayStyle, f, r::Adjoint{<:Any,<:InfRanges}, a::Number) = broadcast(f,parent(r),a)'
+broadcasted(::LazyArrayStyle, f, r::Adjoint{<:Real,<:InfRanges}, a::Number) = _adjoint_broadcast(broadcast(f,parent(r),a))
 broadcasted(::LazyArrayStyle, f, r::Transpose{<:Any,<:InfRanges}, a::Number) = transpose(broadcast(f,parent(r),a))
 
-broadcast(f, r::Adjoint{<:Any,<:InfRanges}) = broadcast(f,parent(r))'
+broadcast(f, r::Adjoint{<:Real,<:InfRanges}) = _adjoint_broadcast(broadcast(f,parent(r)))
 broadcast(f, r::Transpose{<:Any,<:InfRanges}) = transpose(broadcast(f,parent(r)))
-broadcast(f, a::Number, r::Adjoint{<:Any,<:InfRanges}) = broadcast(f,a,parent(r))'
+broadcast(f, a::Number, r::Adjoint{<:Real,<:InfRanges}) = _adjoint_broadcast(broadcast(f,a,parent(r)))
 broadcast(f, a::Number, r::Transpose{<:Any,<:InfRanges}) = transpose(broadcast(f,a,parent(r)))
-broadcast(f, r::Adjoint{<:Any,<:InfRanges}, a::Number) = broadcast(f,parent(r),a)'
+broadcast(f, r::Adjoint{<:Real,<:InfRanges}, a::Number) = _adjoint_broadcast(broadcast(f,parent(r),a))
 broadcast(f, r::Transpose{<:Any,<:InfRanges}, a::Number) = transpose(broadcast(f,parent(r),a))
 
 
