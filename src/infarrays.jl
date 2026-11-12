@@ -59,8 +59,14 @@ Eye(m::Integer, ::Infinity) = Eye(m, ℵ₀)
 @inline Fill(x, sz::Union{Infinity,Integer}...) = Fill(x, Base.to_shape(sz)...)
 @inline Fill{T}(x, sz::Union{Infinity,Integer}...) where T = Fill{T}(x, Base.to_shape(sz)...)
 
-OneElement(val, inds::NTuple{N,Int}, sz::Tuple{Vararg{Union{Infinity,Integer},N}}) where N = OneElement(val, inds, oneto.(sz))
-OneElement{T}(val, inds::NTuple{N,Int}, sz::Tuple{Vararg{Union{Infinity,Integer},N}}) where {T,N} = OneElement(convert(T,val), inds, oneto.(sz))
+# The sizes must contain an Infinity, as sizes of only Integers (including the empty tuple) are
+# handled by FillArrays. This supports ∞ in the first two dimensions.
+for Sz in (:(Tuple{Infinity,Vararg{Union{Infinity,Integer}}}), :(Tuple{Integer,Infinity,Vararg{Union{Infinity,Integer}}}))
+    @eval begin
+        OneElement(val, inds::Tuple{Vararg{Int}}, sz::$Sz) = OneElement(val, inds, oneto.(sz))
+        OneElement{T}(val, inds::Tuple{Vararg{Int}}, sz::$Sz) where T = OneElement(convert(T,val), inds, oneto.(sz))
+    end
+end
 OneElement(val, ind::Int, n::Infinity) = OneElement(val, (ind,), (n,))
 OneElement{T}(val, ind::Int, n::Infinity) where T = OneElement{T}(val, (ind,), (n,))
 OneElement(ind::Int, n::Infinity) = OneElement(1, ind, n)

@@ -1405,6 +1405,17 @@ end
         @test OneElement(2, (2,3), (∞,∞)) === OneElement(2, (2,3), (OneToInf(),OneToInf()))
         @test OneElement(2, (2,3), (4,∞)) === OneElement(2, (2,3), (Base.OneTo(4),OneToInf()))
         @test OneElement{Float64}(2, (2,3), (∞,4)) === OneElement(2.0, (2,3), (OneToInf(),Base.OneTo(4)))
+        @test OneElement{Float64}(2, (2,3), (4,∞)) === OneElement(2.0, (2,3), (Base.OneTo(4),OneToInf()))
+        @test OneElement(2, (2,3), (ℵ₀,∞)) === OneElement(2, (2,3), (OneToInf(),OneToInf()))
+        @test OneElement(2, (1,2,3), (∞,4,5)) === OneElement(2, (1,2,3), (OneToInf(),Base.OneTo(4),Base.OneTo(5)))
+        @test_throws MethodError OneElement(2, (2,), (∞,4))
+        @test_throws MethodError OneElement{Float64}(2, (2,3), (∞,))
+
+        # sizes without an Infinity, including the empty tuple, are handled by FillArrays
+        for (f, args) in ((OneElement, (2, (), ())), (OneElement{Float64}, (2, (), ())),
+                          (OneElement, (2, (2,), (5,))), (OneElement{Float64}, (2, (2,), (5,))))
+            @test which(f, typeof(args)).module == FillArrays
+        end
     end
 
     @testset "indexing" begin
@@ -1469,6 +1480,9 @@ end
         @test [1; x][1:5] == [1,0,1,0,0]
         @test [[1,2]; x][1:5] == [1,2,0,1,0]
         @test [[1]; [2]; x][1:5] == [1,2,0,1,0]
+
+        @test_throws ArgumentError [1:∞; x]
+        @test_throws ArgumentError [1:∞; [1]; x]
     end
 end
 
