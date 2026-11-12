@@ -186,6 +186,20 @@ for M in (:Diagonal, :Bidiagonal, :Tridiagonal, :SymTridiagonal)
     @eval BroadcastStyle(::Type{<:$M{T,<:AbstractFill{T,1,Tuple{OneToInf{I}}}}}) where {T,I} = LazyArrayStyle{2}()
 end
 
+# Adjoints and transposes of infinite fills, e.g. Ones(∞)', are broadcast lazily. Unary broadcasts
+# and broadcasts with a scalar are applied to the parent fill, so that, e.g., 2 .* Ones(∞)' == Fill(2.0,∞)'.
+# See _adjoint_broadcast for why adjoints are only taken of real results.
+const InfFillVector = AbstractFill{<:Any,1,<:Tuple{OneToInf}}
+BroadcastStyle(::Type{<:Adjoint{<:Any,<:InfFillVector}}) = LazyArrayStyle{2}()
+BroadcastStyle(::Type{<:Transpose{<:Any,<:InfFillVector}}) = LazyArrayStyle{2}()
+
+broadcasted(::LazyArrayStyle{2}, f, a::Adjoint{<:Real,<:InfFillVector}) = _adjoint_broadcast(broadcast(f, parent(a)))
+broadcasted(::LazyArrayStyle{2}, f, a::Transpose{<:Any,<:InfFillVector}) = transpose(broadcast(f, parent(a)))
+broadcasted(::LazyArrayStyle{2}, f, x::Number, a::Adjoint{<:Real,<:InfFillVector}) = _adjoint_broadcast(broadcast(f, x, parent(a)))
+broadcasted(::LazyArrayStyle{2}, f, x::Number, a::Transpose{<:Any,<:InfFillVector}) = transpose(broadcast(f, x, parent(a)))
+broadcasted(::LazyArrayStyle{2}, f, a::Adjoint{<:Real,<:InfFillVector}, x::Number) = _adjoint_broadcast(broadcast(f, parent(a), x))
+broadcasted(::LazyArrayStyle{2}, f, a::Transpose{<:Any,<:InfFillVector}, x::Number) = transpose(broadcast(f, parent(a), x))
+
 # LazyArrays forwards one- and two-argument fill broadcasts to DefaultArrayStyle, but literal_pow
 # is a three-argument form, so forward it explicitly to retain the FillArrays simplification.
 # The axes are matched to the BroadcastStyle definitions above.

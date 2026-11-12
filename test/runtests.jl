@@ -638,6 +638,26 @@ end
         @test sum([1; zeros(∞)]) ≡ 1.0
         @test sum([1; ones(∞)]) ≡ 1.0∞
     end
+
+    @testset "broadcast adjoint/transpose" begin
+        for a in (Ones(∞), Zeros(∞), Fill(2,∞))
+            @test Base.BroadcastStyle(typeof(a')) == Base.BroadcastStyle(typeof(transpose(a))) == LazyArrays.LazyArrayStyle{2}()
+            @test 2.0 .* a' ≡ (2.0 .* a)'
+            @test a' .* 2.0 ≡ (a .* 2.0)'
+            @test 2.0 .* transpose(a) ≡ transpose(2.0 .* a)
+            @test transpose(a) .* 2.0 ≡ transpose(a .* 2.0)
+            @test exp.(a') ≡ exp.(a)'
+            @test exp.(transpose(a)) ≡ transpose(exp.(a))
+            @test (2.0 .* a')[1,1:5] == 2.0 .* a[1:5]
+        end
+        # non-real results are not conjugated
+        @test (im .* Ones(∞)')[1,1:3] == im .* Ones(3)
+        @test im .* Ones(∞)' isa Transpose{ComplexF64}
+        @test (im .* Fill(1+im,∞)')[1,1] == im*(1-im)
+        # combining with other infinite arrays
+        @test (Ones(∞)' .+ (1:∞)')[1,1:3] == 2:4
+        @test (Ones(∞)' .* Fill(2.0,5,∞))[1:5,1:5] == fill(2.0,5,5)
+    end
 end
 
 @testset "diagonal" begin

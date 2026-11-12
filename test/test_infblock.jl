@@ -57,6 +57,15 @@ Base.getindex(::InfLazyMatrix, k::Int, j::Int) = k + j
         @test b .* o isa typeof(b)
     end
 
+    @testset "blocked adjoint fill broadcast" begin
+        # previously hung trying to materialise an infinite array
+        a = BlockedArray(Ones(∞)', Ones{Int}.(axes(Ones(∞)'))...)
+        b = 2.0 .* a
+        @test parent(b) ≡ Fill(2.0,∞)'
+        @test axes(b) == axes(a)
+        @test b[Block(1,3)] == fill(2.0,1,1)
+    end
+
     @testset "padded" begin
         c = BlockedArray([1; 0; 2; zeros(∞)], Vcat(2, Fill(3, ∞)))
         @test c + c isa BlockedVector
