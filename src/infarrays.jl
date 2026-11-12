@@ -59,6 +59,13 @@ Eye(m::Integer, ::Infinity) = Eye(m, ℵ₀)
 @inline Fill(x, sz::Union{Infinity,Integer}...) = Fill(x, Base.to_shape(sz)...)
 @inline Fill{T}(x, sz::Union{Infinity,Integer}...) where T = Fill{T}(x, Base.to_shape(sz)...)
 
+OneElement(val, inds::NTuple{N,Int}, sz::Tuple{Vararg{Union{Infinity,Integer},N}}) where N = OneElement(val, inds, oneto.(sz))
+OneElement{T}(val, inds::NTuple{N,Int}, sz::Tuple{Vararg{Union{Infinity,Integer},N}}) where {T,N} = OneElement(convert(T,val), inds, oneto.(sz))
+OneElement(val, ind::Int, n::Infinity) = OneElement(val, (ind,), (n,))
+OneElement{T}(val, ind::Int, n::Infinity) where T = OneElement{T}(val, (ind,), (n,))
+OneElement(ind::Int, n::Infinity) = OneElement(1, ind, n)
+OneElement{T}(ind::Int, n::Infinity) where T = OneElement(one(T), ind, n)
+
 zeros(sz::Union{Infinity, Integer, AbstractUnitRange}...) = zeros(Base.to_shape(sz)...)
 zeros(::Type{T}, sz::Union{Infinity, Integer, AbstractUnitRange}...) where T = zeros(T, Base.to_shape(sz)...)
 zeros(::Type{T}, ::Tuple{PosInfinity}) where T = cache(Zeros{T}(∞))
@@ -181,6 +188,16 @@ for typ in (:Ones, :Zeros, :Fill)
         BroadcastStyle(::Type{<:$typ{T,2,<:Tuple{<:OneToInf,<:OneToInf}}}) where {T} = LazyArrayStyle{2}()
     end
 end
+
+BroadcastStyle(::Type{<:OneElement{T,N,<:Any,<:Tuple{OneToInf,Vararg{OneToInf}}}}) where {T,N} = LazyArrayStyle{N}()
+BroadcastStyle(::Type{<:OneElement{T,2,<:Any,<:Tuple{<:Any,<:OneToInf}}}) where {T} = LazyArrayStyle{2}()
+BroadcastStyle(::Type{<:OneElement{T,2,<:Any,<:Tuple{<:OneToInf,<:Any}}}) where {T} = LazyArrayStyle{2}()
+BroadcastStyle(::Type{<:OneElement{T,2,<:Any,<:Tuple{<:OneToInf,<:OneToInf}}}) where {T} = LazyArrayStyle{2}()
+
+# OneElement is immutable, and copying into a mutable array would never terminate
+copy(A::Union{OneElement{<:Any,N,<:Any,<:Tuple{OneToInf,Vararg{OneToInf}}} where N,
+              OneElement{<:Any,2,<:Any,<:Tuple{<:Any,<:OneToInf}},
+              OneElement{<:Any,2,<:Any,<:Tuple{<:OneToInf,<:Any}}}) = A
 
 for M in (:Diagonal, :Bidiagonal, :Tridiagonal, :SymTridiagonal)
     @eval BroadcastStyle(::Type{<:$M{T,<:AbstractFill{T,1,Tuple{OneToInf{I}}}}}) where {T,I} = LazyArrayStyle{2}()

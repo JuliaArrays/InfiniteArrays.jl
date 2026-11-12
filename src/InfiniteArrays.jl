@@ -33,7 +33,7 @@ import ArrayLayouts: AbstractBandedLayout, LayoutMatrix, LayoutVecOrMat, LayoutV
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, DefaultArrayStyle, axistype, broadcasted
 
-import FillArrays: AbstractFill, Eye, Fill, Ones, RectDiagonal, Zeros, fill_reshape, getindex_value, AbstractFillMatrix, OffDiagonal
+import FillArrays: AbstractFill, Eye, Fill, Ones, RectDiagonal, Zeros, fill_reshape, getindex_value, AbstractFillMatrix, OffDiagonal, OneElement
 
 import Infinities: InfiniteCardinal, Infinity, ∞
 
@@ -92,6 +92,7 @@ end
 for Typ in (:Number, :(AbstractVector{<:Number}))
    @eval begin
       vcat(a::$Typ, b::AbstractFill{<:Number,1,<:Tuple{OneToInf}}) = Vcat(a, b)
+      vcat(a::$Typ, b::OneElement{<:Number,1,<:Any,<:Tuple{OneToInf}}) = Vcat(a, b)
       vcat(a::$Typ, c::CachedVector{<:Number,<:Any,<:AbstractFill{<:Any,1,<:Tuple{OneToInf}}}) =
          CachedArray(vcat(a, view(c.data,1:c.datasize[1])), c.array)
    end
@@ -103,6 +104,7 @@ end
 
 vcat(a::AbstractVector{<:Number}, b::AbstractVector{<:Number}, c::AbstractFill{<:Number,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b), c)
 vcat(a::AbstractVector{<:Number}, b::AbstractVector{<:Number}, c::AbstractVector{<:Number}, d::AbstractFill{<:Number,1,<:Tuple{OneToInf}}) = Vcat(vcat(a,b,c), d)
+vcat(a::AbstractVector{<:Number}, b::AbstractVector{<:Number}, c::OneElement{<:Number,1,<:Any,<:Tuple{OneToInf}}) = Vcat(vcat(a,b), c)
 
 # Array-valued entries must also stay lazy instead of allocating a zero-filled cache.
 vcat(a::AbstractVector{<:AbstractArray}, b::AbstractFill{<:AbstractArray,1,<:Tuple{OneToInf}}) = Vcat(a, b)
