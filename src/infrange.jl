@@ -559,6 +559,9 @@ vcat(r::InfRanges{<:Number}) = r
 vcat(r::InfRanges{<:Number}, args::AbstractRange{<:Number}...) = throw_inferror()
 vcat(r::InfRanges{<:Number}, args::InfRanges{<:Number}...) = throw_inferror()
 vcat(r::InfRanges{<:Number}, ::Union{Number, AbstractVector{<:Number}}...) = throw_inferror()
+# disambiguate with vcat(::AbstractVector, ..., ::OneElement) in InfiniteArrays.jl
+vcat(r::InfRanges{<:Number}, ::OneElement{<:Number,1,<:Any,<:Tuple{OneToInf}}) = throw_inferror()
+vcat(r::InfRanges{<:Number}, ::AbstractVector{<:Number}, ::OneElement{<:Number,1,<:Any,<:Tuple{OneToInf}}) = throw_inferror()
 vcat(r::AbstractRange{T}, infr::InfRanges{T}) where {T<:Number} = Vcat(r, infr)
 vcat(r::AbstractRange{<:Number}, infr::InfRanges{<:Number}) = Vcat(r, infr)
 vcat(v::AbstractVector{<:Number}, infr::InfRanges{<:Number}) = Vcat(v, infr)

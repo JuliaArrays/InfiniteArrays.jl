@@ -1393,6 +1393,99 @@ end
     @test !checkbounds(Bool, r, Fill(true, 1))
 end
 
+@testset "OneElement" begin
+    @testset "construction" begin
+        x = OneElement(5, ∞)
+        @test x === OneElement(5, ℵ₀) === OneElement(1, (5,), (OneToInf(),))
+        @test axes(x) == (OneToInf(),)
+        @test size(x) == (ℵ₀,)
+        @test OneElement(2.0, 5, ∞) === OneElement(2.0, (5,), (OneToInf(),))
+        @test OneElement{Float64}(5, ∞) === OneElement(1.0, (5,), (OneToInf(),))
+        @test OneElement{Float64}(2, 5, ∞) === OneElement(2.0, (5,), (OneToInf(),))
+        @test OneElement(2, (2,3), (∞,∞)) === OneElement(2, (2,3), (OneToInf(),OneToInf()))
+        @test OneElement(2, (2,3), (4,∞)) === OneElement(2, (2,3), (Base.OneTo(4),OneToInf()))
+        @test OneElement{Float64}(2, (2,3), (∞,4)) === OneElement(2.0, (2,3), (OneToInf(),Base.OneTo(4)))
+        @test OneElement{Float64}(2, (2,3), (4,∞)) === OneElement(2.0, (2,3), (Base.OneTo(4),OneToInf()))
+        @test OneElement(2, (2,3), (ℵ₀,∞)) === OneElement(2, (2,3), (OneToInf(),OneToInf()))
+        @test OneElement(2, (1,2,3), (∞,4,5)) === OneElement(2, (1,2,3), (OneToInf(),Base.OneTo(4),Base.OneTo(5)))
+        @test_throws MethodError OneElement(2, (2,), (∞,4))
+        @test_throws MethodError OneElement{Float64}(2, (2,3), (∞,))
+
+        # sizes without an Infinity, including the empty tuple, are handled by FillArrays
+        for (f, args) in ((OneElement, (2, (), ())), (OneElement{Float64}, (2, (), ())),
+                          (OneElement, (2, (2,), (5,))), (OneElement{Float64}, (2, (2,), (5,))))
+            @test which(f, typeof(args)).module == FillArrays
+        end
+    end
+
+    @testset "indexing" begin
+        x = OneElement(5, ∞)
+        @test x[5] == 1
+        @test x[6] == x[1_000_000] == 0
+        @test x[1:10] === OneElement(5, 10)
+        @test x[3:∞] === OneElement(1, (3,), (OneToInf(),))
+        @test sum(x) == 1
+
+        A = OneElement(2.0, (2,3), (∞,∞))
+        @test A[1:3,1:4] === OneElement(2.0, (2,3), (3,4))
+        @test A[2,3] == 2.0
+        @test A[3,2] == 0.0
+    end
+
+    @testset "show" begin
+        x = OneElement(5, ∞)
+        s = sprint(show, MIME"text/plain"(), x; context=:limit=>true)
+        @test startswith(s, "ℵ₀-element OneElement")
+        @test contains(s, "\n ⋅\n 1\n ⋅\n")
+        @test endswith(s, "⋮")
+    end
+
+    @testset "arithmetic/broadcasting" begin
+        x = OneElement(5, ∞)
+        @test 2x === x*2 === OneElement(2, 5, ∞)
+        @test x/2 === OneElement(0.5, 5, ∞)
+        @test -x === OneElement(-1, 5, ∞)
+
+        @test x .+ 1 isa BroadcastVector
+        @test (x .+ 1)[1:6] == [1,1,1,1,2,1]
+        @test x + x isa BroadcastVector
+        @test (x + x)[1:6] == [0,0,0,0,2,0]
+        @test (x - x)[1:6] == zeros(6)
+        @test x .* (1:∞) isa BroadcastVector
+        @test (x .* (1:∞))[1:6] == [0,0,0,0,5,0]
+        @test exp.(x)[1:6] == exp.([0,0,0,0,1,0])
+
+        A = OneElement(2.0, (2,3), (∞,∞))
+        @test A .+ 1 isa BroadcastMatrix
+        @test (A .+ 1)[1:3,1:4] == [1 1 1 1; 1 1 3 1; 1 1 1 1]
+        for B in (OneElement(2.0, (2,3), (4,∞)), OneElement(2.0, (2,3), (∞,4)))
+            @test B .+ 1 isa BroadcastMatrix
+            @test (B .+ 1)[1:3,1:4] == [1 1 1 1; 1 1 3 1; 1 1 1 1]
+        end
+    end
+
+    @testset "copy" begin
+        for A in (OneElement(5, ∞), OneElement(2.0, (2,3), (∞,∞)),
+                  OneElement(2.0, (2,3), (4,∞)), OneElement(2.0, (2,3), (∞,4)))
+            @test copy(A) === A
+        end
+    end
+
+    @testset "vcat" begin
+        x = OneElement(2, ∞)
+        for v in ([1; x], [[1,2]; x], [[1]; [2]; x])
+            @test v isa Vcat
+            @test size(v) == (ℵ₀,)
+        end
+        @test [1; x][1:5] == [1,0,1,0,0]
+        @test [[1,2]; x][1:5] == [1,2,0,1,0]
+        @test [[1]; [2]; x][1:5] == [1,2,0,1,0]
+
+        @test_throws ArgumentError [1:∞; x]
+        @test_throws ArgumentError [1:∞; [1]; x]
+    end
+end
+
 include("test_infconv.jl")
 include("test_infblock.jl")
 include("test_infbanded.jl")
