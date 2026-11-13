@@ -80,6 +80,23 @@ Base.getindex(::InfLazyMatrix, k::Int, j::Int) = k + j
         @test B[:, 1:2][1:3,:] == [2 3; 3 4; 4 5]
     end
 
+    @testset "infinite blocked Fill views" begin
+        for (x, F) in ((Ones(∞), Ones), (Zeros(∞), Zeros), (Fill(2.0, ∞), Fill))
+            b = BlockedVector(x, Ones{Int}(∞))
+            v = view(b, 2:∞)
+            @test ArrayLayouts.sub_materialize(v) isa F{Float64,1,Tuple{OneToInf{Int}}}
+            @test b[2:∞] isa F{Float64,1,Tuple{OneToInf{Int}}}
+            @test b[2:∞][1:5] == x[1:5]
+        end
+        for (X, F) in ((Ones(∞,∞), Ones), (Zeros(∞,∞), Zeros), (Fill(2.0, ∞, ∞), Fill))
+            B = BlockedMatrix(X, Ones{Int}(∞), Ones{Int}(∞))
+            @test B[2:∞, 2:∞] isa F{Float64,2,NTuple{2,OneToInf{Int}}}
+            @test B[1:3, 2:∞] isa F{Float64,2,Tuple{Base.OneTo{Int},OneToInf{Int}}}
+            @test B[2:∞, 1:3] isa F{Float64,2,Tuple{OneToInf{Int},Base.OneTo{Int}}}
+            @test B[2:∞, 1:3][1:4,:] == X[1:4,1:3]
+        end
+    end
+
 
     @testset "triangle recurrences" begin
         @testset "n and k" begin

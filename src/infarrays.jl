@@ -440,6 +440,16 @@ sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{InfAxes,
 sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{Any, InfAxes}) = ApplyArray(V)
 sub_materialize(::ApplyLayout{typeof(hcat)}, V::AbstractMatrix, ::Tuple{InfAxes, Any}) = ApplyArray(V)
 
+# Fill-like sub-arrays are materialised lazily as a Fill/Zeros/Ones. This also resolves
+# ambiguities with the ArrayLayouts methods for these layouts.
+for Ax in (:(Tuple{InfAxes}), :(Tuple{InfAxes,InfAxes}), :(Tuple{Any,InfAxes}), :(Tuple{InfAxes,Any}))
+    @eval begin
+        sub_materialize(::AbstractFillLayout, V, ax::$Ax) = Fill(getindex_value(V), ax)
+        sub_materialize(::ZerosLayout, V, ax::$Ax) = Zeros{eltype(V)}(ax)
+        sub_materialize(::OnesLayout, V, ax::$Ax) = Ones{eltype(V)}(ax)
+    end
+end
+
 
 sub_materialize(::AbstractPaddedLayout, v::AbstractVector, ::Tuple{InfAxes}) = _padded_sub_materialize(v)
 
